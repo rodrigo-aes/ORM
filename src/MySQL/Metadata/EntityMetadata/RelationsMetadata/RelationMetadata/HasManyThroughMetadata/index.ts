@@ -1,0 +1,67 @@
+import EntityMetadata from "../../.."
+import RelationMetadata from "../RelationMetadata"
+
+// Types
+import type { EntityTarget } from "../../../../../../types/General"
+import type { ColumnMetadata } from "../../../ColumnsMetadata"
+import type {
+    HasManyThroughOptions,
+    HasManyThroughRelatedGetter,
+    HasManyThroughGetter
+} from "./types"
+
+export default class HasManyThroughMetadata extends RelationMetadata {
+    public entity: EntityMetadata
+    public throughEntity: EntityMetadata
+
+    public related!: HasManyThroughRelatedGetter
+    public through!: HasManyThroughGetter
+
+    private foreignKeyName: string
+    private throughForeignKeyName: string
+
+    public scope: any
+
+    constructor(
+        target: EntityTarget,
+        { foreignKey, throughForeignKey, ...options }: HasManyThroughOptions
+    ) {
+        super(target, options)
+        Object.assign(this, options)
+
+        this.foreignKeyName = foreignKey
+        this.throughForeignKeyName = throughForeignKey
+        this.entity = this.loadEntity()
+        this.throughEntity = this.loadThroughEntity()
+    }
+
+    // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get foreignKey(): ColumnMetadata {
+        return this.entity.getColumn(this.foreignKeyName)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get throughForeignKey(): ColumnMetadata {
+        return this.throughEntity.getColumn(this.throughForeignKeyName)
+    }
+
+    // Instance Methods =======================================================
+    // Privates ---------------------------------------------------------------
+    private loadEntity() {
+        return EntityMetadata.findOrBuild(this.related())
+    }
+
+    // ------------------------------------------------------------------------
+
+    private loadThroughEntity() {
+        return EntityMetadata.findOrBuild(this.through())
+    }
+}
+
+export type {
+    HasManyThroughOptions,
+    HasManyThroughRelatedGetter,
+    HasManyThroughGetter
+}

@@ -1,0 +1,1 @@
+export type EntityTarget<T extends {} = any> = new (...args: any[]) => T
