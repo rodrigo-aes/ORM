@@ -1,0 +1,1 @@
+export type OrOperatorValue<T extends any = any> = T[]

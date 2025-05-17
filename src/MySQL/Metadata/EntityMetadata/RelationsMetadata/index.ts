@@ -1,21 +1,29 @@
 import RelationMetadata, {
+    type RelationMetadataType,
+
+    type HasOneMetadata,
     type HasOneOptions,
     type HasOneRelatedGetter,
 
+    type HasManyMetadata,
     type HasManyOptions,
     type HasManyRelatedGetter,
 
+    type HasOneThroughMetadata,
     type HasOneThroughOptions,
     type HasOneThroughRelatedGetter,
     type HasOneThroughGetter,
 
+    type HasManyThroughMetadata,
     type HasManyThroughOptions,
     type HasManyThroughRelatedGetter,
     type HasManyThroughGetter,
 
+    type BelongsToMetadata,
     type BelongToOptions,
     type BelongsToRelatedGetter,
 
+    type BelongsToThroughMetadata,
     type BelongsToThroughOptions,
     type BelongsToThroughRelatedGetter,
     type BelongsToThroughGetter,
@@ -23,6 +31,10 @@ import RelationMetadata, {
     type BelongsToManyMetadata,
     type BelongsToManyOptions,
     type BelongsToManyRelatedGetter,
+
+    type PolymorphicHasOneMetadata,
+    type PolymorphicHasManyMetadata,
+    type PolymorphicBelongsToMetadata,
 
     type PolymorphicParentOptions,
     type PolymorphicParentRelatedGetter,
@@ -147,24 +159,31 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
 
 export {
     RelationMetadata,
+    type RelationMetadataType,
 
+    type HasOneMetadata,
     type HasOneOptions,
     type HasOneRelatedGetter,
 
+    type HasManyMetadata,
     type HasManyOptions,
     type HasManyRelatedGetter,
 
+    type HasOneThroughMetadata,
     type HasOneThroughOptions,
     type HasOneThroughRelatedGetter,
     type HasOneThroughGetter,
 
+    type HasManyThroughMetadata,
     type HasManyThroughOptions,
     type HasManyThroughRelatedGetter,
     type HasManyThroughGetter,
 
+    type BelongsToMetadata,
     type BelongToOptions,
     type BelongsToRelatedGetter,
 
+    type BelongsToThroughMetadata,
     type BelongsToThroughOptions,
     type BelongsToThroughRelatedGetter,
     type BelongsToThroughGetter,
@@ -172,6 +191,10 @@ export {
     type BelongsToManyMetadata,
     type BelongsToManyOptions,
     type BelongsToManyRelatedGetter,
+
+    type PolymorphicHasOneMetadata,
+    type PolymorphicHasManyMetadata,
+    type PolymorphicBelongsToMetadata,
 
     type PolymorphicParentOptions,
     type PolymorphicParentRelatedGetter,

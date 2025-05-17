@@ -4,7 +4,7 @@ import HasOneMetadata from "../../HasOneMetadata"
 import type { EntityTarget } from "../../../../../../../types/General"
 import type { PolymorphicChildOptions } from "../types"
 
-export default class PolymorphicHasOneMetdata extends HasOneMetadata {
+export default class PolymorphicHasOneMetadata extends HasOneMetadata {
     public typeKey: string
 
     constructor(

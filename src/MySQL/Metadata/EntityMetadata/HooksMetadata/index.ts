@@ -8,7 +8,7 @@ import type { EntityTarget } from "../../../../types/General"
 import type { HookType } from "./HookMetadata/types"
 
 export default class HooksMetadata extends Array<HookMetadata> {
-    public toCall: Set<HookType>
+    private toCall!: Set<HookType>
 
     private _beforeSync?: BeforeSyncMetadata[]
     private _afterSync?: AfterSyncMetadata[]
@@ -16,7 +16,7 @@ export default class HooksMetadata extends Array<HookMetadata> {
     constructor(public target: EntityTarget, ...hooks: HookMetadata[]) {
         super(...hooks)
 
-        this.toCall = this.handleToCall()
+        this.handleToCall()
         this.register()
     }
 
@@ -75,7 +75,8 @@ export default class HooksMetadata extends Array<HookMetadata> {
     // ------------------------------------------------------------------------
 
     private handleToCall() {
-        return new Set<HookType>(this.map(hook => hook.type))
+        this.toCall = new Set
+        for (const hook of this) this.toCall.add(hook.type)
     }
 
     // ------------------------------------------------------------------------

@@ -1,1 +1,2 @@
-export type EntityTarget<T extends {} = any> = new (...args: any[]) => T
+import type BaseEntity from "../../MySQL/BaseEntity"
+export type EntityTarget = new (...args: any[]) => BaseEntity

@@ -26,6 +26,12 @@ export default class HasOneMetadata extends RelationMetadata {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
+    public get entityName(): string {
+        return this.entity.constructor.name.toLowerCase()
+    }
+
+    // ------------------------------------------------------------------------
+
     public get foreignKey(): ColumnMetadata {
         return this.entity.getColumn(this.foreignKeyName)
     }

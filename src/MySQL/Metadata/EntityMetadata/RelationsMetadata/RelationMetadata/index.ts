@@ -40,7 +40,7 @@ import BelongsToManyMetadata, {
 } from "./BelongsToManyMetadata"
 
 import {
-    PolymorphicHasOneMetdata,
+    PolymorphicHasOneMetadata,
     PolymorphicHasManyMetadata,
     PolymorphicBelongsToMetadata,
 
@@ -52,7 +52,11 @@ import {
 } from "./PolymorphicRelations"
 
 // Types
-import type { RelatedEntitiesMap } from "./types"
+import type {
+    RelatedEntitiesMap,
+    RelationMetadataType,
+    RelationMetadataTypeName
+} from "./types"
 
 export default
     abstract class RelationMetadata extends AbstractRelationMetadata {
@@ -65,29 +69,122 @@ export default
     public static BelongsToThrough = BelongsToThroughMetadata
     public static BelongsToMany = BelongsToManyMetadata
 
-    public static PolymorphicHasOne = PolymorphicHasOneMetdata
+    public static PolymorphicHasOne = PolymorphicHasOneMetadata
     public static PolymorphicHasMany = PolymorphicHasManyMetadata
     public static PolymorphicBelongsTo = PolymorphicBelongsToMetadata
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static relationType(relation: RelationMetadataType): (
+        RelationMetadataTypeName
+    ) {
+        if (this.isHasOne(relation)) return 'HasOne'
+        if (this.isHasMany(relation)) return 'HasMany'
+        if (this.isHasOneThrough(relation)) return 'HasOneThrough'
+        if (this.isHasManyThrough(relation)) return 'HasManyThrough'
+        if (this.isBelongsTo(relation)) return 'BelongsTo'
+        if (this.isBelongsToThrough(relation)) return 'BelongsToThrough'
+        if (this.isBelongsToMany(relation)) return 'BelongsToMany'
+        if (this.isPolymorphicHasOne(relation)) return 'PolymorphicHasOne'
+        if (this.isPolymorphicHasMany(relation)) return 'PolymorphicHasMany'
+        if (this.isPolymorphicBelongsTo(relation)) return 'PolymorphicBelongsTo'
+
+        throw new Error
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isHasOne(relation: RelationMetadataType): boolean {
+        return relation instanceof HasOneMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isHasMany(relation: RelationMetadataType): boolean {
+        return relation instanceof HasManyMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isHasOneThrough(relation: RelationMetadataType): boolean {
+        return relation instanceof HasOneThroughMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isHasManyThrough(relation: RelationMetadataType): boolean {
+        return relation instanceof HasManyThroughMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isBelongsTo(relation: RelationMetadataType): boolean {
+        return relation instanceof BelongsToMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isBelongsToThrough(relation: RelationMetadataType): boolean {
+        return relation instanceof BelongsToThroughMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isBelongsToMany(relation: RelationMetadataType): boolean {
+        return relation instanceof BelongsToManyMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isPolymorphicHasOne(relation: RelationMetadataType): (
+        boolean
+    ) {
+        return relation instanceof PolymorphicHasOneMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isPolymorphicHasMany(relation: RelationMetadataType): (
+        boolean
+    ) {
+        return relation instanceof PolymorphicHasManyMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static isPolymorphicBelongsTo(relation: RelationMetadataType): (
+        boolean
+    ) {
+        return relation instanceof PolymorphicBelongsToMetadata
+    }
 }
 
 export type {
+    RelationMetadataType,
+
+    HasOneMetadata,
     HasOneOptions,
     HasOneRelatedGetter,
 
+    HasManyMetadata,
     HasManyOptions,
     HasManyRelatedGetter,
 
+    HasOneThroughMetadata,
     HasOneThroughOptions,
     HasOneThroughRelatedGetter,
     HasOneThroughGetter,
 
+    HasManyThroughMetadata,
     HasManyThroughOptions,
     HasManyThroughRelatedGetter,
     HasManyThroughGetter,
 
+    BelongsToMetadata,
     BelongToOptions,
     BelongsToRelatedGetter,
 
+    BelongsToThroughMetadata,
     BelongsToThroughOptions,
     BelongsToThroughRelatedGetter,
     BelongsToThroughGetter,
@@ -95,6 +192,10 @@ export type {
     BelongsToManyMetadata,
     BelongsToManyOptions,
     BelongsToManyRelatedGetter,
+
+    PolymorphicHasOneMetadata,
+    PolymorphicHasManyMetadata,
+    PolymorphicBelongsToMetadata,
 
     PolymorphicParentOptions,
     PolymorphicParentRelatedGetter,

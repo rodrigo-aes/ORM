@@ -96,6 +96,12 @@ export default class ColumnsMetadata<
         return this.find((col) => col.name === name)
     }
 
+    // ------------------------------------------------------------------------
+
+    public toJSON() {
+        return [...this]
+    }
+
     // Protecteds -------------------------------------------------------------
     protected register() {
         Reflect.defineMetadata('columns', this, this.target)

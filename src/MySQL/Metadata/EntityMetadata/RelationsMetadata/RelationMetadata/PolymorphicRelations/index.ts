@@ -1,4 +1,4 @@
-import PolymorphicHasOneMetdata from "./PolymorphicHasOneMetadata"
+import PolymorphicHasOneMetadata from "./PolymorphicHasOneMetadata"
 import PolymorphicHasManyMetadata from "./PolymorphicHasManyMetadata"
 import PolymorphicBelongsToMetadata from "./PolymorphicBelongsToMetadata"
 
@@ -11,7 +11,7 @@ import type {
 } from "./types"
 
 export {
-    PolymorphicHasOneMetdata,
+    PolymorphicHasOneMetadata,
     PolymorphicHasManyMetadata,
     PolymorphicBelongsToMetadata,
 
