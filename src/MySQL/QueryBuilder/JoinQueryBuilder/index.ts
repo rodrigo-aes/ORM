@@ -1,38 +1,105 @@
 import {
     EntityMetadata,
-    RelationMetadata,
+    EntityUnionMetadata,
+    PolymorphicBelongsToMetadata,
 
-    type HasOneMetadata,
-    type HasManyMetadata,
+    type RelationMetadataType
 } from "../../Metadata"
 
-import SelectQueryBuilder from "../SelectQueryBuilder"
-import ConditionalQueryBuilder from "../ConditionalQueryBuilder"
+// Query Builders
+import SelectQueryBuilder, { type SelectOptions } from "../SelectQueryBuilder"
 
+import ConditionalQueryBuilder, {
+    type ConditionalQueryOptions
+} from "../ConditionalQueryBuilder"
+
+import TableUnionQueryBuilder from "../TableUnionQueryBuilder"
+
+// Types
 import type { EntityTarget } from "../../../types/General"
-import type {
-    RelationsOptions,
-    RelationOptions,
-    EntityRelationsMap,
-    EntityRelationMap
-} from "./types"
+import type { RelationOptions } from "./types"
 
-export default abstract class JoinQueryBuilder<T extends EntityTarget> {
+export default class JoinQueryBuilder<T extends EntityTarget> {
     private metadata: EntityMetadata
 
+    public target: T
     public alias: string
-    public map: EntityRelationsMap<InstanceType<T>>
+
+    public required?: boolean
+    public select?: SelectOptions<InstanceType<T>>
+    public on?: ConditionalQueryOptions<InstanceType<T>>
 
     constructor(
-        public target: T,
-        public options: RelationsOptions<InstanceType<T>>,
+        public relation: RelationMetadataType,
+        public parentAlias: string,
+        options: Omit<RelationOptions<InstanceType<T>>, 'relations'>,
         alias?: string
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
+        Object.assign(this, options)
+
+        this.target = this.handleTarget() as T
+        this.alias = alias ?? this.handleAlias()
         this.metadata = this.getMetadata()
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public SQL(): string {
+        return [
+            this.joinType(),
+            this.tableSQL(),
+            this.onSQL(),
+        ]
+            .join(' ')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public joinType(): string {
+        return this.required
+            ? 'INNER JOIN'
+            : 'LEFT JOIN'
+    }
+
+    // ------------------------------------------------------------------------
+
+    public tableSQL(): string {
+        if (this.relation instanceof PolymorphicBelongsToMetadata) {
+            return `${this.parentAlias}_${this.relation.name}`
+        }
+
+        return `${this.metadata.tableName} ${this.alias}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public selectQueryBuilder(): SelectQueryBuilder<T> {
+        return new SelectQueryBuilder(
+            this.target,
+            this.select,
+            this.alias
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public tableUnionQueryBuilder(): TableUnionQueryBuilder | undefined {
+        if (this.relation instanceof PolymorphicBelongsToMetadata) {
+            return new TableUnionQueryBuilder(
+                `${this.parentAlias}_${this.relation.name}`,
+                this.relation.related()
+            )
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    public hasTableUnion(): boolean {
+        return (
+            this.relation instanceof PolymorphicBelongsToMetadata
+        )
+    }
+
     // Privates ---------------------------------------------------------------
     private getMetadata(): EntityMetadata {
         return EntityMetadata.find(this.target)!
@@ -40,32 +107,34 @@ export default abstract class JoinQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private mapOptions(): EntityRelationsMap<InstanceType<T>> {
-        for (const [relation, options] of Object.entries(this.options)) {
-            const metadata = this.metadata.relations?.find(
-                ({ name }) => name === relation
+    private handleTarget(): EntityTarget {
+        if (this.relation instanceof PolymorphicBelongsToMetadata) {
+            return TableUnionQueryBuilder.findOrBuildUnion(
+                this.relation.related(),
+                `${this.parentAlias}_${this.relation.name}`
             )
-
-            if (!relation) throw new Error
-
-
+                .target
         }
+
+        return this.relation.relatedTarget
     }
 
     // ------------------------------------------------------------------------
 
-    private handleHasOne(
-        relation: HasOneMetadata,
-        options: RelationOptions<any>
-    ): EntityRelationMap {
-        const { select, on, relations } = options
+    private handleAlias(): string {
+        return `${this.parentAlias}_${this.relation.name}`
+    }
 
-        return {
-            select: new SelectQueryBuilder(
-                relation.target,
-                select,
-                this.alias
-            )
-        }
+    // ------------------------------------------------------------------------
+
+    private onSQL(): string {
+        return ConditionalQueryBuilder.on(
+            this.relation,
+            this.parentAlias,
+            this.alias,
+            this.target,
+            this.on
+        )
+            .SQL()
     }
 }

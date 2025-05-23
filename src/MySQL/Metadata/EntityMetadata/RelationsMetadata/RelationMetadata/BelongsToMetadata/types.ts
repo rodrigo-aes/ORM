@@ -1,7 +1,7 @@
 import type { RelationOptions } from "../types"
-import type { EntityTarget } from "../../../../../types/General"
+import type { EntityTarget } from "../../../../../../types/General"
 
-export type BelongsToRelatedGetter = () => EntityTarget | EntityTarget[]
+export type BelongsToRelatedGetter = () => EntityTarget
 
 export interface BelongToOptions extends RelationOptions {
     related: BelongsToRelatedGetter

@@ -1,5 +1,6 @@
 import type EntityMetadata from "../.."
 
+import type RelationMetadata from "./RelationMetadata"
 import type HasOneMetadata from "./HasOneMetadata"
 import type HasManyMetadata from './HasManyMetadata'
 import type HasOneThroughMetadata from "./HasOneThroughMetadata"
@@ -22,6 +23,7 @@ export type RelatedEntitiesMap = {
 }
 
 export type RelationMetadataType = (
+    RelationMetadata |
     HasOneMetadata |
     HasManyMetadata |
     HasOneThroughMetadata |

@@ -14,7 +14,7 @@ export default abstract class ConditionalQueryBuilder<T extends EntityTarget> {
 
     constructor(
         public target: T,
-        public options: ConditionalQueryOptions<InstanceType<T>>,
+        public options?: ConditionalQueryOptions<InstanceType<T>>,
         public alias?: string
     ) {
         this.metadata = this.loadMetadata()
@@ -24,7 +24,7 @@ export default abstract class ConditionalQueryBuilder<T extends EntityTarget> {
     // Instance Methods =======================================================
     // Protecteds -------------------------------------------------------------
     protected conditionalSQL(): string {
-        return (
+        return this.options ? (
             Array.isArray(this.options)
                 ? new OrQueryBuilder(
                     this.target,
@@ -39,6 +39,7 @@ export default abstract class ConditionalQueryBuilder<T extends EntityTarget> {
                 )
         )
             .SQL()
+            : ''
     }
 
     // Privates ---------------------------------------------------------------

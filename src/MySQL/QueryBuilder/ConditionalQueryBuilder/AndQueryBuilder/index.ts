@@ -1,4 +1,5 @@
 import { EntityMetadata } from "../../../Metadata"
+import UnionEntity from "../../../UnionEntity"
 
 // Operators
 import Operator, {
@@ -33,42 +34,64 @@ export default class AndQueryBuilder<T extends EntityTarget> {
         public options: AndQueryOptions<InstanceType<T>>,
         alias?: string
     ) {
+        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = this.loadMetadata()
 
         this.propOptions = this.filterPropetiesOptions()
         this.relOptions = this.filterRelationOptions()
-
-        this.alias = alias ?? this.target.name.toLowerCase()
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
-        const sql = [
-            this.propertiesSQL()
-        ]
-            .join(' AND ')
-
-        return SQLStringHelper.normalizeSQL(sql)
+        return SQLStringHelper.normalizeSQL(
+            [
+                ...this.propertiesSQL(),
+                ...this.relationsSQL()
+            ]
+                .join(' AND ')
+        )
     }
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
+        if (this.target === UnionEntity) {
+            return Reflect.getOwnMetadata(
+                this.alias,
+                this.target
+            )
+        }
+
         return EntityMetadata.find(this.target)!
     }
 
     // ------------------------------------------------------------------------
 
-    private propertiesSQL(): string {
+    private propertiesSQL(): string[] {
         const sql: string[] = []
 
         for (const [key, value] of Object.entries(this.propOptions))
-            sql.push(this.propertySQL(
-                key as keyof EntityAndQueryOptions<InstanceType<T>>,
-                value!
-            ))
+            sql.push(
+                this.propertySQL(
+                    key as keyof EntityAndQueryOptions<InstanceType<T>>,
+                    value!
+                )
+            )
 
-        return sql.join(' AND ')
+        return sql
+    }
+
+    // ------------------------------------------------------------------------
+
+    private relationsSQL(): string[] {
+        const sql: string[] = []
+
+        for (const [key, value] of Object.entries(this.relOptions))
+            sql.push(
+                this.relationSQL(key, value)
+            )
+
+        return sql
     }
 
     // ------------------------------------------------------------------------
@@ -86,6 +109,27 @@ export default class AndQueryBuilder<T extends EntityTarget> {
                 value as CompatibleOperators<any>
             )
             : `${column} = ${this.propertyValueSQL(value)}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    private relationSQL(
+        path: string,
+        value: EntityAndQueryOptions<InstanceType<any>>
+    ): string {
+        const parts = path.split('.')
+        const columnName = parts.pop()
+        const alias = `${this.alias}_${parts.join('_')}`
+
+        const isOperator = this.isOperator(value)
+
+        return isOperator
+            ? this.operatorSQL(
+                columnName as string,
+                value as CompatibleOperators<any>,
+                alias
+            )
+            : `${alias}.${columnName} = ${this.propertyValueSQL(value)}`
     }
 
     // ------------------------------------------------------------------------
@@ -108,7 +152,8 @@ export default class AndQueryBuilder<T extends EntityTarget> {
 
     private operatorSQL(
         column: string,
-        operator: CompatibleOperators<any>
+        operator: CompatibleOperators<any>,
+        alias?: string
     ): string {
         const key = Object.getOwnPropertySymbols(operator)[0] as (
             keyof CompatibleOperators<any>
@@ -119,7 +164,7 @@ export default class AndQueryBuilder<T extends EntityTarget> {
             this.target,
             value,
             column,
-            this.alias
+            alias ?? this.alias
         ).SQL()
     }
 

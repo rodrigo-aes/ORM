@@ -8,4 +8,6 @@ export default abstract class RelationMetadata {
     constructor(public target: EntityTarget, options: RelationOptions) {
         if (options) Object.assign(this, options)
     }
+
+    public abstract get relatedTarget(): EntityTarget
 }

@@ -8,6 +8,7 @@ import type {
     AndQueryOptions,
     OrQueryOptions
 } from "./types"
+import type { RelationMetadataType } from "../../Metadata"
 
 export default class ConditionalQueryBuilder {
     private constructor() {
@@ -27,11 +28,19 @@ export default class ConditionalQueryBuilder {
     // ------------------------------------------------------------------------
 
     public static on<T extends EntityTarget>(
+        relation: RelationMetadataType,
+        parentAlias: string,
+        alias: string,
         target: T,
-        options: ConditionalQueryOptions<InstanceType<T>>,
-        alias?: string
+        options?: ConditionalQueryOptions<InstanceType<T>>,
     ): OnQueryBuilder<T> {
-        return new OnQueryBuilder(target, options, alias)
+        return new OnQueryBuilder(
+            relation,
+            parentAlias,
+            alias,
+            target,
+            options
+        )
     }
 }
 

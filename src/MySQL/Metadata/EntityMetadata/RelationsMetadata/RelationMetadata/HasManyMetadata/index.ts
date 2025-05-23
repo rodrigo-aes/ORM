@@ -32,6 +32,12 @@ export default class HasManyMetadata extends RelationMetadata {
 
     // ------------------------------------------------------------------------
 
+    public get relatedTarget(): EntityTarget {
+        return this.related()
+    }
+
+    // ------------------------------------------------------------------------
+
     public get foreignKey(): ColumnMetadata {
         return this.entity.getColumn(this.foreignKeyName)
     }

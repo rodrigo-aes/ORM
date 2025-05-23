@@ -4,6 +4,7 @@ import EntityMetadata from "../../.."
 // Types
 import type { EntityTarget } from "../../../../../../types/General"
 import type JoinTableMetadata from "../../../JoinTableMetadata"
+import type { JoinColumnMetadata } from "../../../JoinTableMetadata"
 import type { ForeignKeyActionListener } from "../../.."
 import type { BelongsToManyRelatedGetter, BelongsToManyOptions } from "./types"
 
@@ -23,6 +24,38 @@ export default class BelongsToManyMetadata extends RelationMetadata {
         this.joinTable = this.registerJoinTable(joinTable)
     }
 
+    // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get entity(): EntityMetadata {
+        return EntityMetadata.findOrBuild(this.related())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedTarget(): EntityTarget {
+        return this.related()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get entityName(): string {
+        return this.entity.target.name.toLowerCase()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get entityForeignKey(): JoinColumnMetadata {
+        return this.joinTable.getTargetColumn(this.related())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get targetForeignKey(): JoinColumnMetadata {
+        return this.joinTable.getTargetColumn(this.target)
+    }
+
+    // Instance Methods =======================================================
+    // Privates ---------------------------------------------------------------
     private registerJoinTable(name?: string) {
         return EntityMetadata.findOrBuild(this.target).addJoinTable(
             () => [

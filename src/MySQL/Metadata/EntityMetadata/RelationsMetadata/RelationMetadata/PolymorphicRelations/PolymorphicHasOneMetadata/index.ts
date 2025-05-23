@@ -1,32 +1,66 @@
-import HasOneMetadata from "../../HasOneMetadata"
+import RelationMetadata from "../../RelationMetadata"
+import EntityMetadata from "../../../.."
 
 // Types
 import type { EntityTarget } from "../../../../../../../types/General"
-import type { PolymorphicChildOptions } from "../types"
+import type { ColumnMetadata } from "../../../.."
+import type {
+    PolymorphicChildOptions,
+    PolymorphicChildRelatedGetter
+} from "../types"
 
-export default class PolymorphicHasOneMetadata extends HasOneMetadata {
+export default class PolymorphicHasOneMetadata extends RelationMetadata {
+    public related!: PolymorphicChildRelatedGetter
+    public scope?: any
+
+    private foreignKeyName: string
     public typeKey: string
 
     constructor(
         target: EntityTarget,
-        { typeKey, ...options }: PolymorphicChildOptions
+        { typeKey, foreignKey, ...options }: PolymorphicChildOptions
     ) {
         super(target, options)
+
+        Object.assign(this, options)
+
+        this.foreignKeyName = foreignKey
         this.typeKey = typeKey
     }
 
     // Getters ================================================================
-    // Publics -------------------------- --------------------------------------
-    public get entityType(): string {
-        return this.entity.target.name
+    // Publics ----------------------------------------------------------------
+    public get entity(): EntityMetadata {
+        return this.loadEntity()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedTarget(): EntityTarget {
+        return this.related()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get entityName(): string {
+        return this.entity.target.name.toLowerCase()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get foreignKey(): ColumnMetadata {
+        return this.entity.getColumn(this.foreignKeyName)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get targetType(): string {
+        return this.target.name
     }
 
     // Instance Methods =======================================================
-    // Publics ----------------------------------------------------------------
-    public getScope(): any {
-        return {
-            ...(this.scope ?? {}),
-            [this.typeKey]: this.entityType
-        }
+    // Privates ---------------------------------------------------------------
+    private loadEntity() {
+        return EntityMetadata.findOrBuild(this.related())
     }
 }

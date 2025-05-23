@@ -38,10 +38,10 @@ export default class JoinColumnsMetadata<
 
     // ------------------------------------------------------------------------
 
-    public findTargetColumn(target: EntityTarget): (
-        JoinColumnMetadata | undefined
+    public getTargetColumn(target: EntityTarget): (
+        JoinColumnMetadata
     ) {
-        return this.findColumn(`${target.name}Id`)
+        return this.getColumn(`${target.name.toLowerCase()}Id`)
     }
 }
 

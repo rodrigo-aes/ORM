@@ -38,6 +38,12 @@ export default class JoinTableMetadata {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public getTargetColumn(target: EntityTarget): JoinColumnMetadata {
+        return this.columns.getTargetColumn(target)
+    }
+
+    // ------------------------------------------------------------------------
+
     public mergeRelateds(relateds: JoinTableRelatedsGetter) {
         const otherRelateds = relateds()
         const thisRelateds = this.relateds()

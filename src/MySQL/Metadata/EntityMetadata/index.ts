@@ -20,46 +20,46 @@ import RelationsMetadata, {
     RelationMetadata,
     type RelationMetadataType,
 
-    type HasOneMetadata,
+    HasOneMetadata,
     type HasOneOptions,
     type HasOneRelatedGetter,
 
-    type HasManyMetadata,
+    HasManyMetadata,
     type HasManyOptions,
     type HasManyRelatedGetter,
 
-    type HasOneThroughMetadata,
+    HasOneThroughMetadata,
     type HasOneThroughOptions,
     type HasOneThroughRelatedGetter,
     type HasOneThroughGetter,
 
-    type HasManyThroughMetadata,
+    HasManyThroughMetadata,
     type HasManyThroughOptions,
     type HasManyThroughRelatedGetter,
     type HasManyThroughGetter,
 
-    type BelongsToMetadata,
+    BelongsToMetadata,
     type BelongToOptions,
     type BelongsToRelatedGetter,
 
-    type BelongsToThroughMetadata,
+    BelongsToThroughMetadata,
     type BelongsToThroughOptions,
     type BelongsToThroughRelatedGetter,
     type BelongsToThroughGetter,
 
-    type BelongsToManyMetadata,
+    BelongsToManyMetadata,
     type BelongsToManyOptions,
     type BelongsToManyRelatedGetter,
 
-    type PolymorphicHasOneMetadata,
-    type PolymorphicHasManyMetadata,
-    type PolymorphicBelongsToMetadata,
+    PolymorphicHasOneMetadata,
+    PolymorphicHasManyMetadata,
+    PolymorphicBelongsToMetadata,
 
     type PolymorphicParentOptions,
     type PolymorphicParentRelatedGetter,
 
     type PolymorphicChildOptions,
-    type PolymorphicChildRelatedGetter
+    type PolymorphicChildRelatedGetter,
 } from './RelationsMetadata'
 
 // Join Table Metadata
@@ -179,7 +179,7 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    private loadColumns() {
+    protected loadColumns() {
         this.columns = ColumnsMetadata.findOrBuild(this.target)
     }
 
@@ -254,40 +254,40 @@ export {
 
     type RelationMetadataType,
 
-    type HasOneMetadata,
+    HasOneMetadata,
     type HasOneOptions,
     type HasOneRelatedGetter,
 
-    type HasManyMetadata,
+    HasManyMetadata,
     type HasManyOptions,
     type HasManyRelatedGetter,
 
-    type HasOneThroughMetadata,
+    HasOneThroughMetadata,
     type HasOneThroughOptions,
     type HasOneThroughRelatedGetter,
     type HasOneThroughGetter,
 
-    type HasManyThroughMetadata,
+    HasManyThroughMetadata,
     type HasManyThroughOptions,
     type HasManyThroughRelatedGetter,
     type HasManyThroughGetter,
 
-    type BelongsToMetadata,
+    BelongsToMetadata,
     type BelongToOptions,
     type BelongsToRelatedGetter,
 
-    type BelongsToThroughMetadata,
+    BelongsToThroughMetadata,
     type BelongsToThroughOptions,
     type BelongsToThroughRelatedGetter,
     type BelongsToThroughGetter,
 
-    type BelongsToManyMetadata,
+    BelongsToManyMetadata,
     type BelongsToManyOptions,
     type BelongsToManyRelatedGetter,
 
-    type PolymorphicHasOneMetadata,
-    type PolymorphicHasManyMetadata,
-    type PolymorphicBelongsToMetadata,
+    PolymorphicHasOneMetadata,
+    PolymorphicHasManyMetadata,
+    PolymorphicBelongsToMetadata,
 
     type PolymorphicParentOptions,
     type PolymorphicParentRelatedGetter,

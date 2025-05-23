@@ -1,4 +1,6 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+
+import UnionEntity from "../../UnionEntity"
 
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
@@ -15,21 +17,15 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
     constructor(
         public target: T,
         public options?: SelectOptions<InstanceType<T>>,
-        private _alias?: string
+        public alias?: string,
     ) {
         this.metadata = this.getMetadata()
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get alias(): string {
-        return this._alias ? `${this.alias}_` : ''
-    }
-
-    // ------------------------------------------------------------------------
-
     public get targetName(): string {
-        return this.target.name.toLowerCase()
+        return this.alias ?? this.target.name.toLowerCase()
     }
 
     // ------------------------------------------------------------------------
@@ -59,12 +55,14 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public propertiesSQL(): string {
-        return (
-            !this.options?.properties ||
-            this.options.properties.includes('*')
+        return SQLStringHelper.normalizeSQL(
+            (
+                !this.options?.properties ||
+                this.options.properties.includes('*')
+            )
+                ? this.allPropertiesSQL()
+                : this.handlePropetiesSQL()
         )
-            ? this.allPropertiesSQL()
-            : this.handlePropetiesSQL()
     }
 
     // ------------------------------------------------------------------------
@@ -75,6 +73,13 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private getMetadata(): EntityMetadata {
+        if (this.target === UnionEntity) {
+            return Reflect.getOwnMetadata(
+                this.alias,
+                this.target
+            )
+        }
+
         return EntityMetadata.find(this.target)!
     }
 
@@ -106,7 +111,10 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private asColumn(columnName: string): string {
-        return `${columnName} AS ${this.alias}${this.targetName}_${columnName}`
+        return `
+            ${this.targetName}.${columnName} 
+            AS ${this.targetName}_${columnName}
+        `
     }
 
     // Static Methods =========================================================

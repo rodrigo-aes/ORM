@@ -27,8 +27,20 @@ export default class BelongsToMetadata extends RelationMetadata {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get entity(): EntityMetadata | RelatedEntitiesMap {
-        return this.getEntities()
+    public get entity(): EntityMetadata {
+        return this.getEntity(this.related())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedTarget(): EntityTarget {
+        return this.related()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get entityName(): string {
+        return this.entity.target.name.toLowerCase()
     }
 
     // ------------------------------------------------------------------------
@@ -57,7 +69,6 @@ export default class BelongsToMetadata extends RelationMetadata {
     }
 
     // Privates ---------------------------------------------------------------
-
     private getEntity(target: EntityTarget) {
         return EntityMetadata.find(target)!
     }

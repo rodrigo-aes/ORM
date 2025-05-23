@@ -157,51 +157,81 @@ export default
     ) {
         return relation instanceof PolymorphicBelongsToMetadata
     }
+
+    // ------------------------------------------------------------------------
+
+    public static extractEntityTarget(relation: RelationMetadataType) {
+        switch (this.relationType(relation)) {
+            case "HasOne":
+            case "HasMany":
+            case "HasOneThrough":
+            case "HasManyThrough":
+            case "BelongsTo":
+            case "BelongsToThrough":
+            case "BelongsToMany":
+            case "PolymorphicHasOne":
+            case "PolymorphicHasMany": return (relation as (
+                HasOneMetadata |
+                HasManyMetadata |
+                HasOneThroughMetadata |
+                HasManyThroughMetadata |
+                BelongsToMetadata |
+                BelongsToThroughMetadata |
+                BelongsToManyMetadata |
+                PolymorphicHasManyMetadata |
+                PolymorphicHasOneMetadata
+            ))
+                .entity
+                .target
+
+            case "PolymorphicBelongsTo": return undefined
+        }
+    }
 }
 
-export type {
-    RelationMetadataType,
+export {
+    type RelationMetadataType,
 
     HasOneMetadata,
-    HasOneOptions,
-    HasOneRelatedGetter,
+    type HasOneOptions,
+    type HasOneRelatedGetter,
 
     HasManyMetadata,
-    HasManyOptions,
-    HasManyRelatedGetter,
+    type HasManyOptions,
+    type HasManyRelatedGetter,
 
     HasOneThroughMetadata,
-    HasOneThroughOptions,
-    HasOneThroughRelatedGetter,
-    HasOneThroughGetter,
+    type HasOneThroughOptions,
+    type HasOneThroughRelatedGetter,
+    type HasOneThroughGetter,
 
     HasManyThroughMetadata,
-    HasManyThroughOptions,
-    HasManyThroughRelatedGetter,
-    HasManyThroughGetter,
+    type HasManyThroughOptions,
+    type HasManyThroughRelatedGetter,
+    type HasManyThroughGetter,
 
     BelongsToMetadata,
-    BelongToOptions,
-    BelongsToRelatedGetter,
+    type BelongToOptions,
+    type BelongsToRelatedGetter,
 
     BelongsToThroughMetadata,
-    BelongsToThroughOptions,
-    BelongsToThroughRelatedGetter,
-    BelongsToThroughGetter,
+    type BelongsToThroughOptions,
+    type BelongsToThroughRelatedGetter,
+    type BelongsToThroughGetter,
 
     BelongsToManyMetadata,
-    BelongsToManyOptions,
-    BelongsToManyRelatedGetter,
+    type BelongsToManyOptions,
+    type BelongsToManyRelatedGetter,
 
     PolymorphicHasOneMetadata,
     PolymorphicHasManyMetadata,
     PolymorphicBelongsToMetadata,
 
-    PolymorphicParentOptions,
-    PolymorphicParentRelatedGetter,
+    type PolymorphicParentOptions,
+    type PolymorphicParentRelatedGetter,
 
-    PolymorphicChildOptions,
-    PolymorphicChildRelatedGetter,
+    type PolymorphicChildOptions,
+    type PolymorphicChildRelatedGetter,
 
-    RelatedEntitiesMap
+    type RelatedEntitiesMap
 }

@@ -2,10 +2,10 @@ import type { EntityRelationsKeys } from "../types"
 import type { SelectOptions } from "../SelectQueryBuilder"
 import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
 import type SelectQueryBuilder from "../SelectQueryBuilder"
-import type WhereQueryBuilder from "../ConditionalQueryBuilder/WhereQueryBuilder"
-import { Entity } from "../../Decorators"
+import type OnQueryBuilder from "../ConditionalQueryBuilder/OnQueryBuilder"
 
 export type RelationOptions<Entity extends object> = {
+    required?: boolean
     select?: SelectOptions<Entity>,
     on?: ConditionalQueryOptions<Entity>,
     relations?: RelationsOptions<Entity>
@@ -20,7 +20,8 @@ export type RelationsOptions<Entity extends object> = {
 
 export type EntityRelationMap = {
     select: SelectQueryBuilder<any>,
-    on: WhereQueryBuilder<any>
+    on: OnQueryBuilder<any>,
+    relations?: EntityRelationMap
 }
 
 export type EntityRelationsMap<Entity extends object> = {

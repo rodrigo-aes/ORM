@@ -1,0 +1,13 @@
+import type { SelectOptions } from "../SelectQueryBuilder"
+import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
+import type { RelationsOptions } from "../JoinQueryBuilder/types"
+import type { OrderQueryOptions } from "../OrderQueryBuilder/types"
+
+export type FindQueryOptions<Entity extends object> = {
+    select?: SelectOptions<Entity>,
+    where?: ConditionalQueryOptions<Entity>,
+    relations?: RelationsOptions<Entity>,
+    order?: OrderQueryOptions<Entity>,
+    limit?: number,
+    offset?: number
+}

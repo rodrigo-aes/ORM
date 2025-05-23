@@ -1,5 +1,3 @@
-import type { EntityPropertiesKeys } from "../QueryBuilder/types"
-
 export default abstract class BaseEntity {
     protected hidden: string[] = []
 

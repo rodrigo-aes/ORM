@@ -37,14 +37,20 @@ export default class HasOneThroughMetadata extends RelationMetadata {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
+    public get relatedTarget(): EntityTarget {
+        return this.related()
+    }
+
+    // ------------------------------------------------------------------------
+
     public get entityName(): string {
-        return this.entity.constructor.name.toLowerCase()
+        return this.entity.target.name.toLowerCase()
     }
 
     // ------------------------------------------------------------------------
 
     public get throughEntityName(): string {
-        return this.throughEntity.constructor.name.toLowerCase()
+        return this.throughEntity.target.name.toLowerCase()
     }
 
     // ------------------------------------------------------------------------
