@@ -6,13 +6,13 @@ import SelectQueryBuilder from "../SelectQueryBuilder"
 import JoinQueryBuilder from "../JoinQueryBuilder"
 import ConditionalQueryBuilder from "../ConditionalQueryBuilder"
 import OrderQueryBuilder from "../OrderQueryBuilder"
+import GroupQueryBuilder from "../GroupQueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
 import type { FindQueryOptions } from "./types"
 import type { EntityRelationsKeys } from "../types"
 import type { RelationOptions } from "../JoinQueryBuilder/types"
-import type { RelationMetadataType } from "../../Metadata"
 import WhereQueryBuilder from "../ConditionalQueryBuilder/WhereQueryBuilder"
 
 export default class FindQueryBuilder<T extends EntityTarget> {
@@ -22,6 +22,7 @@ export default class FindQueryBuilder<T extends EntityTarget> {
     public select: SelectQueryBuilder<T>
     public joins: JoinQueryBuilder<any>[] = []
     public where?: WhereQueryBuilder<T>
+    public group?: GroupQueryBuilder<T>
     public order?: OrderQueryBuilder<T>
     public limit?: number
     public offset?: number
@@ -38,6 +39,7 @@ export default class FindQueryBuilder<T extends EntityTarget> {
         )
 
         this.where = this.buildWhere()
+        this.group = this.buildGroup()
         this.order = this.buildOrder()
 
         this.assingRestQueryOptions()
@@ -57,6 +59,7 @@ export default class FindQueryBuilder<T extends EntityTarget> {
             this.selectSQL(),
             this.joinsSQL(),
             this.whereSQL(),
+            this.groupSQL(),
             this.orderSQL()
         ]
             .join(' ')
@@ -86,6 +89,12 @@ export default class FindQueryBuilder<T extends EntityTarget> {
 
     public whereSQL(): string {
         return this.where?.SQL() ?? ''
+    }
+
+    // ------------------------------------------------------------------------
+
+    public groupSQL(): string {
+        return this.group?.SQL() ?? ''
     }
 
     // ------------------------------------------------------------------------
@@ -126,7 +135,10 @@ export default class FindQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private buildJoins(relations: RelationOptions<any>): void {
+    private buildJoins(
+        relations: RelationOptions<any>,
+        alias: string = this.alias
+    ): void {
         const entries = Object.entries(relations) as [
             EntityRelationsKeys<any>,
             RelationOptions<any>
@@ -141,7 +153,7 @@ export default class FindQueryBuilder<T extends EntityTarget> {
 
             const join = new JoinQueryBuilder(
                 relation,
-                this.alias,
+                alias,
                 options
             )
 
@@ -152,7 +164,10 @@ export default class FindQueryBuilder<T extends EntityTarget> {
                 join.tableUnionQueryBuilder()!
             )
 
-            if (relations.relations) this.buildJoins(relations.relations)
+            if (relations.relations) this.buildJoins(
+                relations.relations,
+                join.alias
+            )
         }
     }
 
@@ -168,14 +183,32 @@ export default class FindQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    private buildGroup(): GroupQueryBuilder<T> | undefined {
+        const shouldBuild = (
+            this.options.group ||
+            this.options.select?.count
+        )
+
+        const options = shouldBuild
+            ? this.options.group ?? [this.metadata.columns.primary.name]
+            : undefined
+
+        if (shouldBuild) return new GroupQueryBuilder(
+            this.target,
+            options!,
+            this.alias
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     private buildOrder(): OrderQueryBuilder<T> | undefined {
-        if (this.options.order) {
-            return new OrderQueryBuilder(
-                this.target,
-                this.options.order,
-                this.alias
-            )
-        }
+        if (this.options.order) return new OrderQueryBuilder(
+            this.target,
+            this.options.order,
+            this.alias
+        )
+
     }
 
     // ------------------------------------------------------------------------
