@@ -34,6 +34,7 @@ export default class CountQueryBuilder<T extends EntityTarget> {
     }
 
     // Instance Methods =======================================================
+
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return Object.entries(this.options)
@@ -64,6 +65,7 @@ export default class CountQueryBuilder<T extends EntityTarget> {
 
         return EntityMetadata.find(this.target)!
     }
+
     // ------------------------------------------------------------------------
 
     private propertySQL(property: string): string {
