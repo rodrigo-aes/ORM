@@ -1,0 +1,1 @@
+export const Case = Symbol('CASE... WHEN... THEN')

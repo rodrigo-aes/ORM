@@ -2,12 +2,19 @@ import { EntityMetadata } from "../../Metadata"
 
 import UnionEntity from "../../UnionEntity"
 
+// Query Builders
+import ConditionalQueryBuilder, { Case } from "../ConditionalQueryBuilder"
+
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { OrderQueryOptions, OrderQueryOption } from "./types"
+import type {
+    OrderQueryOptions,
+    OrderQueryOption,
+    OrderCaseOption
+} from "./types"
 
 export default class OrderQueryBuilder<T extends EntityTarget> {
     private metadata: EntityMetadata
@@ -27,7 +34,7 @@ export default class OrderQueryBuilder<T extends EntityTarget> {
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            ORDER BY ${this.propertiesSQL()}    
+            ORDER BY ${this.orderClauseSQL()}    
         `)
     }
 
@@ -45,14 +52,48 @@ export default class OrderQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    private orderClauseSQL(): string {
+        if (Array.isArray(this.options)) return this.propertiesSQL()
+        return this.operatorSQL()
+    }
+
+    // ------------------------------------------------------------------------
+
     private propertiesSQL(): string {
         return this.isMultipleOptions()
-            ? this.options.map(option => this.propertySQL(
-                option as OrderQueryOption<any>
+            ? (this.options as (
+                OrderQueryOption<InstanceType<T>> |
+                OrderQueryOption<InstanceType<T>>[]
             ))
+                .map(option => this.propertySQL(
+                    option as OrderQueryOption<any>
+                ))
                 .join(', ')
 
             : this.propertySQL(this.options as OrderQueryOption<any>)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private operatorSQL(): string {
+        return Object.getOwnPropertySymbols(this.options)
+            .map(symbol => {
+                if (symbol === Case) return ConditionalQueryBuilder
+                    .case(
+                        this.target,
+                        (
+                            this.options as (
+                                OrderCaseOption<InstanceType<T>>
+                            )
+                        )[Case],
+                        undefined,
+                        this.alias
+                    )
+                    .SQL()
+
+                throw new Error
+            })
+            .join('')
     }
 
     // ------------------------------------------------------------------------
@@ -85,7 +126,10 @@ export default class OrderQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private isMultipleOptions(): boolean {
-        const [first] = this.options
+        const [first] = this.options as (
+            OrderQueryOption<InstanceType<T>> |
+            OrderQueryOption<InstanceType<T>>[]
+        )
 
         return Array.isArray(first)
             ? true

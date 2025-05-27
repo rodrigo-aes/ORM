@@ -1,4 +1,5 @@
 import type { EntityPropertiesKeys } from "../types"
+import type { Case, CaseQueryOptions } from "../ConditionalQueryBuilder"
 
 export type OrderDirection = 'ASC' | 'DESC'
 
@@ -12,6 +13,10 @@ export type RelationOrderQueryOption = [
     OrderDirection
 ]
 
+export type OrderCaseOption<Entity extends object> = {
+    [Case]: CaseQueryOptions<Entity>
+}
+
 export type OrderQueryOption<Entity extends object> = (
     PropertyOrderQueryOption<Entity> |
     RelationOrderQueryOption
@@ -19,5 +24,6 @@ export type OrderQueryOption<Entity extends object> = (
 
 export type OrderQueryOptions<Entity extends object> = (
     OrderQueryOption<Entity> |
-    OrderQueryOption<Entity>[]
+    OrderQueryOption<Entity>[] |
+    OrderCaseOption<Entity>
 )

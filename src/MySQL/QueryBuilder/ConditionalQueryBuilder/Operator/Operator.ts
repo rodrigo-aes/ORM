@@ -16,7 +16,13 @@ export default abstract class Operator<T extends keyof OperatorType> {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get propertyKey(): string {
-        return `${this.alias}.${this.columnName}`
+        return `${this.alias}.${this.propertyName}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get propertyName(): string {
+        return this.handlePropertyPath(this.columnName)
     }
 
     // Instance Methods =======================================================
@@ -53,5 +59,15 @@ export default abstract class Operator<T extends keyof OperatorType> {
             case "string": return this.value
             case "object": return (this.value as RegExp).toString()
         }
+    }
+
+
+    protected handlePropertyPath(path: string): string {
+        if (!path.includes('.')) return path
+
+        const parts = path.split('.')
+        const column = parts.pop()
+
+        return `${parts.join('_')}.${column}`
     }
 }

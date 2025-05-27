@@ -1,6 +1,9 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata } from "../../Metadata"
 
 import UnionEntity from "../../UnionEntity"
+
+import ConditionalQueryBuilder, { Case } from "../ConditionalQueryBuilder"
+import CountQueryBuilder from "../CountQueryBuilder"
 
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
@@ -38,6 +41,21 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
             .join(', ')
     }
 
+    // Privates ---------------------------------------------------------------
+    private get stringProperties(): string[] {
+        return this.options!.properties!.filter(
+            option => typeof option === 'string'
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get objectProperties(): any[] {
+        return this.options!.properties!.filter(
+            option => typeof option === 'object'
+        )
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public select(options: SelectOptions<InstanceType<T>>) {
@@ -48,21 +66,31 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
 
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            SELECT ${this.properties} ${this.fromSQL()}
+            SELECT ${this.properties} ${this.countsSQL()} ${this.fromSQL()}
         `)
     }
 
     // ------------------------------------------------------------------------
 
     public propertiesSQL(): string {
-        return SQLStringHelper.normalizeSQL(
-            (
-                !this.options?.properties ||
-                this.options.properties.includes('*')
+        if (this.options?.properties === null) return ''
+
+        return !this.options?.properties
+            ? this.allColumnsSQL()
+            : this.handlePropertiesSQL()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public countsSQL(): string {
+        return this.options?.count
+            ? new CountQueryBuilder(
+                this.target,
+                this.options.count,
+                this.alias
             )
-                ? this.allPropertiesSQL()
-                : this.handlePropetiesSQL()
-        )
+                .SQL()
+            : ''
     }
 
     // ------------------------------------------------------------------------
@@ -85,7 +113,17 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private allPropertiesSQL(): string {
+    private handlePropertiesSQL(): string {
+        return [
+            this.selectedColumnsSQL(),
+            this.operatorsPropertiesSQL()
+        ]
+            .join(', ')
+    }
+
+    // ------------------------------------------------------------------------
+
+    private allColumnsSQL(): string {
         return this.metadata.columns.toJSON()
             .map(column => `${this.asColumn(column.name)}`)
             .join(', ')
@@ -93,11 +131,33 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private handlePropetiesSQL(): string {
-        return this.options!.properties!
-            .flatMap(prop => typeof prop === 'string'
-                ? `${this.asColumn(prop)}`
-                : []
+    private selectedColumnsSQL(): string {
+        return this.stringProperties.includes('*')
+            ? this.allColumnsSQL()
+            : this.stringProperties
+                .map(prop => this.asColumn(prop))
+                .join(', ')
+    }
+
+    // ------------------------------------------------------------------------
+
+    private operatorsPropertiesSQL(): string {
+        return this.objectProperties
+            .flatMap(
+                prop => Object.getOwnPropertySymbols(prop).map(
+                    symbol => {
+                        if (symbol === Case) return ConditionalQueryBuilder
+                            .case(
+                                this.target,
+                                prop[symbol],
+                                prop.as,
+                                this.alias
+                            )
+                            .SQL()
+
+                        throw new Error
+                    }
+                )
             )
             .join(', ')
     }

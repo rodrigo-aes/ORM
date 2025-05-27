@@ -20,7 +20,7 @@ import {
     Exists,
     NotExists,
     Any,
-    All
+    All,
 } from './Symbols'
 
 import type { OrOperatorValue } from './Or/types'
@@ -49,7 +49,7 @@ export type OperatorKey = (
     // typeof Exists |
     // typeof NotExists |
     // typeof Any |
-    // typeof All
+    // typeof All |
 )
 
 export type OperatorType<T extends any = any> = {

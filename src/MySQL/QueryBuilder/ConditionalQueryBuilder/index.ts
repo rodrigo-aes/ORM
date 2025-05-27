@@ -1,5 +1,9 @@
 import WhereQueryBuilder from "./WhereQueryBuilder"
 import OnQueryBuilder from "./OnQueryBuilder"
+import CaseQueryBuilder, {
+    Case,
+    type CaseQueryOptions,
+} from "./CaseQueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
@@ -42,10 +46,29 @@ export default class ConditionalQueryBuilder {
             options
         )
     }
+
+    // ------------------------------------------------------------------------
+
+    public static case<T extends EntityTarget>(
+        target: T,
+        options: CaseQueryOptions<InstanceType<T>>,
+        as?: string,
+        alias?: string
+    ): CaseQueryBuilder<T> {
+        return new CaseQueryBuilder(
+            target,
+            options,
+            as,
+            alias
+        )
+    }
 }
 
 export {
     type ConditionalQueryOptions,
     type AndQueryOptions,
-    type OrQueryOptions
+    type OrQueryOptions,
+
+    Case,
+    type CaseQueryOptions
 }

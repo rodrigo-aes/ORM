@@ -1,11 +1,27 @@
 import type { EntityPropertiesKeys } from "../types"
+import type {
+    ConditionalQueryOptions,
+    Case,
+    CaseQueryOptions
+} from "../ConditionalQueryBuilder"
+import type { CountQueryOptions } from "../CountQueryBuilder"
 
 type SelectPropertyKey<Entity extends object> = (
     '*' |
     EntityPropertiesKeys<Entity>
 )
 
+type SelectCaseClause<Entity extends object> = {
+    [Case]: CaseQueryOptions<Entity>,
+    as: string
+}
+
+export type SelectPropertyOptions<Entity extends object> = (
+    SelectPropertyKey<Entity> |
+    SelectCaseClause<Entity>
+)
+
 export type SelectOptions<Entity extends object> = {
-    properties?: SelectPropertyKey<Entity>[],
-    count?: { [key: string]: any }
+    properties?: SelectPropertyOptions<Entity>[] | null,
+    count?: CountQueryOptions<Entity>
 }
