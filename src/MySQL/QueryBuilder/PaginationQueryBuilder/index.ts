@@ -1,5 +1,8 @@
 import FindQueryBuilder, { type FindQueryOptions } from "../FindQueryBuilder"
 
+// Query Builders
+import CountQueryBuilder from "../CountQueryBuilder"
+
 // Types
 import type { EntityTarget } from "../../../types/General"
 import type { PaginationOptions } from "./types"
@@ -25,6 +28,15 @@ export default class PaginationQueryBuilder<
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public totalSQL(): string {
+        return CountQueryBuilder.countQuery(
+            this.target,
+            this.options.where,
+            this.alias
+        )
+    }
+
     // Privates ---------------------------------------------------------------
     private setLimit(): void {
         this.limit = this.perPage

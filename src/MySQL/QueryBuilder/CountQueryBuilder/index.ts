@@ -67,7 +67,7 @@ export default class CountQueryBuilder<T extends EntityTarget> {
     // Publics ----------------------------------------------------------------
     public static countQuery<T extends EntityTarget>(
         target: T,
-        options: ConditionalQueryOptions<InstanceType<T>>,
+        options?: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
     ): string {
         return SQLStringHelper.normalizeSQL(

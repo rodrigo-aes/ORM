@@ -24,7 +24,7 @@ export default class CountSQL<T extends EntityTarget> {
 
     constructor(
         public target: T,
-        public option: CountQueryOption<InstanceType<T>>,
+        public option?: CountQueryOption<InstanceType<T>>,
         public as?: string,
         alias?: string,
         public isolated?: boolean
@@ -102,6 +102,8 @@ export default class CountSQL<T extends EntityTarget> {
         switch (typeof this.option) {
             case "string": return this.propertySQL()
             case "object": return this.objectOptionSQL()
+
+            default: return ''
         }
     }
 
