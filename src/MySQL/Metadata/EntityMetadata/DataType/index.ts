@@ -23,6 +23,8 @@ import BINARY from "./BINARY"
 import VARBINARY from "./VARBINARY"
 import BLOB, { type BlobLength } from './BLOB'
 
+import type { DataTypeMetadataJSON } from './types'
+
 export default abstract class DataType extends AbstractDataType {
     public buildSQL(): string {
         throw new Error
@@ -152,5 +154,8 @@ export default abstract class DataType extends AbstractDataType {
     public static BLOB(length?: BlobLength) {
         return new BLOB(length)
     }
+}
 
+export {
+    type DataTypeMetadataJSON
 }

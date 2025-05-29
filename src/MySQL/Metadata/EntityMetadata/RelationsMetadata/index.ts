@@ -1,4 +1,5 @@
 import RelationMetadata, {
+    type RelationJSON,
     type RelationMetadataType,
 
     HasOneMetadata,
@@ -45,6 +46,8 @@ import RelationMetadata, {
     type RelatedEntitiesMap
 } from "./RelationMetadata"
 
+import type { RelationsMetadataJSON } from "./types"
+
 import type { EntityTarget } from "../../../../types/General"
 
 export default class RelationsMetadata extends Array<RelationMetadata> {
@@ -57,6 +60,12 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
     }
 
     // Instance Methods =======================================================
+    public toJSON(): RelationsMetadataJSON {
+        return [...this].map(rel => rel.toJSON())
+    }
+
+    // ------------------------------------------------------------------------
+
     public addRelations(...relations: RelationMetadata[]) {
         this.push(...relations)
         return this
@@ -159,6 +168,7 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
 
 export {
     RelationMetadata,
+    type RelationsMetadataJSON,
     type RelationMetadataType,
 
     HasOneMetadata,

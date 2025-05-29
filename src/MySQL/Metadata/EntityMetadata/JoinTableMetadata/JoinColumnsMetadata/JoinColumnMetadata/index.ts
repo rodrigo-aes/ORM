@@ -1,8 +1,8 @@
 import JoinForeignKeyReferences from "./JoinForeignKeyReferences"
 
-import type JoinTableMetadata from ".."
-import type DataType from "../../DataType"
-import type { JoinColumnInitMap } from "./types"
+import type JoinTableMetadata from "../.."
+import type DataType from "../../../DataType"
+import type { JoinColumnInitMap, JoinColumnMetadataJSON } from "./types"
 
 export default class JoinColumnMetadata {
     public readonly isForeignKey = true
@@ -40,6 +40,25 @@ export default class JoinColumnMetadata {
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): JoinColumnMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                dataType: this.dataType.toJSON(),
+                references: this.references.toJSON()
+            }),
+            Object.entries(this).filter(
+                ([key]) => [
+                    'name',
+                    'length',
+                    'unsigned',
+                    'isForeignKey',
+                ]
+                    .includes(key)
+            )
+        ]) as JoinColumnMetadataJSON
+    }
+
     // Privates ---------------------------------------------------------------
     private makeReferences(initMap: JoinColumnInitMap) {
         return new JoinForeignKeyReferences(this.table, this, {
@@ -50,5 +69,6 @@ export default class JoinColumnMetadata {
 }
 
 export type {
-    JoinColumnInitMap
+    JoinColumnInitMap,
+    JoinColumnMetadataJSON
 }

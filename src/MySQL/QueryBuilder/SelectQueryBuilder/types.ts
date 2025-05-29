@@ -1,6 +1,5 @@
 import type { EntityPropertiesKeys } from "../types"
 import type {
-    ConditionalQueryOptions,
     Case,
     CaseQueryOptions
 } from "../ConditionalQueryBuilder"

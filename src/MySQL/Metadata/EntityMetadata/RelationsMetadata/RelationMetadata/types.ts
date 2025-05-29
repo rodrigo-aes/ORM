@@ -12,7 +12,19 @@ import type {
     PolymorphicHasOneMetadata,
     PolymorphicHasManyMetadata,
     PolymorphicBelongsToMetadata,
+
+    PolymorphicHasOneMetadataJSON,
+    PolymorphicHasManyMetadataJSON,
+    PolymorphicBelongsToMetadataJSON
 } from './PolymorphicRelations'
+
+import type { HasOneMetadataJSON } from "./HasOneMetadata"
+import type { HasManyMetadataJSON } from "./HasManyMetadata"
+import type { HasOneThroughMetadataJSON } from "./HasOneThroughMetadata"
+import type { HasManyThroughMetadataJSON } from "./HasManyThroughMetadata"
+import type { BelongsToMetadataJSON } from "./BelongsToMetadata"
+import type { BelongsToThroughMetadataJSON } from "./BelongsToThroughMetadata"
+import type { BelongsToManyMetadataJSON } from "./BelongsToManyMetadata"
 
 export interface RelationOptions {
     name: string
@@ -47,4 +59,22 @@ export type RelationMetadataTypeName = (
     'PolymorphicHasOne' |
     'PolymorphicHasMany' |
     'PolymorphicBelongsTo'
+)
+
+export type RelationMetadataJSON = {
+    name: string,
+    type: RelationMetadataTypeName
+}
+
+export type RelationJSON = (
+    PolymorphicHasOneMetadataJSON |
+    PolymorphicHasManyMetadataJSON |
+    PolymorphicBelongsToMetadataJSON |
+    HasOneMetadataJSON |
+    HasManyMetadataJSON |
+    HasOneThroughMetadataJSON |
+    HasManyThroughMetadataJSON |
+    BelongsToMetadataJSON |
+    BelongsToThroughMetadataJSON |
+    BelongsToManyMetadataJSON
 )

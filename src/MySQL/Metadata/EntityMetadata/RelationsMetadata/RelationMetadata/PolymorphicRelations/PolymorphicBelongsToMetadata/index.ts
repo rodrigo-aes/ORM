@@ -10,6 +10,7 @@ import type {
     PolymorphicParentOptions,
     PolymorphicParentRelatedGetter
 } from "../types"
+import type { PolymorphicBelongsToMetadataJSON } from "./types"
 
 export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     private _entities?: RelatedEntitiesMap
@@ -35,7 +36,7 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get entities(): RelatedEntitiesMap {
-        return this._entities ?? this.getEntities()
+        return this._entities ?? this.loadEntities()
     }
 
     // ------------------------------------------------------------------------
@@ -63,12 +64,38 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
         return `${this.name}Id`
     }
 
+    // ------------------------------------------------------------------------
+
+    public get typeColum(): ColumnMetadata {
+        return EntityMetadata.findOrBuild(this.target)
+            .getColumn(this.typeKey)
+    }
+
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): PolymorphicBelongsToMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                entities: this.entitiesToJSON(),
+                foreignKey: this.foreignKey.toJSON(),
+                typeColumn: this.typeColum.toJSON(),
+                type: this.type
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name',
+                    'scope',
+                ]
+                    .includes(key)
+            )
+        ]) as PolymorphicBelongsToMetadataJSON
+    }
+
     // Protecteds -------------------------------------------------------------
-    protected getEntities() {
+    protected loadEntities() {
         const related = this.related()
         this._entities = {}
-        for (const rel of related) this._entities[rel.name] = this.getEntity(
+        for (const rel of related) this._entities[rel.name] = this.loadEntity(
             rel
         )
 
@@ -77,7 +104,21 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     }
 
     // Privates ---------------------------------------------------------------
-    private getEntity(target: EntityTarget) {
+    private loadEntity(target: EntityTarget) {
         return EntityMetadata.find(target)!
     }
+
+    // ------------------------------------------------------------------------
+
+    private entitiesToJSON() {
+        return Object.fromEntries(
+            Object.entries(this.entities).map(
+                ([key, entity]) => [key, entity.toJSON()]
+            )
+        )
+    }
+}
+
+export {
+    type PolymorphicBelongsToMetadataJSON
 }

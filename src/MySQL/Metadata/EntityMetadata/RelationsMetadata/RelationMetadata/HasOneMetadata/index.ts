@@ -4,7 +4,11 @@ import RelationMetadata from "../RelationMetadata"
 // Types
 import type { EntityTarget } from "../../../../../../types/General"
 import type { ColumnMetadata } from "../../../ColumnsMetadata"
-import type { HasOneOptions, HasOneRelatedGetter } from "./types"
+import type {
+    HasOneOptions,
+    HasOneRelatedGetter,
+    HasOneMetadataJSON
+} from "./types"
 
 export default class HasOneMetadata extends RelationMetadata {
     public entity: EntityMetadata
@@ -43,6 +47,24 @@ export default class HasOneMetadata extends RelationMetadata {
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): HasOneMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                entity: this.entity.toJSON(),
+                foreignKey: this.foreignKey.toJSON(),
+                type: this.type
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name',
+                    'scope',
+                ]
+                    .includes(key)
+            )
+        ]) as HasOneMetadataJSON
+    }
+
     // Privates ---------------------------------------------------------------
     private loadEntity() {
         return EntityMetadata.findOrBuild(this.related())
@@ -51,5 +73,6 @@ export default class HasOneMetadata extends RelationMetadata {
 
 export type {
     HasOneOptions,
-    HasOneRelatedGetter
+    HasOneRelatedGetter,
+    HasOneMetadataJSON
 }

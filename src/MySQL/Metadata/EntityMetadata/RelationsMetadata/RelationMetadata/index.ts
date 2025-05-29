@@ -24,7 +24,7 @@ import HasManyThroughMetadata, {
 } from "./HasManyThroughMetadata"
 
 import BelongsToMetadata, {
-    type BelongToOptions,
+    type BelongsToOptions,
     type BelongsToRelatedGetter
 } from "./BelongsToMetadata"
 
@@ -55,7 +55,8 @@ import {
 import type {
     RelatedEntitiesMap,
     RelationMetadataType,
-    RelationMetadataTypeName
+    RelationMetadataTypeName,
+    RelationJSON
 } from "./types"
 
 export default
@@ -191,6 +192,7 @@ export default
 
 export {
     type RelationMetadataType,
+    type RelationJSON,
 
     HasOneMetadata,
     type HasOneOptions,
@@ -211,7 +213,7 @@ export {
     type HasManyThroughGetter,
 
     BelongsToMetadata,
-    type BelongToOptions,
+    type BelongsToOptions as BelongToOptions,
     type BelongsToRelatedGetter,
 
     BelongsToThroughMetadata,

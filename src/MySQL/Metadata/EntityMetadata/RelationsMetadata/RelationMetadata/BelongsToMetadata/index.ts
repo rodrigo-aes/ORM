@@ -6,7 +6,11 @@ import ColumnsMetadata, {
 
 // Types
 import type { EntityTarget } from "../../../../../../types/General"
-import type { BelongToOptions, BelongsToRelatedGetter } from "./types"
+import type {
+    BelongsToOptions,
+    BelongsToRelatedGetter,
+    BelongsToMetadataJSON
+} from "./types"
 import type { RelatedEntitiesMap } from "../types"
 
 export default class BelongsToMetadata extends RelationMetadata {
@@ -17,7 +21,7 @@ export default class BelongsToMetadata extends RelationMetadata {
 
     constructor(
         target: EntityTarget,
-        { foreignKey, ...options }: BelongToOptions
+        { foreignKey, ...options }: BelongsToOptions
     ) {
         super(target, options)
         Object.assign(this, options)
@@ -52,6 +56,24 @@ export default class BelongsToMetadata extends RelationMetadata {
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): BelongsToMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                entity: this.entity.toJSON(),
+                foreignKey: this.foreignKey.toJSON(),
+                type: this.type
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name',
+                    'scope'
+                ]
+                    .includes(key)
+            )
+        ]) as BelongsToMetadataJSON
+    }
+
     // Protecteds -------------------------------------------------------------
     protected getEntities() {
         const related = this.related()
@@ -75,6 +97,7 @@ export default class BelongsToMetadata extends RelationMetadata {
 }
 
 export type {
-    BelongToOptions,
-    BelongsToRelatedGetter
+    BelongsToOptions,
+    BelongsToRelatedGetter,
+    BelongsToMetadataJSON
 }

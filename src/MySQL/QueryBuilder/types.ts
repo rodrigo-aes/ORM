@@ -1,6 +1,4 @@
-import type { EntityTarget } from "../../types/General"
 import type BaseEntity from "../BaseEntity"
-import type { User } from "../../TestTools/Entities"
 
 export type EntityPropertiesKeys<Entity extends object> = {
     [K in keyof Entity]: Entity[K] extends Function ? never : K

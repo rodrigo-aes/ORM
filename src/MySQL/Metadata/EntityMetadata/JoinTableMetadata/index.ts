@@ -2,7 +2,11 @@ import JoinColumnsMetadata, { JoinColumnMetadata } from "./JoinColumnsMetadata"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { JoinTableRelated, JoinTableRelatedsGetter } from "./types"
+import type {
+    JoinTableRelated,
+    JoinTableRelatedsGetter,
+    JoinTableMetadataJSON
+} from "./types"
 
 export default class JoinTableMetadata {
     public columns!: JoinColumnsMetadata
@@ -40,6 +44,15 @@ export default class JoinTableMetadata {
     // Publics ----------------------------------------------------------------
     public getTargetColumn(target: EntityTarget): JoinColumnMetadata {
         return this.columns.getTargetColumn(target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public toJSON(): JoinTableMetadataJSON {
+        return {
+            tableName: this.tableName,
+            columns: this.columns.toJSON()
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -165,4 +178,5 @@ export {
 
     type JoinTableRelated,
     type JoinTableRelatedsGetter,
+    type JoinTableMetadataJSON
 }

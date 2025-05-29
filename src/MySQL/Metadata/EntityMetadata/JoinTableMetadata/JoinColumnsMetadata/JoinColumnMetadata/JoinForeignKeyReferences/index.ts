@@ -1,13 +1,14 @@
-import EntityMetadata from "../../.."
+import EntityMetadata from "../../../.."
 
-import type JoinTableMetadata from "../.."
+import type JoinTableMetadata from "../../.."
 import type JoinColumnMetadata from ".."
-import type { ColumnMetadata } from "../../../ColumnsMetadata"
+import type { ColumnMetadata } from "../../../../ColumnsMetadata"
 
 import type {
     JoinForeignKeyReferencedGetter,
     ForeignKeyActionListener,
-    ForeignKeyReferencesInitMap
+    ForeignKeyReferencesInitMap,
+    JoinForeignKeyReferencesJSON
 } from "./types"
 
 export default class JoinForeignKeyReferences {
@@ -42,10 +43,31 @@ export default class JoinForeignKeyReferences {
     public get name(): string | undefined {
         return `fk_${this.table.tableName}_${this._column.name}`
     }
+
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): JoinForeignKeyReferencesJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                entity: this.entity.toJSON(),
+                column: this.column.toJSON()
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name',
+                    'constrained',
+                    'onDelete',
+                    'onUpdate',
+                ]
+                    .includes(key)
+            )
+        ]) as JoinForeignKeyReferencesJSON
+    }
 }
 
 export type {
     JoinForeignKeyReferencedGetter,
     ForeignKeyActionListener,
-    ForeignKeyReferencesInitMap
+    ForeignKeyReferencesInitMap,
+    JoinForeignKeyReferencesJSON
 }

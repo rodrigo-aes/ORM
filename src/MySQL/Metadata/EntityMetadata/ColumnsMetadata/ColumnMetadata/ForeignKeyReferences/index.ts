@@ -1,13 +1,15 @@
 import EntityMetadata from "../../../"
 
 import type { EntityTarget } from "../../../../../../types/General"
-import type ColumnMetadata from '..'
+import ColumnMetadata from '..'
 import type { RelatedEntitiesMap } from "../../../RelationsMetadata"
 import type {
     ForeignKeyReferencesInitMap,
     ForeignKeyReferencedGetter,
     ForeignKeyActionListener,
-    RelatedColumnsMap
+    RelatedColumnsMap,
+
+    ForeignKeyReferencesJSON
 } from "./types"
 
 export default class ForeignKeyReferences {
@@ -57,7 +59,29 @@ export default class ForeignKeyReferences {
     }
 
     // Instance Methods =======================================================
-    // Privates --------------------------------------------------------------
+    // Publics ----------------------------------------------------------------
+    public toJSON(): ForeignKeyReferencesJSON {
+        return Object.fromEntries(
+            [
+                ...Object.entries({
+                    entity: this.entityToJSON(),
+                    column: this.columnToJSON(),
+                }),
+                ...Object.entries(this).filter(
+                    ([key]) => [
+                        'name',
+                        'constrained',
+                        'onDelete',
+                        'onUpdate',
+                        'scope',
+                    ]
+                        .includes(key)
+                )
+            ]
+        ) as ForeignKeyReferencesJSON
+    }
+
+    // Privates ---------------------------------------------------------------
     private getEntity() {
         const referenced = this.referenced()
 
@@ -89,10 +113,31 @@ export default class ForeignKeyReferences {
             return map
         }
     }
+
+    // ------------------------------------------------------------------------
+
+    private entityToJSON() {
+        return this.entity instanceof EntityMetadata
+            ? this.entity.toJSON()
+            : Object.fromEntries(Object.entries(this.entity).map(
+                ([key, entity]) => [key, entity.toJSON()]
+            ))
+    }
+
+    // ------------------------------------------------------------------------
+
+    private columnToJSON() {
+        return this.column instanceof ColumnMetadata
+            ? this.column.toJSON()
+            : Object.fromEntries(Object.entries(this.column).map(
+                ([key, column]) => [key, column.toJSON()]
+            ))
+    }
 }
 
 export type {
     ForeignKeyReferencesInitMap,
     ForeignKeyReferencedGetter,
-    ForeignKeyActionListener
+    ForeignKeyActionListener,
+    ForeignKeyReferencesJSON
 }

@@ -76,10 +76,7 @@ import HooksMetadata from './HooksMetadata'
 
 // Types
 import type { EntityTarget } from '../../../types/General'
-import type { EntityMetadataInitMap } from './types'
-import type {
-
-} from './RelationsMetadata'
+import type { EntityMetadataInitMap, EntityMetadataJSON } from './types'
 
 export default class EntityMetadata {
     public tableName!: string
@@ -102,6 +99,12 @@ export default class EntityMetadata {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
+    public get name(): string {
+        return this.target.name
+    }
+
+    // ------------------------------------------------------------------------
+
     public get foreignKeys(): ColumnMetadata[] {
         return this.columns.filter(({ isForeignKey }) => isForeignKey)
     }
@@ -166,6 +169,23 @@ export default class EntityMetadata {
         return joinTable
     }
 
+    // ------------------------------------------------------------------------
+
+    public toJSON<T extends EntityTarget = any>(): (
+        EntityMetadataJSON<T> | undefined
+    ) {
+        return this.verifyAddedMetadata()
+            ? {
+                target: this.target as T,
+                name: this.name,
+                tableName: this.tableName,
+                columns: this.columns.toJSON(),
+                relations: this.relations?.toJSON(),
+                joinTables: this.joinTables?.map(table => table.toJSON())
+            }
+            : undefined
+    }
+
     // Protecteds -------------------------------------------------------------
     protected register() {
         Reflect.defineMetadata('entity-metadata', this, this.target)
@@ -199,6 +219,30 @@ export default class EntityMetadata {
 
     private loadHooks() {
         this.hooks = HooksMetadata.find(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private verifyAddedMetadata(): boolean {
+        const included = Reflect.getOwnMetadata(
+            'metadata-json', EntityMetadata
+        )
+
+        if (included) if (included.has(this.name)) return false
+        else {
+            included.add(this.name)
+            return true
+        }
+
+        else {
+            Reflect.defineMetadata(
+                'metadata-json',
+                new Set<string>([this.name]),
+                EntityMetadata
+            )
+
+            return true
+        }
     }
 
     // Static Methods =========================================================

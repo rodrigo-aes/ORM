@@ -6,7 +6,11 @@ import type { EntityTarget } from "../../../../../../types/General"
 import type JoinTableMetadata from "../../../JoinTableMetadata"
 import type { JoinColumnMetadata } from "../../../JoinTableMetadata"
 import type { ForeignKeyActionListener } from "../../.."
-import type { BelongsToManyRelatedGetter, BelongsToManyOptions } from "./types"
+import type {
+    BelongsToManyRelatedGetter,
+    BelongsToManyOptions,
+    BelongsToManyMetadataJSON
+} from "./types"
 
 export default class BelongsToManyMetadata extends RelationMetadata {
     public related!: BelongsToManyRelatedGetter
@@ -55,6 +59,24 @@ export default class BelongsToManyMetadata extends RelationMetadata {
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): BelongsToManyMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                entity: this.entity.toJSON(),
+                type: this.type
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name',
+                    'onDelete',
+                    'onUpdate'
+                ]
+                    .includes(key)
+            )
+        ]) as BelongsToManyMetadataJSON
+    }
+
     // Privates ---------------------------------------------------------------
     private registerJoinTable(name?: string) {
         return EntityMetadata.findOrBuild(this.target).addJoinTable(
@@ -77,5 +99,6 @@ export default class BelongsToManyMetadata extends RelationMetadata {
 
 export type {
     BelongsToManyRelatedGetter,
-    BelongsToManyOptions
+    BelongsToManyOptions,
+    BelongsToManyMetadataJSON
 }

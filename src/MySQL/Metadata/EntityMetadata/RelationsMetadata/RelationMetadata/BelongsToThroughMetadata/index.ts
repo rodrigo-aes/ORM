@@ -10,7 +10,7 @@ import type {
     BelongsToThroughOptions,
     BelongsToThroughRelatedGetter,
     BelongsToThroughGetter,
-    ThroughForeignKeysMap
+    BelongsToThroughMetadataJSON
 } from "./types"
 import type { RelatedEntitiesMap } from "../types"
 
@@ -77,6 +77,25 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): BelongsToThroughMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                entity: this.entity.toJSON(),
+                throughEntity: this.throughEntity.toJSON(),
+                foreignKey: this.foreignKey.toJSON(),
+                throughForeignKey: this.throughForeignKey.toJSON(),
+                type: this.type
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name'
+                ]
+                    .includes(key)
+            )
+        ]) as BelongsToThroughMetadataJSON
+    }
+
     // Privates ---------------------------------------------------------------
     private getEntity(target: EntityTarget) {
         return EntityMetadata.find(target)!
@@ -87,4 +106,5 @@ export type {
     BelongsToThroughOptions,
     BelongsToThroughRelatedGetter,
     BelongsToThroughGetter,
+    BelongsToThroughMetadataJSON
 }

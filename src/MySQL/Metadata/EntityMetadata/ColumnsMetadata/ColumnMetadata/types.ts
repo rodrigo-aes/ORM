@@ -1,6 +1,10 @@
+import type { EntityTarget } from "../../../../../types/General";
 import type ColumnMetadata from "."
-import type { ForeignKeyReferencesInitMap } from "./ForeignKeyReferences"
-
+import type {
+    ForeignKeyReferencesInitMap,
+    ForeignKeyReferencesJSON
+} from "./ForeignKeyReferences"
+import type { DataTypeMetadataJSON } from "../../DataType";
 
 export type ColumnPattern = (
     'id' |
@@ -59,3 +63,17 @@ export type ForeignIdConfig = Omit<ForeignKeyReferencesInitMap, (
     'constrained' |
     'scope'
 )>
+
+export type ColumnMetadataJSON = {
+    name: string,
+    dataType: DataTypeMetadataJSON
+    length?: number
+    nullable?: boolean
+    defaultValue?: any
+    unique?: boolean
+    primary?: boolean
+    autoIncrement?: boolean
+    unsigned?: boolean
+    isForeignKey?: boolean
+    references?: ForeignKeyReferencesJSON
+}

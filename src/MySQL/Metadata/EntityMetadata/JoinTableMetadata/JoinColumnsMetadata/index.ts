@@ -1,10 +1,11 @@
 import JoinColumnMetadata, {
     type JoinColumnInitMap
-} from "../JoinColumnMetadata"
+} from "./JoinColumnMetadata"
 
 import type JoinTableMetadata from ".."
 import type { EntityTarget } from "../../../../../types/General"
 
+import type { JoinColumnsMetadataJSON } from "./types"
 export default class JoinColumnsMetadata<
     T extends JoinColumnMetadata = JoinColumnMetadata
 > extends Array<T> {
@@ -43,9 +44,16 @@ export default class JoinColumnsMetadata<
     ) {
         return this.getColumn(`${target.name.toLowerCase()}Id`)
     }
+
+    // ------------------------------------------------------------------------
+
+    public toJSON(): JoinColumnsMetadataJSON {
+        return [...this].map(column => column.toJSON())
+    }
 }
 
 export {
     JoinColumnMetadata,
     type JoinColumnInitMap,
+    type JoinColumnsMetadataJSON
 }

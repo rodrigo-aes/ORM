@@ -8,6 +8,7 @@ import type {
     PolymorphicChildOptions,
     PolymorphicChildRelatedGetter
 } from "../types"
+import type { PolymorphicHasManyMetadataJSON } from "./types"
 
 export default class PolymorphicHasManyMetadata extends RelationMetadata {
     public related!: PolymorphicChildRelatedGetter
@@ -58,9 +59,38 @@ export default class PolymorphicHasManyMetadata extends RelationMetadata {
         return this.target.name
     }
 
+    // ------------------------------------------------------------------------
+
+    public get typeColumn(): ColumnMetadata {
+        return this.entity.getColumn(this.typeKey)
+    }
+
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): PolymorphicHasManyMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                entity: this.entity.toJSON(),
+                foreignKey: this.foreignKey.toJSON(),
+                typeColumn: this.typeColumn.toJSON(),
+                type: this.type
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name',
+                    'scope',
+                ]
+                    .includes(key)
+            )
+        ]) as PolymorphicHasManyMetadataJSON
+    }
+
     // Privates ---------------------------------------------------------------
     private loadEntity() {
         return EntityMetadata.findOrBuild(this.related())
     }
+}
+
+export {
+    type PolymorphicHasManyMetadataJSON
 }

@@ -10,6 +10,7 @@ import ColumnMetadata, {
 } from "./ColumnMetadata"
 import type DataType from "../DataType"
 import type { EntityTarget } from "../../../../types/General"
+import type { ColumnsMetadataJSON } from './types'
 
 export default class ColumnsMetadata<
     T extends ColumnMetadata = ColumnMetadata
@@ -44,7 +45,6 @@ export default class ColumnsMetadata<
     }
 
     // Instance Methods =======================================================
-    // Publics ----------------------------------------------------------------
     public registerColumn(name: string, dataType: DataType) {
         const column = new ColumnMetadata(this.target, name, dataType)
         this.push(column as T)
@@ -98,8 +98,8 @@ export default class ColumnsMetadata<
 
     // ------------------------------------------------------------------------
 
-    public toJSON() {
-        return [...this]
+    public toJSON(): ColumnsMetadataJSON {
+        return [...this].map(column => column.toJSON())
     }
 
     // Protecteds -------------------------------------------------------------
@@ -161,4 +161,5 @@ export {
     type ForeignKeyReferencesInitMap,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
+    type ColumnsMetadataJSON
 }

@@ -1,12 +1,13 @@
 // Utils
 import EntityMetadata from "../../"
 import DataType from "../../DataType"
+
+// Objects
 import ForeignKeyReferences, {
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
-    type ForeignKeyReferencesInitMap
+    type ForeignKeyReferencesInitMap,
 } from "./ForeignKeyReferences"
-
 
 import type { EntityTarget } from "../../../../../types/General"
 import type {
@@ -14,6 +15,7 @@ import type {
     ColumnPattern,
     ColumnConfig,
     ForeignIdConfig,
+    ColumnMetadataJSON
 } from "./types"
 
 export default class ColumnMetadata {
@@ -50,6 +52,31 @@ export default class ColumnMetadata {
             this.name,
             initMap
         )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public toJSON(): ColumnMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                dataType: this.dataType.toJSON(),
+                references: this.references?.toJSON()
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name',
+                    'length',
+                    'nullable',
+                    'defaultValue',
+                    'unique',
+                    'primary',
+                    'autoIncrement',
+                    'unsigned',
+                    'isForeignKey',
+                ]
+                    .includes(key)
+            )
+        ]) as ColumnMetadataJSON
     }
 
     // Static Methods =========================================================
@@ -152,5 +179,6 @@ export type {
     ForeignKeyReferencesInitMap,
     ForeignKeyReferencedGetter,
     ForeignKeyActionListener,
-    ForeignIdConfig
+    ForeignIdConfig,
+    ColumnMetadataJSON
 }

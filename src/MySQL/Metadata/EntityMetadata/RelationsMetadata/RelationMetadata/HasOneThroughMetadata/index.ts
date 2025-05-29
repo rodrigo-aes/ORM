@@ -7,7 +7,8 @@ import type { ColumnMetadata } from "../../../ColumnsMetadata"
 import type {
     HasOneThroughOptions,
     HasOneThroughRelatedGetter,
-    HasOneThroughGetter
+    HasOneThroughGetter,
+    HasOneThroughMetadataJSON
 } from "./types"
 
 export default class HasOneThroughMetadata extends RelationMetadata {
@@ -66,6 +67,25 @@ export default class HasOneThroughMetadata extends RelationMetadata {
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public toJSON(): HasOneThroughMetadataJSON {
+        return Object.fromEntries([
+            ...Object.entries({
+                entity: this.entity.toJSON(),
+                throughEntity: this.throughEntity.toJSON(),
+                foreignKey: this.foreignKey.toJSON(),
+                throughForeignKey: this.throughForeignKey.toJSON(),
+                type: this.type
+            }),
+            ...Object.entries(this).filter(
+                ([key]) => [
+                    'name'
+                ]
+                    .includes(key)
+            )
+        ]) as HasOneThroughMetadataJSON
+    }
+
     // Privates ---------------------------------------------------------------
     private loadEntity() {
         return EntityMetadata.findOrBuild(this.related())
@@ -81,5 +101,6 @@ export default class HasOneThroughMetadata extends RelationMetadata {
 export type {
     HasOneThroughOptions,
     HasOneThroughRelatedGetter,
-    HasOneThroughGetter
+    HasOneThroughGetter,
+    HasOneThroughMetadataJSON
 }
