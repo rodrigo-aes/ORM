@@ -74,6 +74,8 @@ import JoinTableMetadata, {
 // Hooks
 import HooksMetadata from './HooksMetadata'
 
+import { EntityToJSONProcessMetadata } from '../ProcessMetadata'
+
 // Types
 import type { EntityTarget } from '../../../types/General'
 import type { EntityMetadataInitMap, EntityMetadataJSON } from './types'
@@ -174,16 +176,11 @@ export default class EntityMetadata {
     public toJSON<T extends EntityTarget = any>(): (
         EntityMetadataJSON<T> | undefined
     ) {
-        return this.verifyAddedMetadata()
-            ? {
-                target: this.target as T,
-                name: this.name,
-                tableName: this.tableName,
-                columns: this.columns.toJSON(),
-                relations: this.relations?.toJSON(),
-                joinTables: this.joinTables?.map(table => table.toJSON())
-            }
-            : undefined
+        return EntityToJSONProcessMetadata.initialized
+            ? this.buildJSON()
+            : EntityToJSONProcessMetadata.apply(
+                () => this.buildJSON()
+            )
     }
 
     // Protecteds -------------------------------------------------------------
@@ -223,26 +220,19 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    private verifyAddedMetadata(): boolean {
-        const included = Reflect.getOwnMetadata(
-            'metadata-json', EntityMetadata
-        )
-
-        if (included) if (included.has(this.name)) return false
-        else {
-            included.add(this.name)
-            return true
-        }
-
-        else {
-            Reflect.defineMetadata(
-                'metadata-json',
-                new Set<string>([this.name]),
-                EntityMetadata
-            )
-
-            return true
-        }
+    private buildJSON<T extends EntityTarget = any>(): (
+        EntityMetadataJSON | undefined
+    ) {
+        return EntityToJSONProcessMetadata.shouldAdd(this.name)
+            ? {
+                target: this.target as T,
+                name: this.name,
+                tableName: this.tableName,
+                columns: this.columns.toJSON(),
+                relations: this.relations?.toJSON(),
+                joinTables: this.joinTables?.map(table => table.toJSON())
+            }
+            : undefined
     }
 
     // Static Methods =========================================================
