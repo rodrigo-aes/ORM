@@ -1,14 +1,19 @@
 import { EntityMetadata } from "../Metadata"
 
 // Query Builders
-import { InsertQueryBuilder, BulkInsertQueryBuilder } from "./QueryBuilders"
+import {
+    FindOneQueryBuilder,
+    FindQueryBuilder,
+    InsertQueryBuilder,
+    BulkInsertQueryBuilder
+} from "./QueryBuilders"
 
 // Types
 import type { EntityTarget } from "../../types/General"
 
 export default class QueryBuilder<T extends EntityTarget> {
     public metadata: EntityMetadata
-    public alias?: string
+    private alias?: string
 
     constructor(
         public target: T,
@@ -20,14 +25,26 @@ export default class QueryBuilder<T extends EntityTarget> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public findOne(alias?: string): FindOneQueryBuilder<T> {
+        return new FindOneQueryBuilder(this.target, alias ?? this.alias)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public find(alias?: string): FindQueryBuilder<T> {
+        return new FindQueryBuilder(this.target, alias ?? this.alias)
+    }
+
+    // ------------------------------------------------------------------------
+
     public insert(alias?: string): InsertQueryBuilder<T> {
-        return new InsertQueryBuilder(this.target, alias)
+        return new InsertQueryBuilder(this.target, alias ?? this.alias)
     }
 
     // ------------------------------------------------------------------------
 
     public bulkInsert(alias?: string): BulkInsertQueryBuilder<T> {
-        return new BulkInsertQueryBuilder(this.target, alias)
+        return new BulkInsertQueryBuilder(this.target, alias ?? this.alias)
     }
 
     // Privates ---------------------------------------------------------------

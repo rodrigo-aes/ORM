@@ -54,12 +54,11 @@ export default class WhereQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public or(whereClause: WhereQueryFunction<T>): this {
+    public or(): this {
         if (!this.orOpts) this.orOpts = []
         this.orOpts.push(this.currentAnd)
 
         this.addAndClause()
-        whereClause(this.currentAnd)
         this.orOpts.push(this.currentAnd)
 
         return this
@@ -112,6 +111,35 @@ export default class WhereQueryBuilder<T extends EntityTarget> {
             this.target,
             this.alias
         )
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static where<
+        T extends EntityTarget,
+        K extends EntityPropertiesKeys<InstanceType<T>>,
+        Cond extends (
+            EntityProperties<InstanceType<T>>[K] |
+            CompatibleOperators<EntityProperties<InstanceType<T>>[K]>
+        )
+    >(
+        target: T,
+        alias: string | undefined,
+        propertie: K | string,
+        conditional: Cond,
+        value?: typeof conditional extends keyof OperatorType
+            ? OperatorType[typeof conditional]
+            : never
+    ) {
+        return new WhereQueryBuilder(
+            target,
+            alias
+        )
+            .where(
+                propertie,
+                conditional,
+                value
+            )
     }
 }
 

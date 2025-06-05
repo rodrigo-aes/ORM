@@ -2,6 +2,8 @@ import CreateQueryBuilder from "../CreateQueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../../../types/General"
+import type { ExecOptions } from "../types"
+import type { EntityProperties } from "../../../types"
 
 export default class InsertQueryBuilder<
     T extends EntityTarget

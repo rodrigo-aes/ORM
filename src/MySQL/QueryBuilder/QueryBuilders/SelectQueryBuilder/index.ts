@@ -133,3 +133,9 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
         }
     }
 }
+
+
+export {
+    type SelectPropertiesOptions,
+    type SelectCountFunction
+}
