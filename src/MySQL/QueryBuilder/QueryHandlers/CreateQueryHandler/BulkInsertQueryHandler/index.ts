@@ -1,11 +1,7 @@
 import CreateQueryHandler from "../CreateQueryHandler"
-import CreateQueryBuilder, {
-    type EntityCreationAttributes,
-} from "../../../CreateQueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../../../types/General"
-
 
 export default class BulkInsertQueryHandler<
     T extends EntityTarget
@@ -47,24 +43,5 @@ export default class BulkInsertQueryHandler<
                 value++
             }
         }
-    }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static createMany<T extends EntityTarget>(
-        target: T,
-        attributes: EntityCreationAttributes<InstanceType<T>>[],
-        alias?: string
-    ): Promise<InstanceType<T>[]> {
-        return new BulkInsertQueryHandler(
-            target,
-            alias,
-            new CreateQueryBuilder(
-                target,
-                attributes,
-                alias
-            )
-        )
-            .exec()
     }
 }

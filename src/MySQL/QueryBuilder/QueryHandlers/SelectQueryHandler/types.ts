@@ -1,6 +1,6 @@
 import type { EntityTarget } from "../../../../types/General"
 
-import type { SelectPropertyKey } from "../../SelectQueryBuilder"
+import type { SelectPropertyKey } from "../../SelectSQLBuilder"
 import type CaseQueryHandler from "../CaseQueryHandler"
 import type CountQueryHandler from "../CountQueryHandler"
 

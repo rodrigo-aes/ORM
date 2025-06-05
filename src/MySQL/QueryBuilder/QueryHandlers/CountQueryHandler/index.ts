@@ -16,7 +16,7 @@ import type {
     CountQueryOption,
     CountCaseOptions,
     CountQueryOptions
-} from "../../CountQueryBuilder"
+} from "../../CountSQLBuilder"
 
 import type { EntityProperties, EntityPropertiesKeys } from "../../types"
 import type { CompatibleOperators, OperatorType } from "../OperatorQueryHandler"

@@ -3,7 +3,7 @@ import type { EntityProperties } from "./types"
 import type {
     CreationAttributes,
     EntityCreationAttributes
-} from "./CreateQueryBuilder"
+} from "./CreateSQLBuilder"
 
 
 export {

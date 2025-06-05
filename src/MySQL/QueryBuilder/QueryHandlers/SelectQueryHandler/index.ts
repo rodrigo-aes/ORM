@@ -11,11 +11,11 @@ import type {
     SelectOptions,
     SelectPropertyOptions,
     SelectPropertyKey
-} from "../../SelectQueryBuilder"
+} from "../../SelectSQLBuilder"
 
 import type {
     CountQueryOptions
-} from "../../CountQueryBuilder"
+} from "../../CountSQLBuilder"
 
 import type {
     SelectPropertyType,

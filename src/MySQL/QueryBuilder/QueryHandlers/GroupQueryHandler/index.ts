@@ -1,6 +1,6 @@
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { GroupQueryOptions } from "../../GroupQueryBuilder"
+import type { GroupQueryOptions } from "../../GroupSQLBuilder"
 
 export default class GroupQueryHandler<T extends EntityTarget> {
     private _options: GroupQueryOptions<InstanceType<T>> = []

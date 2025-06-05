@@ -1,7 +1,7 @@
 import type { EntityTarget } from "../../../types/General"
 
-import type { AndQueryOptions } from "./AndQueryBuilder"
-import type { OrQueryOptions } from "./OrQueryBuilder"
+import type { AndQueryOptions } from "./AndSQLBuilder"
+import type { OrQueryOptions } from "./OrSQLBuilder"
 
 export type ConditionalQueryOptions<Entity extends object> = (
     AndQueryOptions<Entity> |

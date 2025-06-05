@@ -5,7 +5,7 @@ import { InsertQueryHandler, BulkInsertQueryHandler } from "./QueryHandlers"
 
 // Types
 import type { EntityTarget } from "../../types/General"
-import type { EntityCreationAttributes } from "./CreateQueryBuilder"
+import type { EntityCreationAttributes } from "./CreateSQLBuilder"
 
 export default class QueryBuilder<T extends EntityTarget> {
     public metadata: EntityMetadata

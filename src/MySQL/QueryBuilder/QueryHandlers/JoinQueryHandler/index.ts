@@ -6,7 +6,7 @@ import WhereQueryHandler from "../WhereQueryHandler"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { RelationOptions, RelationsOptions } from "../../JoinQueryBuilder/types"
+import type { RelationOptions, RelationsOptions } from "../../JoinSQLBuilder/types"
 import type {
     JoinQueryOptions,
     JoinQueryClause,

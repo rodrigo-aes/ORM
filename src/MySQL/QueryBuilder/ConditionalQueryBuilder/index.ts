@@ -1,9 +1,9 @@
-import WhereQueryBuilder from "./WhereQueryBuilder"
-import OnQueryBuilder from "./OnQueryBuilder"
-import CaseQueryBuilder, {
+import WhereSQLBuilder from "./WhereSQLBuilder"
+import OnSQLBuilder from "./OnSQLBuilder"
+import CaseSQLBuilder, {
     Case,
     type CaseQueryOptions,
-} from "./CaseQueryBuilder"
+} from "./CaseSQLBuilder"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
@@ -14,7 +14,7 @@ import type {
 } from "./types"
 import type { RelationMetadataType } from "../../Metadata"
 
-export default class ConditionalQueryBuilder {
+export default class ConditionalSQLBuilder {
     private constructor() {
         throw new Error
     }
@@ -25,8 +25,8 @@ export default class ConditionalQueryBuilder {
         target: T,
         options: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
-    ): WhereQueryBuilder<T> {
-        return new WhereQueryBuilder(target, options, alias)
+    ): WhereSQLBuilder<T> {
+        return new WhereSQLBuilder(target, options, alias)
     }
 
     // ------------------------------------------------------------------------
@@ -37,8 +37,8 @@ export default class ConditionalQueryBuilder {
         alias: string,
         target: T,
         options?: ConditionalQueryOptions<InstanceType<T>>,
-    ): OnQueryBuilder<T> {
-        return new OnQueryBuilder(
+    ): OnSQLBuilder<T> {
+        return new OnSQLBuilder(
             relation,
             parentAlias,
             alias,
@@ -54,8 +54,8 @@ export default class ConditionalQueryBuilder {
         options: CaseQueryOptions<InstanceType<T>>,
         as?: string,
         alias?: string
-    ): CaseQueryBuilder<T> {
-        return new CaseQueryBuilder(
+    ): CaseSQLBuilder<T> {
+        return new CaseSQLBuilder(
             target,
             options,
             as,

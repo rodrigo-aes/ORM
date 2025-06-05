@@ -2,26 +2,26 @@ import { EntityMetadata, MetadataHandler } from "../../../Metadata"
 import EntityHandler from "../../../EntityHandler"
 
 // Query Builders
-import CreateQueryBuilder from "../../CreateQueryBuilder"
+import CreateSQLBuilder from "../../CreateSQLBuilder"
 
 // Types
 import type { ResultSetHeader } from "mysql2"
 import type MySQLConnection from "../../../Connection"
 import type { EntityTarget } from "../../../../types/General"
-import type { CreationAttibutesKey } from "../../CreateQueryBuilder"
+import type { CreationAttibutesKey } from "../../CreateSQLBuilder"
 
 export default abstract class CreateQueryHandler<T extends EntityTarget> {
     protected metadata: EntityMetadata
-    public queryBuilder: CreateQueryBuilder<T>
+    public queryBuilder: CreateSQLBuilder<T>
 
     constructor(
         public target: T,
         public alias?: string,
-        queryBuilder?: CreateQueryBuilder<T>
+        queryBuilder?: CreateSQLBuilder<T>
     ) {
         this.metadata = this.loadMetadata()
 
-        this.queryBuilder = queryBuilder ?? new CreateQueryBuilder(
+        this.queryBuilder = queryBuilder ?? new CreateSQLBuilder(
             this.target,
             {},
             this.alias
@@ -37,7 +37,7 @@ export default abstract class CreateQueryHandler<T extends EntityTarget> {
 
     // Protecteds -------------------------------------------------------------
     protected mapToEntities(): InstanceType<T> | InstanceType<T>[] {
-        return EntityHandler.attibutesToEntities(
+        return EntityHandler.attributesToEntities(
             this.target,
             this.queryBuilder.mapAttributes()
         ) as InstanceType<T> | InstanceType<T>[]

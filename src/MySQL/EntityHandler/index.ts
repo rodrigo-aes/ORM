@@ -16,7 +16,7 @@ export default class EntityHandler {
 
     // ------------------------------------------------------------------------
 
-    public static attibutesToEntities<T extends EntityTarget>(
+    public static attributesToEntities<T extends EntityTarget>(
         target: T,
         attributes: CreationAttributes<InstanceType<T>>
     ): InstanceType<T> | InstanceType<T>[] {

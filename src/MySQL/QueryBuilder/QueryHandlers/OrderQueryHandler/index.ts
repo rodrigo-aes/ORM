@@ -8,7 +8,7 @@ import type { EntityTarget } from "../../../../types/General"
 import type {
     OrderQueryOptions,
     OrderQueryOption,
-} from "../../OrderQueryBuilder"
+} from "../../OrderSQLBuilder"
 import type { CaseQueryFunction } from "../ConditionalQueryHandler"
 
 export default class OrderQueryHandler<T extends EntityTarget> {

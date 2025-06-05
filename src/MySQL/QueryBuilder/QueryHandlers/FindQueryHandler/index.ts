@@ -9,14 +9,14 @@ import OrderQueryHandler from "../OrderQueryHandler"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { FindQueryOptions as FindOptions } from "../../FindQueryBuilder"
-import type { RelationsOptions } from "../../JoinQueryBuilder/types"
+import type { FindQueryOptions as FindOptions } from "../../FindSQLBuilder"
+import type { RelationsOptions } from "../../JoinSQLBuilder/types"
 import type { JoinQueryOptions } from "../JoinQueryHandler"
-import type { GroupQueryOptions } from "../../GroupQueryBuilder"
+import type { GroupQueryOptions } from "../../GroupSQLBuilder"
 import type {
     OrderQueryOptions,
     OrderQueryOption
-} from "../../OrderQueryBuilder"
+} from "../../OrderSQLBuilder"
 
 import type {
     FindQueryOptions,

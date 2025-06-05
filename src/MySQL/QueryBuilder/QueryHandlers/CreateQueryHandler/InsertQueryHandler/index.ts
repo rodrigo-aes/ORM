@@ -1,9 +1,5 @@
 import CreateQueryHandler from "../CreateQueryHandler"
 
-import CreateQueryBuilder, {
-    type EntityCreationAttributes,
-} from "../../../CreateQueryBuilder"
-
 // Types
 import type { EntityTarget } from "../../../../../types/General"
 
@@ -44,24 +40,5 @@ export default class InsertQueryHandler<
             const name = primaryKey.name
             this.entity[name as keyof InstanceType<T>] = value
         }
-    }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static create<T extends EntityTarget>(
-        target: T,
-        attributes: EntityCreationAttributes<InstanceType<T>>,
-        alias?: string
-    ): Promise<InstanceType<T>> {
-        return new InsertQueryHandler(
-            target,
-            alias,
-            new CreateQueryBuilder(
-                target,
-                attributes,
-                alias
-            )
-        )
-            .exec()
     }
 }
