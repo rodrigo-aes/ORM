@@ -193,7 +193,7 @@ export default class SelectSQLBuilder<T extends EntityTarget> {
     private asColumn(columnName: string): string {
         return `
             ${this.alias}.${columnName} 
-            AS ${this.alias}_${columnName}
+            AS ${this.alias}.${columnName}
         `
     }
 

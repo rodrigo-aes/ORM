@@ -107,7 +107,6 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
         return `
             INSERT INTO ${this.metadata.tableName} (${this.columnsSQL()})
             VALUES ${this.placeholdersSQL()}
-            RETURNING ${this.columnsSQL()}
         `
     }
 
