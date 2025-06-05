@@ -71,12 +71,12 @@ export default class CaseQueryBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
-        if (this.target === UnionEntity) {
-            return Reflect.getOwnMetadata(
-                this.alias,
-                this.target
-            )
-        }
+        // if (this.target === UnionEntity) {
+        //     return Reflect.getOwnMetadata(
+        //         this.alias,
+        //         this.target
+        //     )
+        // }
 
         return EntityMetadata.find(this.target)!
     }
@@ -130,5 +130,8 @@ export default class CaseQueryBuilder<T extends EntityTarget> {
 
 export {
     Case,
-    type CaseQueryOptions
+    type CaseQueryOptions,
+    type CaseQueryTuple,
+    type WhenQueryOption,
+    type ElseQueryOption,
 }

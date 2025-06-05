@@ -10,7 +10,11 @@ import { SQLStringHelper } from "../../Helpers"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { CountQueryOptions } from "./types"
+import type {
+    CountQueryOption,
+    CountQueryOptions,
+    CountCaseOptions
+} from "./types"
 import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
 
 
@@ -36,12 +40,12 @@ export default class CountQueryBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
-        if (this.target === UnionEntity) {
-            return Reflect.getOwnMetadata(
-                this.alias,
-                this.target
-            )
-        }
+        // if (this.target === UnionEntity) {
+        //     return Reflect.getOwnMetadata(
+        //         this.alias,
+        //         this.target
+        //     )
+        // }
 
         return EntityMetadata.find(this.target)!
     }
@@ -65,7 +69,7 @@ export default class CountQueryBuilder<T extends EntityTarget> {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static countQuery<T extends EntityTarget>(
+    public static count<T extends EntityTarget>(
         target: T,
         options?: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
@@ -83,5 +87,7 @@ export default class CountQueryBuilder<T extends EntityTarget> {
 }
 
 export {
-    type CountQueryOptions
+    type CountQueryOption,
+    type CountQueryOptions,
+    type CountCaseOptions
 }

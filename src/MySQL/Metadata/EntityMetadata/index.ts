@@ -1,5 +1,7 @@
 import 'reflect-metadata'
 
+import type MySQLConnection from '../../Connection'
+
 // Objects
 // Data Type
 import DataType from './DataType'
@@ -81,6 +83,8 @@ import type { EntityTarget } from '../../../types/General'
 import type { EntityMetadataInitMap, EntityMetadataJSON } from './types'
 
 export default class EntityMetadata {
+    public connection?: MySQLConnection
+
     public tableName!: string
     public columns!: ColumnsMetadata
     public relations?: RelationsMetadata
@@ -129,6 +133,12 @@ export default class EntityMetadata {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public defineConnection(connection: MySQLConnection) {
+        this.connection = connection
+    }
+
+    // ------------------------------------------------------------------------
+
     public registerColumn(name: string, dataType: DataType) {
         this.columns.registerColumn(name, dataType)
     }

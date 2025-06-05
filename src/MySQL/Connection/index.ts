@@ -55,19 +55,19 @@ export default class MySQLConnection {
     // ------------------------------------------------------------------------
 
     public async sync(mode: 'alter' | 'reset') {
-        switch (mode) {
-            case 'reset': return new Syncronizer(this, {
-                logging: true
-            }).reset()
+        const syncronizer = new Syncronizer(this, {
+            logging: true
+        })
 
-            case 'alter': return new Syncronizer(this, {
-                logging: true
-            }).alter()
+        switch (mode) {
+            case 'reset': return syncronizer.reset()
+            case 'alter': return syncronizer.alter()
         }
     }
 
     // Privates ---------------------------------------------------------------
     private onInstantiate() {
         MetadataHandler.normalizeMetadata()
+        MetadataHandler.registerEntitiesConnection(this, ...this.entities)
     }
 }

@@ -1,0 +1,73 @@
+import { EntityMetadata, MetadataHandler } from "../../../Metadata"
+import EntityHandler from "../../../EntityHandler"
+
+// Query Builders
+import CreateQueryBuilder from "../../CreateQueryBuilder"
+
+// Types
+import type { ResultSetHeader } from "mysql2"
+import type MySQLConnection from "../../../Connection"
+import type { EntityTarget } from "../../../../types/General"
+import type { CreationAttibutesKey } from "../../CreateQueryBuilder"
+
+export default abstract class CreateQueryHandler<T extends EntityTarget> {
+    protected metadata: EntityMetadata
+    public queryBuilder: CreateQueryBuilder<T>
+
+    constructor(
+        public target: T,
+        public alias?: string,
+        queryBuilder?: CreateQueryBuilder<T>
+    ) {
+        this.metadata = this.loadMetadata()
+
+        this.queryBuilder = queryBuilder ?? new CreateQueryBuilder(
+            this.target,
+            {},
+            this.alias
+        )
+    }
+
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public fields(...names: CreationAttibutesKey<InstanceType<T>>[]): this {
+        this.queryBuilder.fields(...names)
+        return this
+    }
+
+    // Protecteds -------------------------------------------------------------
+    protected mapToEntities(): InstanceType<T> | InstanceType<T>[] {
+        return EntityHandler.attibutesToEntities(
+            this.target,
+            this.queryBuilder.mapAttributes()
+        ) as InstanceType<T> | InstanceType<T>[]
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected executeQuery(): (
+        Promise<ResultSetHeader>
+    ) {
+        return this.getConnection().query(
+            this.queryBuilder.SQL(),
+            this.queryBuilder.columnsValues
+        ) as unknown as Promise<ResultSetHeader>
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected getConnection(): MySQLConnection {
+        const connection = MetadataHandler.getTargetConnection(
+            this.target
+        )
+
+        if (connection) return connection
+
+        throw new Error
+    }
+
+    // Privates ---------------------------------------------------------------
+    private loadMetadata(): EntityMetadata {
+        return EntityMetadata.find(this.target)!
+    }
+}

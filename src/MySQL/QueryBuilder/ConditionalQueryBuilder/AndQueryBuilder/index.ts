@@ -55,12 +55,12 @@ export default class AndQueryBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
-        if (this.target === UnionEntity) {
-            return Reflect.getOwnMetadata(
-                this.alias,
-                this.target
-            )
-        }
+        // if (this.target === UnionEntity) {
+        //     return Reflect.getOwnMetadata(
+        //         this.alias,
+        //         this.target
+        //     )
+        // }
 
         return EntityMetadata.find(this.target)!
     }

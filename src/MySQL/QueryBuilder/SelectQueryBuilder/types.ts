@@ -5,12 +5,12 @@ import type {
 } from "../ConditionalQueryBuilder"
 import type { CountQueryOptions } from "../CountQueryBuilder"
 
-type SelectPropertyKey<Entity extends object> = (
+export type SelectPropertyKey<Entity extends object> = (
     '*' |
     EntityPropertiesKeys<Entity>
 )
 
-type SelectCaseClause<Entity extends object> = {
+export type SelectCaseClause<Entity extends object> = {
     [Case]: CaseQueryOptions<Entity>,
     as: string
 }

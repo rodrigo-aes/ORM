@@ -12,7 +12,7 @@ import GroupQueryBuilder from "../GroupQueryBuilder"
 import type { EntityTarget } from "../../../types/General"
 import type { FindQueryOptions } from "./types"
 import type { EntityRelationsKeys } from "../types"
-import type { RelationOptions } from "../JoinQueryBuilder/types"
+import type { RelationOptions, RelationsOptions } from "../JoinQueryBuilder/types"
 import WhereQueryBuilder from "../ConditionalQueryBuilder/WhereQueryBuilder"
 
 export default class FindQueryBuilder<T extends EntityTarget> {
@@ -34,12 +34,13 @@ export default class FindQueryBuilder<T extends EntityTarget> {
         this.metadata = this.loadMetadata()
         this.select = this.buildSelect()
 
+        this.group = this.buildGroup()
+
         if (this.options.relations) this.buildJoins(
             this.options.relations
         )
 
         this.where = this.buildWhere()
-        this.group = this.buildGroup()
         this.order = this.buildOrder()
 
         this.assingRestQueryOptions()
@@ -157,8 +158,15 @@ export default class FindQueryBuilder<T extends EntityTarget> {
                 options
             )
 
-            this.select.merge(join.selectQueryBuilder())
+            const selectBuilder = join.selectQueryBuilder()
+            this.select.merge(selectBuilder)
             this.joins.push(join)
+
+            if (this.group) if (
+                Object.keys(this.options.group ?? {}).length === 0
+            ) this.group.merge(
+                selectBuilder.groupQueryBuilder()
+            )
 
             if (join.hasTableUnion()) this.unions.push(
                 join.tableUnionQueryBuilder()!
@@ -186,11 +194,14 @@ export default class FindQueryBuilder<T extends EntityTarget> {
     private buildGroup(): GroupQueryBuilder<T> | undefined {
         const shouldBuild = (
             this.options.group ||
-            this.options.select?.count
+            this.options.select?.count ||
+            this.hasRelationCount()
         )
 
         const options = shouldBuild
-            ? this.options.group ?? [this.metadata.columns.primary.name]
+            ? this.options.group ?? [...this.metadata.columns].map(
+                ({ name }) => name
+            )
             : undefined
 
         if (shouldBuild) return new GroupQueryBuilder(
@@ -220,6 +231,25 @@ export default class FindQueryBuilder<T extends EntityTarget> {
             limit,
             offset
         })
+    }
+
+    // ------------------------------------------------------------------------
+
+    public hasRelationCount(options?: RelationsOptions<any>): boolean {
+        options = options ?? this.options.relations
+
+        for (const value of Object.values(options ?? {})) {
+            if (typeof value === 'boolean') return false
+            if (Object.values(value.select?.count ?? {}).length > 0) return (
+                true
+            )
+
+            if (value.relations) if (
+                this.hasRelationCount(value.relations)
+            ) return true
+        }
+
+        return false
     }
 }
 

@@ -30,7 +30,7 @@ export default class PaginationQueryBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public totalSQL(): string {
-        return CountQueryBuilder.countQuery(
+        return CountQueryBuilder.count(
             this.target,
             this.options.where,
             this.alias

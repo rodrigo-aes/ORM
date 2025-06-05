@@ -4,13 +4,21 @@ import UnionEntity from "../../UnionEntity"
 
 import ConditionalQueryBuilder, { Case } from "../ConditionalQueryBuilder"
 import CountQueryBuilder from "../CountQueryBuilder"
+import GroupQueryBuilder, {
+    type GroupQueryOptions
+} from "../GroupQueryBuilder"
 
 // Helpers
-import { SQLStringHelper } from "../../Helpers"
+import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { SelectOptions } from "./types"
+import type {
+    SelectOptions,
+    SelectPropertyKey,
+    SelectCaseClause,
+    SelectPropertyOptions
+} from "./types"
 
 export default class SelectQueryBuilder<T extends EntityTarget> {
     private metadata: EntityMetadata
@@ -23,6 +31,7 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
         public alias?: string,
     ) {
         this.metadata = this.getMetadata()
+        if (!this.alias) this.alias = this.target.name.toLowerCase()
     }
 
     // Getters ================================================================
@@ -65,8 +74,11 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public SQL(): string {
+        let counts = this.countsSQL()
+        counts = counts ? `, ${counts}` : ''
+
         return SQLStringHelper.normalizeSQL(`
-            SELECT ${this.properties} ${this.countsSQL()} ${this.fromSQL()}
+            SELECT ${this.properties} ${counts} ${this.fromSQL()}
         `)
     }
 
@@ -99,14 +111,24 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
         this.mergedProperties.push(selectQueryBuilder.propertiesSQL())
     }
 
+    // ------------------------------------------------------------------------
+
+    public groupQueryBuilder(): GroupQueryBuilder<T> {
+        return new GroupQueryBuilder(
+            this.target,
+            this.groupColumns(),
+            this.alias
+        )
+    }
+
     // Privates ---------------------------------------------------------------
     private getMetadata(): EntityMetadata {
-        if (this.target === UnionEntity) {
-            return Reflect.getOwnMetadata(
-                this.alias,
-                this.target
-            )
-        }
+        // if (this.target === UnionEntity) {
+        //     return Reflect.getOwnMetadata(
+        //         this.alias,
+        //         this.target
+        //     )
+        // }
 
         return EntityMetadata.find(this.target)!
     }
@@ -172,9 +194,37 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
 
     private asColumn(columnName: string): string {
         return `
-            ${this.targetName}.${columnName} 
-            AS ${this.targetName}_${columnName}
+            ${this.alias}.${columnName} 
+            AS ${this.alias}_${columnName}
         `
+    }
+
+    // ------------------------------------------------------------------------
+
+    private groupColumns(): GroupQueryOptions<InstanceType<T>> {
+        return this.options?.properties
+            ? this.selectedGroupColumns()
+            : this.allGroupColumns()
+    }
+
+    // ------------------------------------------------------------------------
+
+    private allGroupColumns(): GroupQueryOptions<InstanceType<T>> {
+        return this.metadata.columns.toJSON().map(
+            ({ name }) => PropertySQLHelper.pathToAlias(
+                name, this.alias
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private selectedGroupColumns(): GroupQueryOptions<InstanceType<T>> {
+        return this.stringProperties.includes('*')
+            ? this.allGroupColumns()
+            : this.stringProperties.map(prop => PropertySQLHelper.pathToAlias(
+                prop, this.alias
+            ))
     }
 
     // Static Methods =========================================================
@@ -188,5 +238,8 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
 }
 
 export {
-    type SelectOptions
+    type SelectOptions,
+    type SelectPropertyKey,
+    type SelectCaseClause,
+    type SelectPropertyOptions,
 }
