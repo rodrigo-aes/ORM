@@ -48,7 +48,7 @@ export type RelationMetadataType = (
     PolymorphicBelongsToMetadata
 )
 
-export type RelationMetadataTypeName = (
+export type RelationMetadataName = (
     'HasOne' |
     'HasMany' |
     'HasOneThrough' |
@@ -63,7 +63,7 @@ export type RelationMetadataTypeName = (
 
 export type RelationMetadataJSON = {
     name: string,
-    type: RelationMetadataTypeName
+    type: RelationMetadataName
 }
 
 export type RelationJSON = (

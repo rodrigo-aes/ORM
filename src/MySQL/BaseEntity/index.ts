@@ -1,7 +1,12 @@
 import { EntityMetadata } from "../Metadata"
 
+// Query Builder
 import QueryBuilder from "../QueryBuilder/QueryBuilder"
 
+// Components
+import { Collection, RelationCollection } from "./Components"
+
+// Types
 import type MySQLConnection from "../Connection"
 import type { EntityTarget } from "../../types/General"
 import type {
@@ -9,6 +14,7 @@ import type {
     EntityCreationAttributes,
     EntityProperties,
 } from "../QueryBuilder"
+
 export default abstract class BaseEntity {
     protected hidden: string[] = []
 
@@ -63,21 +69,21 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
-    public static create<T extends (EntityTarget & typeof BaseEntity)>(
-        this: T,
-        attributes: EntityCreationAttributes<InstanceType<T>>
-    ): Promise<InstanceType<T>> {
-        return this.getQueryBuilder().create(attributes)
-    }
+    // public static create<T extends (EntityTarget & typeof BaseEntity)>(
+    //     this: T,
+    //     attributes: EntityCreationAttributes<InstanceType<T>>
+    // ): Promise<InstanceType<T>> {
+    //     return this.getQueryBuilder().create(attributes)
+    // }
 
-    // ------------------------------------------------------------------------
+    // // ------------------------------------------------------------------------
 
-    public static createMany<T extends (EntityTarget & typeof BaseEntity)>(
-        this: T,
-        attributes: EntityCreationAttributes<InstanceType<T>>[]
-    ): Promise<InstanceType<T>[]> {
-        return this.getQueryBuilder().createMany(attributes)
-    }
+    // public static createMany<T extends (EntityTarget & typeof BaseEntity)>(
+    //     this: T,
+    //     attributes: EntityCreationAttributes<InstanceType<T>>[]
+    // ): Promise<InstanceType<T>[]> {
+    //     return this.getQueryBuilder().createMany(attributes)
+    // }
 
     // ------------------------------------------------------------------------
 
@@ -104,4 +110,9 @@ export default abstract class BaseEntity {
         return EntityMetadata.findOrBuild(target).connection
             ?? Reflect.getOwnMetadata('temp-connection', target)
     }
+}
+
+export {
+    Collection,
+    RelationCollection
 }

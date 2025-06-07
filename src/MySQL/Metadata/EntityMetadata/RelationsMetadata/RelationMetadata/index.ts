@@ -1,3 +1,5 @@
+import type { EntityTarget } from "../../../../../types/General"
+
 import AbstractRelationMetadata from "./RelationMetadata"
 
 // Objects
@@ -55,7 +57,7 @@ import {
 import type {
     RelatedEntitiesMap,
     RelationMetadataType,
-    RelationMetadataTypeName,
+    RelationMetadataName,
     RelationJSON
 } from "./types"
 
@@ -77,20 +79,29 @@ export default
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static relationType(relation: RelationMetadataType): (
-        RelationMetadataTypeName
+        RelationMetadataName
     ) {
-        if (this.isHasOne(relation)) return 'HasOne'
-        if (this.isHasMany(relation)) return 'HasMany'
-        if (this.isHasOneThrough(relation)) return 'HasOneThrough'
-        if (this.isHasManyThrough(relation)) return 'HasManyThrough'
-        if (this.isBelongsTo(relation)) return 'BelongsTo'
-        if (this.isBelongsToThrough(relation)) return 'BelongsToThrough'
-        if (this.isBelongsToMany(relation)) return 'BelongsToMany'
-        if (this.isPolymorphicHasOne(relation)) return 'PolymorphicHasOne'
-        if (this.isPolymorphicHasMany(relation)) return 'PolymorphicHasMany'
-        if (this.isPolymorphicBelongsTo(relation)) return 'PolymorphicBelongsTo'
+        return relation.type
+    }
 
-        throw new Error
+    // ------------------------------------------------------------------------
+
+    public static relationFillMethod(relation: RelationMetadataType): (
+        'One' | 'Many'
+    ) {
+        switch (relation.type) {
+            case "HasOne":
+            case "HasOneThrough":
+            case "BelongsTo":
+            case "BelongsToThrough":
+            case "PolymorphicHasOne":
+            case "PolymorphicBelongsTo": return 'One'
+
+            case "HasMany":
+            case "HasManyThrough":
+            case "BelongsToMany":
+            case "PolymorphicHasMany": return 'Many'
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -161,8 +172,11 @@ export default
 
     // ------------------------------------------------------------------------
 
-    public static extractEntityTarget(relation: RelationMetadataType) {
-        switch (this.relationType(relation)) {
+    public static extractEntityTarget(
+        relation: RelationMetadataType,
+        auxiliarData?: any
+    ) {
+        switch (relation.type) {
             case "HasOne":
             case "HasMany":
             case "HasOneThrough":
@@ -185,8 +199,33 @@ export default
                 .entity
                 .target
 
-            case "PolymorphicBelongsTo": return undefined
+            case "PolymorphicBelongsTo": return (
+                this.extractPolymorphicBelongsToTarget(
+                    relation as PolymorphicBelongsToMetadata,
+                    auxiliarData!
+                )
+            )
         }
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static extractPolymorphicBelongsToTarget(
+        relation: PolymorphicBelongsToMetadata,
+        auxiliarData?: any
+    ): EntityTarget {
+        if (!auxiliarData) throw new Error
+
+        switch (typeof auxiliarData) {
+            case "string": return relation.entities[auxiliarData].target
+            case "object":
+                const typeKey = relation.typeKey
+                const typeValue = auxiliarData[typeKey]
+
+                return relation.entities[typeValue].target
+        }
+
+        throw new Error
     }
 }
 

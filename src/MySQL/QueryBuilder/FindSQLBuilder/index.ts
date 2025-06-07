@@ -1,22 +1,31 @@
 import { EntityMetadata } from "../../Metadata"
 
+// Metadata 
+import { PolymorphicBelongsToMetadata } from "../../Metadata"
+
 // Query Builders
 import TableUnionSQLBuilder from "../TableUnionSQLBuilder"
 import SelectSQLBuilder from "../SelectSQLBuilder"
 import JoinSQLBuilder from "../JoinSQLBuilder"
-import ConditionalSQLBuilder from "../ConditionalQueryBuilder"
+
+import ConditionalSQLBuilder, {
+    WhereSQLBuilder
+} from "../ConditionalQueryBuilder"
+
 import OrderSQLBuilder from "../OrderSQLBuilder"
 import GroupSQLBuilder from "../GroupSQLBuilder"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { FindQueryOptions } from "./types"
+import type { FindQueryOptions, IncludedQueryEntities } from "./types"
 import type { EntityRelationsKeys } from "../types"
 import type { RelationOptions, RelationsOptions } from "../JoinSQLBuilder/types"
-import WhereSQLBuilder from "../ConditionalQueryBuilder/WhereSQLBuilder"
 
 export default class FindSQLBuilder<T extends EntityTarget> {
     private metadata: EntityMetadata
+
+    public alias: string
+    public entities: IncludedQueryEntities = []
 
     public unions: TableUnionSQLBuilder[] = []
     public select: SelectSQLBuilder<T>
@@ -29,8 +38,11 @@ export default class FindSQLBuilder<T extends EntityTarget> {
 
     constructor(
         public target: T,
-        public options: FindQueryOptions<InstanceType<T>>
+        public options: FindQueryOptions<InstanceType<T>>,
+        alias?: string
     ) {
+        this.alias = alias ?? this.target.name.toLowerCase()
+        this.entities.push([this.alias, undefined, this.target])
         this.metadata = this.loadMetadata()
         this.select = this.buildSelect()
 
@@ -44,12 +56,6 @@ export default class FindSQLBuilder<T extends EntityTarget> {
         this.order = this.buildOrder()
 
         this.assingRestQueryOptions()
-    }
-
-    // Getters ================================================================
-    // Publics ----------------------------------------------------------------
-    public get alias(): string {
-        return this.target.name.toLowerCase()
     }
 
     // Instance Methods =======================================================
@@ -154,9 +160,17 @@ export default class FindSQLBuilder<T extends EntityTarget> {
 
             const join = new JoinSQLBuilder(
                 relation,
-                alias,
+                this.alias,
                 options
             )
+
+            this.entities.push([
+                join.alias,
+                relation.name,
+                relation instanceof PolymorphicBelongsToMetadata
+                    ? relation.related()
+                    : relation.relatedTarget,
+            ])
 
             const selectBuilder = join.selectQueryBuilder()
             this.select.merge(selectBuilder)

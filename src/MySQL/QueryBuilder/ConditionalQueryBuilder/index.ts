@@ -65,6 +65,9 @@ export default class ConditionalSQLBuilder {
 }
 
 export {
+    WhereSQLBuilder,
+    OnSQLBuilder,
+
     type ConditionalQueryOptions,
     type AndQueryOptions,
     type OrQueryOptions,

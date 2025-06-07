@@ -1,6 +1,6 @@
 // Types
 import type { EntityTarget } from "../../../../../types/General"
-import type { RelationOptions, RelationMetadataTypeName } from "./types"
+import type { RelationOptions, RelationMetadataName } from "./types"
 
 export default abstract class RelationMetadata {
     public name!: string
@@ -13,9 +13,9 @@ export default abstract class RelationMetadata {
 
     public abstract toJSON(): any
 
-    public get type(): RelationMetadataTypeName {
+    public get type(): RelationMetadataName {
         return this.constructor.name.replace('Metadata', '') as (
-            RelationMetadataTypeName
+            RelationMetadataName
         )
     }
 }

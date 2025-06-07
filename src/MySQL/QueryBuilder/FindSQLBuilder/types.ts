@@ -1,3 +1,5 @@
+import type { EntityTarget } from "../../../types/General"
+
 import type { SelectOptions } from "../SelectSQLBuilder"
 import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
 import type { RelationsOptions } from "../JoinSQLBuilder/types"
@@ -13,3 +15,9 @@ export type FindQueryOptions<Entity extends object> = {
     limit?: number
     offset?: number
 }
+
+export type IncludedQueryEntities = [
+    string,
+    string | undefined,
+    EntityTarget | EntityTarget[]
+][] 
