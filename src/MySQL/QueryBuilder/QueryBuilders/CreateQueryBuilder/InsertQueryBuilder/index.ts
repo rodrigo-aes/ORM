@@ -1,46 +1,31 @@
 import CreateQueryBuilder from "../CreateQueryBuilder"
 
+// Handlers
+import { MySQL2QueryExecutionHandler } from "../../../../Handlers"
+
 // Types
 import type { EntityTarget } from "../../../../../types/General"
-import type { ExecOptions } from "../types"
-import type { EntityProperties } from "../../../types"
 
 export default class InsertQueryBuilder<
     T extends EntityTarget
 > extends CreateQueryBuilder<T> {
-    private entity!: InstanceType<T>
-
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public values(...values: any[]): this {
-        this.SQLBuilder.values(...values)
+        this.sqlBuilder.values(...values)
         return this
     }
 
     // ------------------------------------------------------------------------
 
     public async exec(): Promise<InstanceType<T>> {
-        this.SQLBuilder.bulk = false
-        this.mapEntity()
-        const { insertId } = await this.executeQuery()
-        this.fillEntityPrimaryKey(insertId)
+        this.sqlBuilder.bulk = false
 
-        return this.entity
-    }
-
-    // Privates ---------------------------------------------------------------
-    private mapEntity(): void {
-        this.entity = this.mapToEntities() as InstanceType<T>
-    }
-
-    // ------------------------------------------------------------------------
-
-    private fillEntityPrimaryKey(value: any): void {
-        const primaryKey = this.metadata.columns.primary
-
-        if (primaryKey.autoIncrement) {
-            const name = primaryKey.name
-            this.entity[name as keyof InstanceType<T>] = value
-        }
+        return new MySQL2QueryExecutionHandler(
+            this.target,
+            this.sqlBuilder,
+            'entity'
+        )
+            .exec() as Promise<InstanceType<T>>
     }
 }

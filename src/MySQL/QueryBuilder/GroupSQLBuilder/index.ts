@@ -1,6 +1,6 @@
 import { EntityMetadata } from "../../Metadata"
 
-import UnionEntity from "../../UnionEntity"
+// import UnionEntity from "../../UnionEntity"
 
 // Helpers
 import { PropertySQLHelper } from "../../Helpers"
@@ -51,13 +51,6 @@ export default class GroupSQLBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
-        // if (this.target === UnionEntity) {
-        //     return Reflect.getOwnMetadata(
-        //         this.alias,
-        //         this.target
-        //     )
-        // }
-
         return EntityMetadata.find(this.target)!
     }
 }

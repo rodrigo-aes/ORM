@@ -1,7 +1,5 @@
 import { EntityMetadata } from "../../Metadata"
 
-import UnionEntity from "../../UnionEntity"
-
 // Query Builders
 import CountSQL from "./CountSQL"
 
@@ -40,13 +38,6 @@ export default class CountSQLBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
-        // if (this.target === UnionEntity) {
-        //     return Reflect.getOwnMetadata(
-        //         this.alias,
-        //         this.target
-        //     )
-        // }
-
         return EntityMetadata.find(this.target)!
     }
 

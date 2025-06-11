@@ -1,6 +1,5 @@
 import { EntityMetadata } from "../../../Metadata"
 
-import UnionEntity from "../../../UnionEntity"
 import Operator from "../Operator"
 
 // Query Builders
@@ -71,13 +70,6 @@ export default class CaseSQLBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
-        // if (this.target === UnionEntity) {
-        //     return Reflect.getOwnMetadata(
-        //         this.alias,
-        //         this.target
-        //     )
-        // }
-
         return EntityMetadata.find(this.target)!
     }
 

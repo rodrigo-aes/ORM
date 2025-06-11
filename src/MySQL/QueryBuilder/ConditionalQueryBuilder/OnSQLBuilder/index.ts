@@ -68,8 +68,7 @@ export default class OnSQLBuilder<
             case "PolymorphicHasOne":
             case "PolymorphicHasMany": return this.fixedPolymorphicHas()
 
-            case "PolymorphicBelongsTo":
-                return this.fixedPolymorphicBelongsTo()
+            case "PolymorphicBelongsTo": return this.fixedPolymorphicBelongsTo()
         }
     }
 

@@ -1,15 +1,27 @@
 import { EntityMetadata } from "../../../Metadata"
 
-// Query Handlers
+// SQL Builders
+import FindSQLBuilder from "../../FindSQLBuilder"
+
+// Query Builders
 import SelectQueryBuilder from "../SelectQueryBuilder"
 import WhereQueryBuilder from "../WhereQueryBuilder"
 import JoinQueryBuilder from "../JoinQueryBuilder"
+import GroupQueryBuilder from "../GroupQueryBuilder"
+
+// Handlers
+import {
+    MySQL2QueryExecutionHandler,
+    type FindResult,
+    type ResultMapOption
+} from "../../../Handlers"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
 import type { FindQueryOptions as FindOptions } from "../../FindSQLBuilder"
 import type { RelationsOptions } from "../../JoinSQLBuilder/types"
 import type { JoinQueryOptions } from "../JoinQueryBuilder"
+import type { GroupQueryOptions } from "../../GroupSQLBuilder"
 
 import type {
     FindQueryOptions,
@@ -203,6 +215,34 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    public groupBy(...columns: GroupQueryOptions<InstanceType<T>>): this {
+        this._options.group = new GroupQueryBuilder(this.target, this.alias)
+            .groupBy(...columns)
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public exec<MapTo extends ResultMapOption>(mapTo: MapTo): (
+        Promise<FindResult<T, MapTo>>
+    ) {
+        return new MySQL2QueryExecutionHandler(
+            this.target,
+            this.toSQLBuilder(),
+            mapTo
+        )
+            .exec()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public SQL(): string {
+        return this.toSQLBuilder().SQL()
+    }
+
+    // ------------------------------------------------------------------------
+
     public toQueryOptions(): FindOptions<InstanceType<T>> {
         const { select, where, group, order, limit, offset } = this._options
 
@@ -220,6 +260,16 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
         return EntityMetadata.find(this.target)!
+    }
+
+    // ------------------------------------------------------------------------
+
+    private toSQLBuilder(): FindSQLBuilder<T> {
+        return new FindSQLBuilder(
+            this.target,
+            this.toQueryOptions(),
+            this.alias
+        )
     }
 
     // ------------------------------------------------------------------------

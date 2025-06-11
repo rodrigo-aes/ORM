@@ -5,12 +5,12 @@ import type { EntityTarget } from "../../../../../types/General"
 import type { RelationMetadataType } from "../../../../Metadata"
 
 export default class RelationCollection<
-    T extends EntityTarget,
-    Relation extends RelationMetadataType
-> extends Collection<T> {
+    Entity extends object,
+    R extends RelationMetadataType
+> extends Collection<Entity> {
     constructor(
-        protected relation: Relation,
-        ...entities: InstanceType<T>[]
+        public relation: R,
+        ...entities: Entity[]
     ) {
         super(...entities)
     }

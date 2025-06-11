@@ -6,6 +6,7 @@ import type {
 } from "../../QueryBuilder"
 
 export type MySQL2RawData = any
+export type DataFillMethod = 'One' | 'Many'
 
 export type RawData<T extends EntityTarget> = (
     EntityProperties<InstanceType<T>> |

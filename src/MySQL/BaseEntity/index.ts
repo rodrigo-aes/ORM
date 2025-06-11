@@ -1,34 +1,30 @@
-import { EntityMetadata } from "../Metadata"
+
 
 // Query Builder
-import QueryBuilder from "../QueryBuilder/QueryBuilder"
+import { QueryBuilder } from "../QueryBuilder"
 
 // Components
-import { Collection, RelationCollection } from "./Components"
+import { Collection, RelationCollection, ColumnsSnapshots } from "./Components"
 
 // Types
 import type MySQLConnection from "../Connection"
 import type { EntityTarget } from "../../types/General"
-import type {
-    CreationAttributes,
-    EntityCreationAttributes,
-    EntityProperties,
-} from "../QueryBuilder"
+import type { CreationAttributes, EntityProperties } from "../QueryBuilder"
 
 export default abstract class BaseEntity {
     protected hidden: string[] = []
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get connection(): MySQLConnection {
-        const connection = BaseEntity.getTargetConnection(
-            this.constructor as EntityTarget
-        )
+    // public get connection(): MySQLConnection {
+    //     const connection = BaseEntity.getTargetConnection(
+    //         this.constructor as EntityTarget
+    //     )
 
-        if (connection) return connection
+    //     if (connection) return connection
 
-        throw new Error
-    }
+    //     throw new Error
+    // }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
@@ -50,12 +46,12 @@ export default abstract class BaseEntity {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static getConnection<T extends (EntityTarget & typeof BaseEntity)>(
-        this: T
-    ): MySQLConnection | undefined {
-        return EntityMetadata.findOrBuild(this as EntityTarget).connection
-            ?? this.tempConnection()
-    }
+    // public static getConnection<T extends (EntityTarget & typeof BaseEntity)>(
+    //     this: T
+    // ): MySQLConnection | undefined {
+    //     return EntityMetadata.findOrBuild(this as EntityTarget).connection
+    //         ?? this.tempConnection()
+    // }
 
     // ------------------------------------------------------------------------
 
@@ -66,24 +62,6 @@ export default abstract class BaseEntity {
     ): QueryBuilder<T> {
         return new QueryBuilder(this)
     }
-
-    // ------------------------------------------------------------------------
-
-    // public static create<T extends (EntityTarget & typeof BaseEntity)>(
-    //     this: T,
-    //     attributes: EntityCreationAttributes<InstanceType<T>>
-    // ): Promise<InstanceType<T>> {
-    //     return this.getQueryBuilder().create(attributes)
-    // }
-
-    // // ------------------------------------------------------------------------
-
-    // public static createMany<T extends (EntityTarget & typeof BaseEntity)>(
-    //     this: T,
-    //     attributes: EntityCreationAttributes<InstanceType<T>>[]
-    // ): Promise<InstanceType<T>[]> {
-    //     return this.getQueryBuilder().createMany(attributes)
-    // }
 
     // ------------------------------------------------------------------------
 
@@ -104,15 +82,16 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
-    private static getTargetConnection(target: EntityTarget): (
-        MySQLConnection | undefined
-    ) {
-        return EntityMetadata.findOrBuild(target).connection
-            ?? Reflect.getOwnMetadata('temp-connection', target)
-    }
+    // private static getTargetConnection(target: EntityTarget): (
+    //     MySQLConnection | undefined
+    // ) {
+    //     return EntityMetadata.findOrBuild(target).connection
+    //         ?? Reflect.getOwnMetadata('temp-connection', target)
+    // }
 }
 
 export {
+    ColumnsSnapshots,
     Collection,
     RelationCollection
 }

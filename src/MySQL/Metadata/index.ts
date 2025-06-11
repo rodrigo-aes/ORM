@@ -7,7 +7,6 @@ import EntityMetadata, {
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
-    HooksMetadata,
 
     type JoinTableRelated,
 
@@ -60,9 +59,9 @@ import EntityMetadata, {
     type ForeignIdConfig,
 } from "./EntityMetadata"
 
-import EntityUnionMetadata, {
-    EntityUnionColumnMetadata
-} from "./EntityUnionMetadata"
+// import EntityUnionMetadata, {
+//     EntityUnionColumnMetadata
+// } from "./EntityUnionMetadata"
 
 import MetadataHandler from "./MetadataHandler"
 
@@ -76,10 +75,9 @@ export {
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
-    EntityUnionMetadata,
-    EntityUnionColumnMetadata,
+    // EntityUnionMetadata,
+    // EntityUnionColumnMetadata,
     MetadataHandler,
-    HooksMetadata,
 
     type JoinTableRelated,
 

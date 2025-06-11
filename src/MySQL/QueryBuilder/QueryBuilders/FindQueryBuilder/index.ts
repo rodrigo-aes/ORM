@@ -3,12 +3,10 @@ import FindOneQueryBuilder, {
 } from "../FindOneQueryBuilder"
 
 // Query Builders
-import GroupQueryBuilder from "../GroupQueryBuilder"
 import OrderQueryBuilder from "../OrderQueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { GroupQueryOptions } from "../../GroupSQLBuilder"
 import type { OrderQueryOption } from "../../OrderSQLBuilder"
 
 import type { CaseQueryFunction } from "../ConditionalQueryBuilder"
@@ -22,15 +20,6 @@ export default class FindQueryBuilder<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public groupBy(...columns: GroupQueryOptions<InstanceType<T>>): this {
-        this._options.group = new GroupQueryBuilder(this.target, this.alias)
-            .groupBy(...columns)
-
-        return this
-    }
-
-    // ------------------------------------------------------------------------
-
     public orderBy<
         OrderClause extends (
             OrderQueryOption<InstanceType<T>> |

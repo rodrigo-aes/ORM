@@ -1,9 +1,9 @@
 import { EntityMetadata } from "../../Metadata"
 
-import UnionEntity from "../../UnionEntity"
+// import UnionEntity from "../../"
 
 // Helpers
-import { SQLStringHelper } from "../../Helpers"
+import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
@@ -20,13 +20,14 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     public alias?: string
 
     private _bulk: boolean
-    private _propertyNames?: AttributesNames<InstanceType<T>>
+    private _propertiesNames?: AttributesNames<InstanceType<T>>
     private _values?: any[]
 
     constructor(
         public target: T,
         public attributes?: CreationAttributes<InstanceType<T>>,
-        alias?: string
+        alias?: string,
+        public absolute: boolean = false
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = this.loadMetadata()
@@ -37,7 +38,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get columnsNames(): CreationAttibutesKey<InstanceType<T>>[] {
-        return [...(this._propertyNames ?? this.getFields())]
+        return [...(this._propertiesNames ?? this.getFields())]
     }
 
     // ------------------------------------------------------------------------
@@ -60,7 +61,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public fields(...names: CreationAttibutesKey<InstanceType<T>>[]): this {
-        this._propertyNames = new Set(names) as (
+        this._propertiesNames = new Set(names) as (
             AttributesNames<InstanceType<T>>
         )
 
@@ -94,9 +95,9 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private handleSQLType(): string {
-        if (this.target.prototype instanceof UnionEntity) return (
-            this.unionSQL()
-        )
+        // if (this.target.prototype instanceof UnionEntity) return (
+        //     this.unionSQL()
+        // )
 
         return this.entitySQL()
     }
@@ -106,7 +107,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     private entitySQL(): string {
         return `
             INSERT INTO ${this.metadata.tableName} (${this.columnsSQL()})
-            VALUES ${this.placeholdersSQL()}
+            VALUES ${this.valuesSQL()}
         `
     }
 
@@ -124,15 +125,43 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private placeholdersSQL(): string {
-        return this._bulk
-            ? this.bulkPlaceholderSQL()
-            : this.placeholderSQL()
+    private valuesSQL(): string {
+        return this.absolute
+            ? this.handleValuesSQL()
+            : this.placeholdersSQL()
     }
 
     // ------------------------------------------------------------------------
 
-    private placeholderSQL(): string {
+    private placeholdersSQL(): string {
+        return this._bulk
+            ? this.bulkPlaceholderSQL()
+            : this.placeholderSetSQL()
+    }
+
+    // ------------------------------------------------------------------------
+
+    private handleValuesSQL(): string {
+        const [first] = this.columnsValues
+
+        return Array.isArray(first)
+            ? this.columnsValues.map(values => this.valueSetSQL(values)).join(
+                ', '
+            )
+            : this.valueSetSQL(this.columnsNames)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private valueSetSQL(values: any[]): string {
+        return `(
+            ${values.map(v => PropertySQLHelper.valueSQL(v)).join(', ')}
+        )`
+    }
+
+    // ------------------------------------------------------------------------
+
+    private placeholderSetSQL(): string {
         return `(${Array(this.columnsNames.length).fill('?').join(', ')})`
     }
 
@@ -143,14 +172,14 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
             (this.attributes as CreationAttibutesKey<InstanceType<T>>[])
                 .length
         )
-            .fill(this.placeholderSQL())
+            .fill(this.placeholderSetSQL())
             .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
     private getFields(): AttributesNames<InstanceType<T>> {
-        this._propertyNames = new Set([...(
+        this._propertiesNames = new Set([...(
             this._bulk
                 ? this.bulkPropertyNames()
                 : this.propertyNames()
@@ -158,7 +187,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
                 AttributesNames<InstanceType<T>>
             )
 
-        return this._propertyNames
+        return this._propertiesNames
     }
 
     // ------------------------------------------------------------------------

@@ -12,19 +12,18 @@ export default class PropertySQLHelper {
 
     public static valueSQL(value: any): string {
         switch (typeof value) {
-            case "string": return JSON.stringify(value)
+            case "string": return `'${value}'`
 
             case "object":
-                if (!value) return JSON.stringify(value).toUpperCase()
-                if ((value as any) instanceof Date) return JSON.stringify(
-                    value
-                )
+                if (value === null) return 'NULL';
+                if (value instanceof Date) return `'${value.toISOString()}'`;
 
-                return `'${JSON.stringify(value)}'`
+                return `'${JSON.stringify(value)}'`;
 
             case "number":
-            case "bigint":
-            case "boolean": return JSON.stringify(value).toUpperCase()
+            case "bigint": return value.toString();
+
+            case "boolean": return value ? 'TRUE' : 'FALSE';
 
             default: throw new Error
         }

@@ -1,73 +1,57 @@
-import { EntityMetadata, MetadataHandler } from "../../../Metadata"
-import EntityHandler from "../../../EntityHandler"
+import { EntityMetadata } from "../../../Metadata"
 
-// Query Builders
-import CreateSQLBuilder from "../../CreateSQLBuilder"
+// SQL Builders
+import CreateSQLBuilder, {
+    type CreationAttributes,
+    type CreationAttibutesKey
+} from "../../CreateSQLBuilder"
 
 // Types
-import type { ResultSetHeader } from "mysql2"
-import type MySQLConnection from "../../../Connection"
 import type { EntityTarget } from "../../../../types/General"
-import type { CreationAttibutesKey } from "../../CreateSQLBuilder"
 
 export default abstract class CreateQueryBuilder<T extends EntityTarget> {
     protected metadata: EntityMetadata
-    public SQLBuilder: CreateSQLBuilder<T>
+    protected sqlBuilder: CreateSQLBuilder<T>
 
     constructor(
         public target: T,
         public alias?: string,
-        queryBuilder?: CreateSQLBuilder<T>
     ) {
         this.metadata = this.loadMetadata()
-
-        this.SQLBuilder = queryBuilder ?? new CreateSQLBuilder(
-            this.target,
-            {},
-            this.alias
-        )
+        this.sqlBuilder = this.buildSQLBuilder()
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public fields(...names: CreationAttibutesKey<InstanceType<T>>[]): this {
-        this.SQLBuilder.fields(...names)
+        this.sqlBuilder.fields(...names)
         return this
     }
 
-    // Protecteds -------------------------------------------------------------
-    protected mapToEntities(): InstanceType<T> | InstanceType<T>[] {
-        return EntityHandler.attributesToEntities(
-            this.target,
-            this.SQLBuilder.mapAttributes()
-        ) as InstanceType<T> | InstanceType<T>[]
+    // ------------------------------------------------------------------------
+
+    public SQL(): string {
+        return this.sqlBuilder.SQL()
     }
 
     // ------------------------------------------------------------------------
 
-    protected executeQuery(): (
-        Promise<ResultSetHeader>
-    ) {
-        return this.getConnection().query(
-            this.SQLBuilder.SQL(),
-            this.SQLBuilder.columnsValues
-        ) as unknown as Promise<ResultSetHeader>
-    }
-
-    // ------------------------------------------------------------------------
-
-    protected getConnection(): MySQLConnection {
-        const connection = MetadataHandler.getTargetConnection(
-            this.target
-        )
-
-        if (connection) return connection
-
-        throw new Error
+    public toQueryOptions(): CreationAttributes<InstanceType<T>> {
+        return this.sqlBuilder.mapAttributes()
     }
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
         return EntityMetadata.find(this.target)!
+    }
+
+    // ------------------------------------------------------------------------
+
+    private buildSQLBuilder(): CreateSQLBuilder<T> {
+        return new CreateSQLBuilder(
+            this.target,
+            undefined,
+            this.alias
+        )
     }
 }

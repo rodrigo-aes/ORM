@@ -7,7 +7,7 @@ import Operator, {
 } from "../Operator"
 
 // Helpers
-import { SQLStringHelper } from "../../../Helpers"
+import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
 import type {
@@ -53,13 +53,6 @@ export default class AndSQLBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
-        // if (this.target === UnionEntity) {
-        //     return Reflect.getOwnMetadata(
-        //         this.alias,
-        //         this.target
-        //     )
-        // }
-
         return EntityMetadata.find(this.target)!
     }
 
@@ -84,10 +77,9 @@ export default class AndSQLBuilder<T extends EntityTarget> {
     private relationsSQL(): string[] {
         const sql: string[] = []
 
-        for (const [key, value] of Object.entries(this.relOptions))
-            sql.push(
-                this.relationSQL(key, value)
-            )
+        for (const [key, value] of Object.entries(this.relOptions)) (
+            sql.push(this.relationSQL(key, value))
+        )
 
         return sql
     }
@@ -106,7 +98,7 @@ export default class AndSQLBuilder<T extends EntityTarget> {
                 columnName as string,
                 value as CompatibleOperators<any>
             )
-            : `${column} = ${this.propertyValueSQL(value)}`
+            : `${column} = ${PropertySQLHelper.valueSQL(value)}`
     }
 
     // ------------------------------------------------------------------------
@@ -127,23 +119,7 @@ export default class AndSQLBuilder<T extends EntityTarget> {
                 value as CompatibleOperators<any>,
                 alias
             )
-            : `${alias}.${columnName} = ${this.propertyValueSQL(value)}`
-    }
-
-    // ------------------------------------------------------------------------
-
-    private propertyValueSQL(value: any): string {
-        switch (typeof value) {
-            case "string": return JSON.stringify(value)
-
-            case "object": return this.objectSQL(value)
-
-            case "number":
-            case "bigint":
-            case "boolean": return JSON.stringify(value).toUpperCase()
-        }
-
-        throw new Error
+            : `${alias}.${columnName} = ${PropertySQLHelper.valueSQL(value)}`
     }
 
     // ------------------------------------------------------------------------

@@ -288,8 +288,6 @@ export {
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
-    HooksMetadata,
-
 
     type JoinTableRelated,
 

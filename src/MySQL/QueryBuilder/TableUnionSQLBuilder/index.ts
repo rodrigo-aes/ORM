@@ -1,9 +1,8 @@
-import {
-    EntityUnionMetadata,
-
-    type EntityMetadata,
+import EntityUnionMetadata, {
     type EntityUnionColumnMetadata
-} from "../../Metadata"
+} from "../../Metadata/EntityUnionMetadata"
+
+import type { EntityMetadata } from "../../Metadata"
 
 // Helpers
 import { SQLStringHelper } from "../../Helpers"

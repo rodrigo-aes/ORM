@@ -1,5 +1,8 @@
 import { EntityMetadata } from "../../Metadata"
 
+// Objects
+import { Collection } from "../../BaseEntity"
+
 // Types
 import type { EntityTarget } from "../../../types/General"
 import type {
@@ -12,14 +15,15 @@ export default class EntityBuilder<T extends EntityTarget> {
 
     constructor(
         public target: T,
-        public attibutes: CreationAttributes<InstanceType<T>>
+        public attibutes: CreationAttributes<InstanceType<T>>,
+        public primary?: number
     ) {
         this.metadata = this.loadMetadata()
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public build(): InstanceType<T> | InstanceType<T>[] {
+    public build(): InstanceType<T> | Collection<InstanceType<T>> {
         return Array.isArray(this.attibutes)
             ? this.buildManyEntities()
             : this.buildEntity()
@@ -37,14 +41,37 @@ export default class EntityBuilder<T extends EntityTarget> {
     ): InstanceType<T> {
         const entity = new this.target().fill(
             (attributes ?? this.attibutes) as any
-        )
-        return entity as InstanceType<T>
+        ) as InstanceType<T>
+
+        if (this.primary) this.fillPrimaryKey(entity)
+
+        return entity
     }
 
     // ------------------------------------------------------------------------
 
-    private buildManyEntities(): InstanceType<T>[] {
-        return (this.attibutes as EntityCreationAttributes<InstanceType<T>>[])
-            .map(att => this.buildEntity(att))
+    private buildManyEntities(): Collection<InstanceType<T>> {
+        return new Collection(
+            ...(this.attibutes as EntityCreationAttributes<InstanceType<T>>[])
+                .map(att => this.buildEntity(att))
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private fillPrimaryKey(
+        entity: InstanceType<T>
+    ): void {
+        const metadata = this.metadata.columns.primary
+        const primaryName = this.metadata.columns.primary.name as (
+            keyof InstanceType<T>
+        )
+        const shouldFill = (
+            metadata.dataType.type === 'bigint' &&
+            metadata.autoIncrement &&
+            !entity[primaryName]
+        )
+
+        if (shouldFill) (entity[primaryName] as number) = this.primary!
     }
 }

@@ -1,6 +1,6 @@
 import { EntityMetadata } from "../../Metadata"
 
-import UnionEntity from "../../UnionEntity"
+// import UnionEntity from "../../UnionEntity"
 
 // Query Builders
 import ConditionalSQLBuilder, { Case } from "../ConditionalQueryBuilder"
@@ -40,13 +40,6 @@ export default class OrderSQLBuilder<T extends EntityTarget> {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityMetadata {
-        // if (this.target === UnionEntity) {
-        //     return Reflect.getOwnMetadata(
-        //         this.alias,
-        //         this.target
-        //     )
-        // }
-
         return EntityMetadata.find(this.target)!
     }
 

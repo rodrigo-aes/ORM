@@ -1,5 +1,5 @@
 import type { EntityTarget } from "../../../../types/General"
 
-export default class Collection<T extends EntityTarget> extends Array<
-    InstanceType<T>
+export default class Collection<Entity extends object> extends Array<
+    Entity
 > { }

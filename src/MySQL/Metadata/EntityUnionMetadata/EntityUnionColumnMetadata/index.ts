@@ -1,17 +1,17 @@
 import EntityMetadata, { ColumnMetadata } from "../../EntityMetadata"
 
 import UnionEntity from "../../../UnionEntity"
+import { UnionTarget } from "../../../UnionEntity/types"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { EntityUnionTarget } from "../types"
 import type DataType from "../../EntityMetadata/DataType"
 
 export default class EntityUnionColumnMetadata extends ColumnMetadata {
     public entities: EntityMetadata[]
 
     constructor(
-        target: EntityUnionTarget = UnionEntity,
+        target: UnionTarget = UnionEntity,
         name: string,
         dataType: DataType,
         ...targets: EntityTarget[]

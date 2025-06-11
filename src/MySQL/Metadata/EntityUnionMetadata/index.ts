@@ -5,11 +5,12 @@ import EntityMetadata, {
 } from "../EntityMetadata"
 import EntityUnionColumnMetadata from "./EntityUnionColumnMetadata"
 
+import '../../BaseEntity'
 import UnionEntity from "../../UnionEntity"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { EntityUnionTarget } from "./types"
+import type { UnionTarget } from "../../UnionEntity/types"
 
 export default class EntityUnionMetadata extends EntityMetadata {
     public entities: EntityMetadata[]
@@ -18,7 +19,7 @@ export default class EntityUnionMetadata extends EntityMetadata {
 
     constructor(
         tableName: string,
-        target: EntityUnionTarget = UnionEntity,
+        target: UnionTarget = UnionEntity,
         public targets: EntityTarget[]
     ) {
         super(target, { tableName })

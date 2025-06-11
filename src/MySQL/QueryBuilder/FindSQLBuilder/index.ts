@@ -160,7 +160,7 @@ export default class FindSQLBuilder<T extends EntityTarget> {
 
             const join = new JoinSQLBuilder(
                 relation,
-                this.alias,
+                alias,
                 options
             )
 

@@ -1,6 +1,6 @@
 import {
     EntityMetadata,
-    EntityUnionMetadata,
+    // EntityUnionMetadata,
     PolymorphicBelongsToMetadata,
 
     type RelationMetadataType
@@ -17,7 +17,7 @@ import TableUnionSQLBuilder from "../TableUnionSQLBuilder"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { RelationOptions } from "./types"
+import type { RelationOptions, RelationsOptions } from "./types"
 
 export default class JoinSQLBuilder<T extends EntityTarget> {
     private metadata: EntityMetadata
@@ -137,4 +137,9 @@ export default class JoinSQLBuilder<T extends EntityTarget> {
         )
             .SQL()
     }
+}
+
+export {
+    type RelationOptions,
+    type RelationsOptions
 }

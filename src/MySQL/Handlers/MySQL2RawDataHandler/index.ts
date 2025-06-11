@@ -8,18 +8,23 @@ import { Collection, RelationCollection } from "../../BaseEntity"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { MySQL2RawData, MappedDataType, RawData } from "./types"
+import type {
+    MySQL2RawData,
+    MappedDataType,
+    RawData,
+    DataFillMethod
+} from "./types"
 import type { RelationMetadataType } from "../../Metadata"
 
 export default class MySQL2RawDataHandler<T extends EntityTarget> {
     private metadata: EntityMetadata
     private mySQL2RawData!: MySQL2RawData[]
     private _raw?: RawData<T> | RawData<T>[]
-    private _entity?: InstanceType<T> | Collection<T>
+    private _entity?: InstanceType<T> | Collection<InstanceType<T>>
 
     constructor(
         public target: T,
-        public fillMethod: 'One' | 'Many',
+        public fillMethod: DataFillMethod,
         rawData?: MySQL2RawData[]
     ) {
         this.metadata = this.loadMetadata()
@@ -59,7 +64,7 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public parseEntity(rawData?: MySQL2RawData[]): (
-        InstanceType<T> | Collection<T>
+        InstanceType<T> | Collection<InstanceType<T>>
     ) {
         if (rawData) this.mySQL2RawData = rawData
         if (!this.mySQL2RawData) throw new Error
@@ -101,7 +106,7 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
             ? []
             : relation
                 ? new RelationCollection(relation)
-                : new Collection
+                : new Collection<InstanceType<T>>
 
         const mapped = new Set
         const primaryName = metadata.columns.primary.name
@@ -223,4 +228,10 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
                 : []
         ))
     }
+}
+
+export {
+    type MySQL2RawData,
+    type RawData,
+    type DataFillMethod
 }
