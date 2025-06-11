@@ -6,6 +6,9 @@ import BaseEntity, { ColumnsSnapshots } from "../../BaseEntity"
 import JoinSQLBuilder from "../JoinSQLBuilder"
 import ConditionalSQLBuilder from "../ConditionalQueryBuilder"
 
+// Hanlders
+import { ConditionalQueryJoinsHandler } from "../../Handlers"
+
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
@@ -43,7 +46,21 @@ export default class UpdateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public joinsSQL(): string {
-        return this.buildJoins().map(join => join.SQL()).join(' ')
+        return this.conditional
+            ? new ConditionalQueryJoinsHandler(
+                this.target,
+                this.conditional,
+
+                this.attributes instanceof BaseEntity
+                    ? this.attributes
+                    : undefined,
+
+                this.alias
+            )
+                .joins()
+                .map(join => join.SQL())
+                .join(' ')
+            : ''
     }
 
     // ------------------------------------------------------------------------
@@ -87,73 +104,5 @@ export default class UpdateSQLBuilder<T extends EntityTarget> {
         return this.attributes instanceof BaseEntity
             ? ColumnsSnapshots.changed(this.attributes)
             : this.attributes
-    }
-
-    // ------------------------------------------------------------------------
-
-    private buildJoins(): JoinSQLBuilder<any>[] {
-        return Object.entries(this.extractConditionalRelations()).flatMap(
-            ([key]) => this.handleJoin(key)
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private handleJoin(
-        key: string,
-        metadata: EntityMetadata = this.metadata,
-        parentAlias: string = this.alias
-    ): JoinSQLBuilder<any> | JoinSQLBuilder<any>[] {
-        const [first, second, ...rest] = key.split('.')
-        const relation = metadata.relations!.find(
-            ({ name }) => name === first
-        )!
-
-        const join = new JoinSQLBuilder(
-            relation,
-            parentAlias,
-            {}
-        )
-
-        if (rest.length === 0) return join
-
-        metadata = EntityMetadata.findOrBuild(
-            RelationMetadata.extractEntityTarget(
-                relation,
-                this.attributes instanceof BaseEntity
-                    ? this.attributes
-                    : undefined
-            )
-        )
-
-        const next = this.handleJoin(
-            `${second}.${rest.join('.')}`,
-            metadata,
-            join.alias
-        )
-
-        return [
-            join,
-            ...Array.isArray(next)
-                ? next
-                : [next]
-        ]
-    }
-
-    // ------------------------------------------------------------------------
-
-    private extractConditionalRelations(): (
-        ConditionalQueryOptions<InstanceType<T>>
-    ) {
-        return this.conditional
-            ? Object.fromEntries(Object.entries(this.conditional).flatMap(
-                ([key, value]) => key.includes('.')
-                    ? [[key, value]]
-                    : []
-            )) as (
-                ConditionalQueryOptions<InstanceType<T>>
-            )
-
-            : {}
     }
 }

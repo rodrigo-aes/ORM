@@ -77,7 +77,8 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
             {
                 where: this.attributes as (
                     ConditionalQueryOptions<InstanceType<T>>
-                )
+                ),
+                limit: 1
             },
             this.alias
         )

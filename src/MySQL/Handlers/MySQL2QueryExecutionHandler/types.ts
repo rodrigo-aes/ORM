@@ -5,7 +5,8 @@ import type {
     FindSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
-    UpdateOrCreateSQLBuilder
+    UpdateOrCreateSQLBuilder,
+    DeleteSQLBuilder
 } from "../../QueryBuilder"
 
 import type { Collection } from "../../BaseEntity"
@@ -14,7 +15,8 @@ export type SQLBuilder<T extends EntityTarget> = (
     FindSQLBuilder<T> |
     CreateSQLBuilder<T> |
     UpdateSQLBuilder<T> |
-    UpdateOrCreateSQLBuilder<T>
+    UpdateOrCreateSQLBuilder<T> |
+    DeleteSQLBuilder<T>
 )
 
 import type { MySQL2RawData, RawData } from "../MySQL2RawDataHandler"
@@ -38,6 +40,8 @@ export type ExecResult<
         ? UpdateResult<T>
         : Builder extends UpdateOrCreateSQLBuilder<T>
         ? UpdateOrCreateResult<T>
+        : Builder extends DeleteSQLBuilder<T>
+        ? DeleteResult
         : never
     )
 
@@ -62,3 +66,8 @@ export type UpdateResult<T extends EntityTarget> = (
 export type UpdateOrCreateResult<T extends EntityTarget> = (
     InstanceType<T> | Collection<InstanceType<T>>
 )
+
+export type DeleteResult = {
+    affectedRows: number,
+    serverStatus: number
+}

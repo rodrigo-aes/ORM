@@ -1,6 +1,5 @@
 import {
     EntityMetadata,
-    // EntityUnionMetadata,
     PolymorphicBelongsToMetadata,
 
     type RelationMetadataType

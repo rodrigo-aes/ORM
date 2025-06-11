@@ -5,6 +5,7 @@ import FindSQLBuilder from "./FindSQLBuilder"
 import CreateSQLBuilder from "./CreateSQLBuilder"
 import UpdateSQLBuilder from "./UpdateSQLBuilder"
 import UpdateOrCreateSQLBuilder from "./UpdateOrCreateSQLBuilder"
+import DeleteSQLBuilder from "./DeleteSQLBuilder"
 
 import { RegisterProcedures } from "./Procedures"
 
@@ -29,6 +30,7 @@ export {
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
+    DeleteSQLBuilder,
 
     RegisterProcedures,
 

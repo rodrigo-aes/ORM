@@ -7,7 +7,8 @@ import {
     FindSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
-    UpdateOrCreateSQLBuilder
+    UpdateOrCreateSQLBuilder,
+    DeleteSQLBuilder
 } from "../../QueryBuilder"
 
 // Handlers
@@ -29,7 +30,8 @@ import type {
     FindResult,
     CreateResult,
     UpdateResult,
-    UpdateOrCreateResult
+    UpdateOrCreateResult,
+    DeleteResult
 } from "./types"
 
 export default class MySQL2QueryExecutionHandler<
@@ -66,6 +68,10 @@ export default class MySQL2QueryExecutionHandler<
             this.executeUpdateOrCreate() as (
                 Promise<ExecResult<T, Builder, MapTo>>
             )
+        )
+
+        else if (this.sqlBuilder instanceof DeleteSQLBuilder) return (
+            this.executeDelete() as Promise<ExecResult<T, Builder, MapTo>>
         )
 
         throw new Error
@@ -129,6 +135,20 @@ export default class MySQL2QueryExecutionHandler<
         return this.handleDataMapTo(mySQL2RawData, 'One') as (
             UpdateOrCreateResult<T>
         )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async executeDelete(): Promise<DeleteResult> {
+        const connection = this.getConnection()
+        const { affectedRows, serverStatus }: ResultSetHeader = (
+            await connection.query(this.sqlBuilder.SQL()) as any
+        )
+
+        return {
+            affectedRows,
+            serverStatus
+        }
     }
 
     // ------------------------------------------------------------------------
