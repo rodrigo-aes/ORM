@@ -1,9 +1,8 @@
-import { EntityMetadata, RelationMetadata } from "../../Metadata"
+import { EntityMetadata } from "../../Metadata"
 
 import BaseEntity, { ColumnsSnapshots } from "../../BaseEntity"
 
 // SQL Builders
-import JoinSQLBuilder from "../JoinSQLBuilder"
 import ConditionalSQLBuilder from "../ConditionalQueryBuilder"
 
 // Hanlders
@@ -15,7 +14,7 @@ import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 // Types
 import type { EntityTarget } from "../../../types/General"
 import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
-import type { UpdateAttributes } from "./types"
+import type { UpdateAttributes, UpdateAttibutesKey } from "./types"
 
 export default class UpdateSQLBuilder<T extends EntityTarget> {
     protected metadata: EntityMetadata
@@ -105,4 +104,9 @@ export default class UpdateSQLBuilder<T extends EntityTarget> {
             ? ColumnsSnapshots.changed(this.attributes)
             : this.attributes
     }
+}
+
+export {
+    type UpdateAttributes,
+    type UpdateAttibutesKey
 }

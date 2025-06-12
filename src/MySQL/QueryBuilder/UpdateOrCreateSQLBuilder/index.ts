@@ -18,8 +18,8 @@ import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
 export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     protected metadata: EntityMetadata
 
-    private _properties?: EntityPropertiesKeys<InstanceType<T>>[]
-    private _values?: any[]
+    private _properties: EntityPropertiesKeys<InstanceType<T>>[] = []
+    private _values: any[] = []
 
     public alias: string
 
@@ -34,18 +34,32 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get properties(): EntityPropertiesKeys<InstanceType<T>>[] {
+    public get columnsNames(): EntityPropertiesKeys<InstanceType<T>>[] {
         return this._properties ?? this.getPropetiesNames()
     }
 
     // ------------------------------------------------------------------------
 
-    public get values(): any[] {
+    public get columnsValues(): any[] {
         return this._values ?? this.getValues()
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public fields(...names: EntityPropertiesKeys<InstanceType<T>>[]): this {
+        this._properties = [...this._properties, ...names]
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public values(...values: any[]): this {
+        this._values = [...this._values, ...values]
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
     public SQL(): string {
         return UpdateOrCreate.SQL(...this.arguments())
     }
@@ -93,20 +107,20 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private propertiesSQL(): string {
-        return this.properties.join(', ')
+        return this.columnsNames.join(', ')
     }
 
     // ------------------------------------------------------------------------
 
     private valuesSQL(): string {
-        return this.values.map(value => PropertySQLHelper.valueSQL(value))
+        return this.columnsValues.map(value => PropertySQLHelper.valueSQL(value))
             .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
     private updateSQL(): string {
-        return this.properties.map(
+        return this.columnsNames.map(
             (prop) => `${prop as string} = VALUES(${prop as string})`
         )
             .join(', ')

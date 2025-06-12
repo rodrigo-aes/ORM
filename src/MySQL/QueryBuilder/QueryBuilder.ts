@@ -5,7 +5,10 @@ import {
     FindOneQueryBuilder,
     FindQueryBuilder,
     InsertQueryBuilder,
-    BulkInsertQueryBuilder
+    BulkInsertQueryBuilder,
+    UpdateQueryBuilder,
+    UpdateOrCreateQueryBuilder,
+    DeleteQueryBuilder
 } from "./QueryBuilders"
 
 // Types
@@ -45,6 +48,24 @@ export default class QueryBuilder<T extends EntityTarget> {
 
     public bulkInsert(alias?: string): BulkInsertQueryBuilder<T> {
         return new BulkInsertQueryBuilder(this.target, alias ?? this.alias)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public update(alias?: string): UpdateQueryBuilder<T> {
+        return new UpdateQueryBuilder(this.target, alias ?? this.alias)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public updateOrCreate(alias?: string): UpdateOrCreateQueryBuilder<T> {
+        return new UpdateOrCreateQueryBuilder(this.target, alias ?? this.alias)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public delete(alias?: string): DeleteQueryBuilder<T> {
+        return new DeleteQueryBuilder(this.target, alias ?? this.alias)
     }
 
     // Privates ---------------------------------------------------------------

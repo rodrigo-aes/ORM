@@ -2,7 +2,8 @@ import MySQL2QueryExecutionHandler, {
     type ResultMapOption,
     type ExecResult,
     type FindResult,
-    type CreateResult
+    type CreateResult,
+    type DeleteResult
 } from "./MySQL2QueryExecutionHandler"
 
 import EntityBuilder from "./EntityBuilder"
@@ -19,4 +20,5 @@ export {
     type ResultMapOption,
     type FindResult,
     type CreateResult,
+    type DeleteResult
 }

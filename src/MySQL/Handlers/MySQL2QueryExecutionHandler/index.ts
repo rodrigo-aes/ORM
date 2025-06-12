@@ -209,5 +209,6 @@ export {
     type ExecResult,
     type ResultMapOption,
     type FindResult,
-    type CreateResult
+    type CreateResult,
+    type DeleteResult
 }

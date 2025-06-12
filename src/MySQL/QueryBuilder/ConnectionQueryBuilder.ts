@@ -7,7 +7,10 @@ import type {
     FindOneQueryBuilder,
     FindQueryBuilder,
     InsertQueryBuilder,
-    BulkInsertQueryBuilder
+    BulkInsertQueryBuilder,
+    UpdateQueryBuilder,
+    UpdateOrCreateQueryBuilder,
+    DeleteQueryBuilder
 } from "./QueryBuilders"
 
 export default class ConnectionQueryBuilder {
@@ -41,5 +44,30 @@ export default class ConnectionQueryBuilder {
         BulkInsertQueryBuilder<T>
     ) {
         return new QueryBuilder(target, alias).bulkInsert()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public updateOn<T extends EntityTarget>(target: T, alias?: string): (
+        UpdateQueryBuilder<T>
+    ) {
+        return new QueryBuilder(target, alias).update()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public updateOrCreateOn<T extends EntityTarget>(
+        target: T,
+        alias?: string
+    ): UpdateOrCreateQueryBuilder<T> {
+        return new QueryBuilder(target, alias).updateOrCreate()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public deleteFrom<T extends EntityTarget>(target: T, alias?: string): (
+        DeleteQueryBuilder<T>
+    ) {
+        return new QueryBuilder(target, alias).delete()
     }
 }

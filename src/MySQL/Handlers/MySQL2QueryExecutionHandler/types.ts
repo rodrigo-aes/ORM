@@ -60,11 +60,11 @@ export type CreateResult<T extends EntityTarget> = (
 )
 
 export type UpdateResult<T extends EntityTarget> = (
-    InstanceType<T> | Collection<InstanceType<T>> | ResultSetHeader
+    InstanceType<T> | ResultSetHeader
 )
 
 export type UpdateOrCreateResult<T extends EntityTarget> = (
-    InstanceType<T> | Collection<InstanceType<T>>
+    InstanceType<T>
 )
 
 export type DeleteResult = {

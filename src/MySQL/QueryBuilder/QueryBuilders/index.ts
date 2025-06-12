@@ -6,9 +6,16 @@ import {
     InsertQueryBuilder
 } from "./CreateQueryBuilder"
 
+import UpdateQueryBuilder from "./UpdateQueryBuilder"
+import UpdateOrCreateQueryBuilder from "./UpdateOrCreateQueryBuilder"
+import DeleteQueryBuilder from "./DeleteQueryBuilder"
+
 export {
     FindOneQueryBuilder,
     FindQueryBuilder,
     BulkInsertQueryBuilder,
-    InsertQueryBuilder
+    InsertQueryBuilder,
+    UpdateQueryBuilder,
+    UpdateOrCreateQueryBuilder,
+    DeleteQueryBuilder
 }
