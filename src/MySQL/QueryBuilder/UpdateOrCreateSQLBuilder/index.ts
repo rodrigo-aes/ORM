@@ -157,6 +157,15 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
             ...setted
         }
 
+        this._properties = Object.keys(this.attributes) as (
+            EntityPropertiesKeys<InstanceType<T>>[]
+        )
+        this._values = Object.values(this.attributes)
+
         return this.attributes
     }
+}
+
+export {
+    type UpdateOrCreateAttibutes
 }

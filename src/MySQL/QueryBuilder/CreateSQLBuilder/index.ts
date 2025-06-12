@@ -8,8 +8,8 @@ import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 // Types
 import type { EntityTarget } from "../../../types/General"
 import type {
+    CreationAttributesOptions,
     CreationAttributes,
-    EntityCreationAttributes,
     CreationAttibutesKey,
     AttributesNames,
 } from "./types"
@@ -25,7 +25,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
 
     constructor(
         public target: T,
-        public attributes?: CreationAttributes<InstanceType<T>>,
+        public attributes?: CreationAttributesOptions<InstanceType<T>>,
         alias?: string,
         public absolute: boolean = false
     ) {
@@ -77,7 +77,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public mapAttributes(): CreationAttributes<InstanceType<T>> {
+    public mapAttributes(): CreationAttributesOptions<InstanceType<T>> {
         const [first] = this.columnsValues
 
         return Array.isArray(first)
@@ -193,7 +193,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private propertyNames(
-        attributes?: EntityCreationAttributes<InstanceType<T>>
+        attributes?: CreationAttributes<InstanceType<T>>
     ): CreationAttibutesKey<InstanceType<T>>[] {
         return Object.keys(attributes ?? this.attributes ?? {})
             .filter(key => this.metadata.columns.findColumn(key)) as (
@@ -204,7 +204,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private bulkPropertyNames(): CreationAttibutesKey<InstanceType<T>>[] {
-        return (this.attributes as EntityCreationAttributes<InstanceType<T>>[])
+        return (this.attributes as CreationAttributes<InstanceType<T>>[])
             .flatMap(att => this.propertyNames(att)) as (
                 CreationAttibutesKey<InstanceType<T>>[]
             )
@@ -223,7 +223,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     private createValues(): any[] {
         return this.columnsNames.map(
             column => (
-                this.attributes as EntityCreationAttributes<InstanceType<T>>
+                this.attributes as CreationAttributes<InstanceType<T>>
             )[column]
                 ?? null
         )
@@ -232,7 +232,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private bulkCreateValues(): any[][] {
-        return (this.attributes as EntityCreationAttributes<InstanceType<T>>[])
+        return (this.attributes as CreationAttributes<InstanceType<T>>[])
             .map(
                 att => this.columnsNames.map(
                     column => att[column] ?? null
@@ -252,7 +252,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
 }
 
 export {
+    type CreationAttributesOptions,
     type CreationAttributes,
-    type EntityCreationAttributes,
     type CreationAttibutesKey
 }

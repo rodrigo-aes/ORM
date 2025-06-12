@@ -7,7 +7,7 @@ import { Collection } from "../../BaseEntity"
 import type { EntityTarget } from "../../../types/General"
 import type {
     CreationAttributes,
-    EntityCreationAttributes
+    CreationAttributesOptions
 } from "../../QueryBuilder"
 
 export default class EntityBuilder<T extends EntityTarget> {
@@ -15,7 +15,7 @@ export default class EntityBuilder<T extends EntityTarget> {
 
     constructor(
         public target: T,
-        public attibutes: CreationAttributes<InstanceType<T>>,
+        public attibutes: CreationAttributesOptions<InstanceType<T>>,
         public primary?: number
     ) {
         this.metadata = this.loadMetadata()
@@ -37,7 +37,7 @@ export default class EntityBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private buildEntity(
-        attributes?: EntityCreationAttributes<InstanceType<T>>
+        attributes?: CreationAttributesOptions<InstanceType<T>>
     ): InstanceType<T> {
         const entity = new this.target().fill(
             (attributes ?? this.attibutes) as any
@@ -52,7 +52,7 @@ export default class EntityBuilder<T extends EntityTarget> {
 
     private buildManyEntities(): Collection<InstanceType<T>> {
         return new Collection(
-            ...(this.attibutes as EntityCreationAttributes<InstanceType<T>>[])
+            ...(this.attibutes as CreationAttributesOptions<InstanceType<T>>[])
                 .map(att => this.buildEntity(att))
         )
     }

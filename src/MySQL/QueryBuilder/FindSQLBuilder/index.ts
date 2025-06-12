@@ -67,7 +67,9 @@ export default class FindSQLBuilder<T extends EntityTarget> {
             this.joinsSQL(),
             this.whereSQL(),
             this.groupSQL(),
-            this.orderSQL()
+            this.orderSQL(),
+            this.limitSQL(),
+            this.offsetSQL(),
         ]
             .join(' ')
     }

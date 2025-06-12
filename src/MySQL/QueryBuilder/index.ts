@@ -1,10 +1,20 @@
 import QueryBuilder from "./QueryBuilder"
 import ConnectionQueryBuilder from "./ConnectionQueryBuilder"
 
-import FindSQLBuilder from "./FindSQLBuilder"
-import CreateSQLBuilder from "./CreateSQLBuilder"
-import UpdateSQLBuilder from "./UpdateSQLBuilder"
-import UpdateOrCreateSQLBuilder from "./UpdateOrCreateSQLBuilder"
+// SQL Builders
+import FindSQLBuilder, { type FindQueryOptions } from "./FindSQLBuilder"
+
+import CreateSQLBuilder, {
+    type CreationAttributes,
+    type CreationAttributesOptions
+} from "./CreateSQLBuilder"
+
+import UpdateSQLBuilder, { type UpdateAttributes } from "./UpdateSQLBuilder"
+
+import UpdateOrCreateSQLBuilder, {
+    type UpdateOrCreateAttibutes
+} from "./UpdateOrCreateSQLBuilder"
+
 import DeleteSQLBuilder from "./DeleteSQLBuilder"
 
 import { RegisterProcedures } from "./Procedures"
@@ -16,11 +26,8 @@ import type {
     EntityPropertiesKeys,
     EntityRelationsKeys
 } from "./types"
-import type {
-    CreationAttributes,
-    EntityCreationAttributes
-} from "./CreateSQLBuilder"
 
+import type { ConditionalQueryOptions } from "./ConditionalQueryBuilder"
 
 export {
     QueryBuilder,
@@ -38,6 +45,11 @@ export {
     type EntityRelations,
     type EntityPropertiesKeys,
     type EntityRelationsKeys,
+
+    type FindQueryOptions,
     type CreationAttributes,
-    type EntityCreationAttributes,
+    type CreationAttributesOptions,
+    type UpdateAttributes,
+    type UpdateOrCreateAttibutes,
+    type ConditionalQueryOptions
 }
