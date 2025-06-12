@@ -42,39 +42,54 @@ export default class UpdateQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public where<
-        Clause extends (
-            EntityPropertiesKeys<InstanceType<T>> |
-            WhereQueryFunction<T>
-        ),
-        Cond extends Clause extends EntityPropertiesKeys<InstanceType<T>>
-        ? (
-            EntityProperties<InstanceType<T>>[Clause] |
-            CompatibleOperators<EntityProperties<InstanceType<T>>[Clause]>
+        K extends EntityPropertiesKeys<InstanceType<T>>,
+        Cond extends (
+            EntityProperties<InstanceType<T>>[K] |
+            CompatibleOperators<EntityProperties<InstanceType<T>>[K]>
         )
-        : never
     >(
-        clause: Clause,
+        propertie: K | string,
         conditional: Cond,
         value?: typeof conditional extends keyof OperatorType
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        if (!this._where) this._where = (
-            new WhereQueryBuilder(this.target, this.alias)
+        if (!this._where) this._where = new WhereQueryBuilder(
+            this.target, this.alias
         )
 
-        switch (typeof clause) {
-            case "string": this._where.where(
-                clause,
-                conditional,
-                value
-            )
-                break
+        this._where.where(propertie, conditional, value)
 
-            case "function": clause(this._where)
-                break
-        }
+        return this
+    }
 
+    // ------------------------------------------------------------------------
+
+    public and = this.where
+
+    // ------------------------------------------------------------------------
+
+    public or(): this {
+        this._where!.or()
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public orWhere<
+        K extends EntityPropertiesKeys<InstanceType<T>>,
+        Cond extends (
+            EntityProperties<InstanceType<T>>[K] |
+            CompatibleOperators<EntityProperties<InstanceType<T>>[K]>
+        )
+    >(
+        propertie: K | string,
+        conditional: Cond,
+        value?: typeof conditional extends keyof OperatorType
+            ? OperatorType[typeof conditional]
+            : never
+    ) {
+        this._where!.orWhere(propertie, conditional, value)
         return this
     }
 

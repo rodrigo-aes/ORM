@@ -30,6 +30,8 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = this.loadMetadata()
+
+        this.mergeAttributes()
     }
 
     // Getters ================================================================
@@ -89,7 +91,7 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
         return new FindSQLBuilder(
             this.target,
             {
-                where: this.attributes as (
+                where: this.mergeAttributes() as (
                     ConditionalQueryOptions<InstanceType<T>>
                 ),
                 limit: 1
@@ -113,23 +115,23 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private valuesSQL(): string {
-        return this.columnsValues.map(value => PropertySQLHelper.valueSQL(value))
+        return this.columnsValues
+            .map(value => PropertySQLHelper.valueSQL(value))
             .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
     private updateSQL(): string {
-        return this.columnsNames.map(
-            (prop) => `${prop as string} = VALUES(${prop as string})`
-        )
+        return this.columnsNames
+            .map((prop) => `${prop as string} = VALUES(${prop as string})`)
             .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
     private getPropetiesNames(): EntityPropertiesKeys<InstanceType<T>>[] {
-        this._properties = Object.keys(this.attributes) as (
+        this._properties = Object.keys(this.mergeAttributes()) as (
             EntityPropertiesKeys<InstanceType<T>>[]
         )
 
@@ -139,7 +141,22 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private getValues(): any[] {
-        this._values = Object.values(this.attributes)
+        this._values = Object.values(this.mergeAttributes())
         return this._values
+    }
+
+    // ------------------------------------------------------------------------
+
+    private mergeAttributes(): UpdateOrCreateAttibutes<InstanceType<T>> {
+        const setted = Object.fromEntries(this._properties.map(
+            (key, index) => [key, this._values[index]]
+        ))
+
+        this.attributes = {
+            ...this.attributes,
+            ...setted
+        }
+
+        return this.attributes
     }
 }

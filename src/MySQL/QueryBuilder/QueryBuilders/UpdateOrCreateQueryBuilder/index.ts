@@ -7,7 +7,9 @@ import { MySQL2QueryExecutionHandler } from "../../../Handlers"
 // Types
 import type { EntityTarget } from "../../../../types/General"
 import type { EntityPropertiesKeys } from "../../types"
-
+import type {
+    UpdateOrCreateAttibutes
+} from "../../UpdateOrCreateSQLBuilder/types"
 export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
     private sqlBuilder: UpdateOrCreateSQLBuilder<T>
 
@@ -29,6 +31,18 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
 
     public values(...values: any[]): this {
         this.sqlBuilder.values(...values)
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public data(data: UpdateOrCreateAttibutes<InstanceType<T>>): this {
+        this.sqlBuilder.fields(...Object.keys(data) as (
+            EntityPropertiesKeys<InstanceType<T>>[]
+        ))
+
+        this.sqlBuilder.values(...Object.values(data))
+
         return this
     }
 
