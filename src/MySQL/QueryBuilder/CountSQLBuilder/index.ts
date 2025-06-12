@@ -13,7 +13,7 @@ import type {
     CountQueryOptions,
     CountCaseOptions
 } from "./types"
-import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
+import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 
 
 export default class CountSQLBuilder<T extends EntityTarget> {

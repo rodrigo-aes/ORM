@@ -1,4 +1,4 @@
-import { Op } from "../../ConditionalQueryBuilder/Operator"
+import { Op } from "../../ConditionalSQLBuilder/Operator"
 import type { OperatorType, CompatibleOperators } from "./types"
 
 export default class OperatorQueryBuilder {

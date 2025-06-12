@@ -27,7 +27,7 @@ import type {
     EntityRelationsKeys
 } from "./types"
 
-import type { ConditionalQueryOptions } from "./ConditionalQueryBuilder"
+import type { ConditionalQueryOptions } from "./ConditionalSQLBuilder"
 
 export {
     QueryBuilder,

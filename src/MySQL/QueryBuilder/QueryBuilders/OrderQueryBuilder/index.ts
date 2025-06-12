@@ -1,4 +1,4 @@
-import { Case } from "../../ConditionalQueryBuilder"
+import { Case } from "../../ConditionalSQLBuilder"
 
 // Query Handlers
 import CaseQueryBuilder from "../CaseQueryBuilder"

@@ -8,7 +8,7 @@ import type { EntityTarget } from "../../../../types/General"
 import type {
     CaseQueryOptions,
     ElseQueryOption
-} from "../../ConditionalQueryBuilder/CaseSQLBuilder"
+} from "../../ConditionalSQLBuilder/CaseSQLBuilder"
 
 import type { CaseQueryFunction, CaseQueryTuple } from "./types"
 import type { WhereQueryFunction } from "../WhereQueryBuilder"

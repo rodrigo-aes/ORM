@@ -6,7 +6,7 @@ import ConditionalSQLBuilder, {
     type ConditionalQueryOptions,
     type CaseQueryOptions,
 
-} from "../../ConditionalQueryBuilder"
+} from "../../ConditionalSQLBuilder"
 
 // Helpers
 import { PropertySQLHelper } from "../../../Helpers"

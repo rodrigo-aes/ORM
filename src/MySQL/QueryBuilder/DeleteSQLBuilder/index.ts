@@ -3,7 +3,7 @@ import { EntityMetadata } from "../../Metadata"
 // SQL Builders
 import ConditionalSQLBuilder, {
     type ConditionalQueryOptions
-} from "../ConditionalQueryBuilder"
+} from "../ConditionalSQLBuilder"
 
 // Handlers
 import { ConditionalQueryJoinsHandler } from "../../Handlers"

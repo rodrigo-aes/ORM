@@ -3,7 +3,7 @@ import { EntityMetadata } from "../../Metadata"
 import BaseEntity, { ColumnsSnapshots } from "../../BaseEntity"
 
 // SQL Builders
-import ConditionalSQLBuilder from "../ConditionalQueryBuilder"
+import ConditionalSQLBuilder from "../ConditionalSQLBuilder"
 
 // Hanlders
 import { ConditionalQueryJoinsHandler } from "../../Handlers"
@@ -13,7 +13,7 @@ import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
+import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 import type { UpdateAttributes, UpdateAttibutesKey } from "./types"
 
 export default class UpdateSQLBuilder<T extends EntityTarget> {

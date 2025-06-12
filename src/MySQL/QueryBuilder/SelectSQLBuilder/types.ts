@@ -2,7 +2,7 @@ import type { EntityPropertiesKeys } from "../types"
 import type {
     Case,
     CaseQueryOptions
-} from "../ConditionalQueryBuilder"
+} from "../ConditionalSQLBuilder"
 import type { CountQueryOptions } from "../CountSQLBuilder"
 
 export type SelectPropertyKey<Entity extends object> = (

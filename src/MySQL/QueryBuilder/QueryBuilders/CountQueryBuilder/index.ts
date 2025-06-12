@@ -1,5 +1,5 @@
 import { EntityMetadata } from "../../../Metadata"
-import { Case, CaseQueryOptions } from "../../ConditionalQueryBuilder"
+import { Case, CaseQueryOptions } from "../../ConditionalSQLBuilder"
 
 // Query Handlers
 import { type CaseQueryFunction } from "../ConditionalQueryBuilder"

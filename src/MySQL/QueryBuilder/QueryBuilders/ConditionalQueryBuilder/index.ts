@@ -9,8 +9,8 @@ import type { EntityTarget } from "../../../../types/General"
 import type { WhereQueryFunction } from "../WhereQueryBuilder/types"
 import type { CaseQueryFunction } from "./types"
 
-import type { ConditionalQueryOptions } from "../../ConditionalQueryBuilder"
-import type { CaseQueryOptions } from "../../ConditionalQueryBuilder"
+import type { ConditionalQueryOptions } from "../../ConditionalSQLBuilder"
+import type { CaseQueryOptions } from "../../ConditionalSQLBuilder"
 
 export default class ConditionalQueryBuilder<T extends EntityTarget> {
     private _conditional!: WhereQueryBuilder<T> | CaseQueryBuilder<T>

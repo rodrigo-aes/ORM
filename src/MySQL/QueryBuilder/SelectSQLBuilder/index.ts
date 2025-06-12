@@ -1,6 +1,6 @@
 import { EntityMetadata } from "../../Metadata"
 
-import ConditionalSQLBuilder, { Case } from "../ConditionalQueryBuilder"
+import ConditionalSQLBuilder, { Case } from "../ConditionalSQLBuilder"
 import CountSQLBuilder from "../CountSQLBuilder"
 import GroupSQLBuilder, {
     type GroupQueryOptions

@@ -1,5 +1,5 @@
 import type { EntityPropertiesKeys } from "../types"
-import type { Case, CaseQueryOptions } from "../ConditionalQueryBuilder"
+import type { Case, CaseQueryOptions } from "../ConditionalSQLBuilder"
 
 export type OrderDirection = 'ASC' | 'DESC'
 

@@ -8,7 +8,7 @@ import type { EntityTarget } from "../../../../types/General"
 import type {
     AndQueryOptions,
     OrQueryOptions
-} from "../../ConditionalQueryBuilder"
+} from "../../ConditionalSQLBuilder"
 
 import type { WhereQueryFunction } from "./types"
 

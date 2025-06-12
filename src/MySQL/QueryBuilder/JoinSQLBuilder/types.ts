@@ -1,8 +1,8 @@
 import type { EntityRelationsKeys } from "../types"
 import type { SelectOptions } from "../SelectSQLBuilder"
-import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
+import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 import type SelectSQLBuilder from "../SelectSQLBuilder"
-import type OnSQLBuilder from "../ConditionalQueryBuilder/OnSQLBuilder"
+import type OnSQLBuilder from "../ConditionalSQLBuilder/OnSQLBuilder"
 
 export type RelationOptions<Entity extends object> = {
     required?: boolean

@@ -10,7 +10,7 @@ import JoinSQLBuilder from "../JoinSQLBuilder"
 
 import ConditionalSQLBuilder, {
     WhereSQLBuilder
-} from "../ConditionalQueryBuilder"
+} from "../ConditionalSQLBuilder"
 
 import OrderSQLBuilder from "../OrderSQLBuilder"
 import GroupSQLBuilder from "../GroupSQLBuilder"

@@ -13,7 +13,7 @@ import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 import type { EntityTarget } from "../../../types/General"
 import type { UpdateOrCreateAttibutes } from "./types"
 import type { EntityPropertiesKeys } from "../types"
-import type { ConditionalQueryOptions } from "../ConditionalQueryBuilder"
+import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 
 export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     protected metadata: EntityMetadata

@@ -1,14 +1,14 @@
 import { EntityMetadata } from "../../../Metadata"
 
 // Query Builders
-import { Op } from "../../ConditionalQueryBuilder/Operator"
+import { Op } from "../../ConditionalSQLBuilder/Operator"
 
 // Query Handlers
 import OperatorQueryBuilder from "../OperatorQueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { AndQueryOptions } from "../../ConditionalQueryBuilder"
+import type { AndQueryOptions } from "../../ConditionalSQLBuilder"
 import type {
     EntityProperties,
     EntityPropertiesKeys,

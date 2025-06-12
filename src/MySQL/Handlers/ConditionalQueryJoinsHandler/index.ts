@@ -5,7 +5,7 @@ import JoinSQLBuilder from "../../QueryBuilder/JoinSQLBuilder"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { ConditionalQueryOptions } from "../../QueryBuilder/ConditionalQueryBuilder"
+import type { ConditionalQueryOptions } from "../../QueryBuilder/ConditionalSQLBuilder"
 
 export default class ConditionalQueryJoinsHandler<T extends EntityTarget> {
     protected metadata: EntityMetadata

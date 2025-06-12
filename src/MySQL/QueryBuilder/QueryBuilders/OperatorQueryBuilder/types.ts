@@ -1,6 +1,6 @@
 import type {
     Primitive
-} from "../../ConditionalQueryBuilder/Operator/types"
+} from "../../ConditionalSQLBuilder/Operator/types"
 
 export type OperatorType = {
     '=': Primitive

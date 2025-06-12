@@ -2,7 +2,7 @@ import type {
     ConditionalQueryOptions,
     Case,
     CaseQueryOptions
-} from "../ConditionalQueryBuilder"
+} from "../ConditionalSQLBuilder"
 
 export type CountCaseOptions<Entity extends object> = {
     [Case]: CaseQueryOptions<Entity>

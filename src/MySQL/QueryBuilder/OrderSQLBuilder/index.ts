@@ -3,7 +3,7 @@ import { EntityMetadata } from "../../Metadata"
 // import UnionEntity from "../../UnionEntity"
 
 // Query Builders
-import ConditionalSQLBuilder, { Case } from "../ConditionalQueryBuilder"
+import ConditionalSQLBuilder, { Case } from "../ConditionalSQLBuilder"
 
 // Helpers
 import { SQLStringHelper } from "../../Helpers"

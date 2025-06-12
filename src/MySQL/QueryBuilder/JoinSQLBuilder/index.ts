@@ -10,7 +10,7 @@ import SelectSQLBuilder, { type SelectOptions } from "../SelectSQLBuilder"
 
 import ConditionalSQLBuilder, {
     type ConditionalQueryOptions
-} from "../ConditionalQueryBuilder"
+} from "../ConditionalSQLBuilder"
 
 import TableUnionSQLBuilder from "../TableUnionSQLBuilder"
 
