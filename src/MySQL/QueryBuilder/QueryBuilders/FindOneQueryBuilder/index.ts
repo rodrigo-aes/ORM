@@ -100,38 +100,23 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public where<
-        Clause extends (
-            EntityPropertiesKeys<InstanceType<T>> |
-            WhereQueryFunction<T>
-        ),
-        Cond extends Clause extends EntityPropertiesKeys<InstanceType<T>>
-        ? (
-            EntityProperties<InstanceType<T>>[Clause] |
-            CompatibleOperators<EntityProperties<InstanceType<T>>[Clause]>
+        K extends EntityPropertiesKeys<InstanceType<T>>,
+        Cond extends (
+            EntityProperties<InstanceType<T>>[K] |
+            CompatibleOperators<EntityProperties<InstanceType<T>>[K]>
         )
-        : never
     >(
-        clause: Clause,
+        propertie: K | string,
         conditional: Cond,
         value?: typeof conditional extends keyof OperatorType
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        if (!this._options.where) this._options.where = (
-            new WhereQueryBuilder(this.target, this.alias)
+        if (!this._options.where) this._options.where = new WhereQueryBuilder(
+            this.target, this.alias
         )
 
-        switch (typeof clause) {
-            case "string": this._options.where.where(
-                clause,
-                conditional,
-                value
-            )
-                break
-
-            case "function": clause(this._options.where)
-                break
-        }
+        this._options.where.where(propertie, conditional, value)
 
         return this
     }
