@@ -14,6 +14,8 @@ import ForeignId from "./ForeignId"
 import CreatedTimestamp from "./CreatedTimestamp"
 import UpdatedTimestamp from "./UpdatedTimestamp"
 
+import Repository from "./Repository"
+
 import {
     HasOne,
     HasMany,
@@ -64,4 +66,6 @@ export {
 
     BeforeSync,
     AfterSync,
+
+    Repository,
 }

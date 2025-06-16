@@ -4,7 +4,7 @@ import { EntityMetadata } from "../../Metadata"
 import { UpdateOrCreate, type UpdateOrCreateArgs } from "../Procedures"
 
 // SQL Builder
-import FindSQLBuilder from "../FindSQLBuilder"
+import FindOneSQLBuilder from "../FindOneSQLBuilder"
 
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
@@ -88,13 +88,12 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public selectSQL(): string {
-        return new FindSQLBuilder(
+        return new FindOneSQLBuilder(
             this.target,
             {
                 where: this.mergeAttributes() as (
                     ConditionalQueryOptions<InstanceType<T>>
-                ),
-                limit: 1
+                )
             },
             this.alias
         )

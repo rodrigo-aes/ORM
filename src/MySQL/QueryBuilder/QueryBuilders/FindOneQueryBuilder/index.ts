@@ -1,7 +1,7 @@
 import { EntityMetadata } from "../../../Metadata"
 
 // SQL Builders
-import FindSQLBuilder from "../../FindSQLBuilder"
+import FindOneSQLBuilder from "../../FindOneSQLBuilder"
 
 // Query Builders
 import SelectQueryBuilder from "../SelectQueryBuilder"
@@ -12,21 +12,20 @@ import GroupQueryBuilder from "../GroupQueryBuilder"
 // Handlers
 import {
     MySQL2QueryExecutionHandler,
-    type FindResult,
+    type FindOneResult,
     type ResultMapOption
 } from "../../../Handlers"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { FindQueryOptions as FindOptions } from "../../FindSQLBuilder"
+import type { FindOneQueryOptions as SQLBuilderOptions } from "../../FindOneSQLBuilder"
 import type { RelationsOptions } from "../../JoinSQLBuilder/types"
 import type { JoinQueryOptions } from "../JoinQueryBuilder"
 import type { GroupQueryOptions } from "../../GroupSQLBuilder"
 
 import type {
-    FindQueryOptions,
+    FindOneQueryOptions,
     SelectQueryFunction,
-    WhereQueryFunction,
     JoinQueryFunction
 } from "./types"
 
@@ -45,10 +44,7 @@ import type {
 export default class FindOneQueryBuilder<T extends EntityTarget> {
     protected metadata: EntityMetadata
 
-    protected _options: FindQueryOptions<T> = {
-        relations: {},
-        limit: 1
-    }
+    protected _options: FindOneQueryOptions<T> = {}
 
     constructor(
         public target: T,
@@ -210,7 +206,7 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public exec<MapTo extends ResultMapOption>(mapTo: MapTo): (
-        Promise<FindResult<T, MapTo>>
+        Promise<FindOneResult<T, MapTo>>
     ) {
         return new MySQL2QueryExecutionHandler(
             this.target,
@@ -228,18 +224,35 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public toQueryOptions(): FindOptions<InstanceType<T>> {
-        const { select, where, group, order, limit, offset } = this._options
+    public toQueryOptions(): SQLBuilderOptions<InstanceType<T>> {
+        const { select, where, group } = this._options
 
         return {
             select: select?.toQueryOptions(),
             where: where?.toQueryOptions(),
             relations: this.relationsToOptions(),
             group: group?.toQueryOptions(),
-            order: order?.toQueryOptions(),
-            limit,
-            offset
         }
+    }
+
+    // Protecteds -------------------------------------------------------------
+    protected relationsToOptions(): (
+        RelationsOptions<InstanceType<T>> | undefined
+    ) {
+        if (!this._options.relations) return
+
+        return Object.fromEntries(
+            Object.entries(this._options.relations).map(
+                ([name, value]) => [
+                    name,
+                    typeof value === 'boolean'
+                        ? value
+                        : (value as JoinQueryBuilder<any>).toQueryOptions()
+                ]
+            )
+        ) as (
+                RelationsOptions<InstanceType<T>>
+            )
     }
 
     // Privates ---------------------------------------------------------------
@@ -249,8 +262,8 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private toSQLBuilder(): FindSQLBuilder<T> {
-        return new FindSQLBuilder(
+    private toSQLBuilder(): FindOneSQLBuilder<T> {
+        return new FindOneSQLBuilder(
             this.target,
             this.toQueryOptions(),
             this.alias
@@ -277,29 +290,8 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
 
         throw new Error
     }
-
-    // ------------------------------------------------------------------------
-
-    private relationsToOptions(): (
-        RelationsOptions<InstanceType<T>> | undefined
-    ) {
-        if (!this._options.relations) return
-
-        return Object.fromEntries(
-            Object.entries(this._options.relations).map(
-                ([name, value]) => [
-                    name,
-                    typeof value === 'boolean'
-                        ? value
-                        : (value as JoinQueryBuilder<any>).toQueryOptions()
-                ]
-            )
-        ) as (
-                RelationsOptions<InstanceType<T>>
-            )
-    }
 }
 
 export {
-    type FindQueryOptions
+    type FindOneQueryOptions
 }

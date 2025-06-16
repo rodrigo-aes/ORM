@@ -3,12 +3,15 @@ import BaseEntity from "../BaseEntity"
 
 // SQL Builders
 import {
+    FindByPkSQLBuilder,
+    FindOneSQLBuilder,
     FindSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
     DeleteSQLBuilder,
 
+    type FindOneQueryOptions,
     type FindQueryOptions,
     type CreationAttributes,
     type UpdateAttributes,
@@ -26,7 +29,7 @@ import {
 
 // Types 
 import type { EntityTarget } from "../../types/General"
-import type { FindOneQueryOptions, UpdateQueryResult } from "./types"
+import type { UpdateQueryResult } from "./types"
 import type { ResultSetHeader } from "mysql2"
 
 export default class Repository<T extends EntityTarget> {
@@ -36,6 +39,17 @@ export default class Repository<T extends EntityTarget> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public findByPk(pk: any, mapTo: ResultMapOption = 'entity') {
+        return new MySQL2QueryExecutionHandler(
+            this.target,
+            new FindByPkSQLBuilder(this.target, pk),
+            mapTo
+        )
+            .exec()
+    }
+
+    // ------------------------------------------------------------------------
+
     public find(
         options: FindQueryOptions<InstanceType<T>>,
         mapTo: ResultMapOption = 'entity'
@@ -56,10 +70,7 @@ export default class Repository<T extends EntityTarget> {
     ) {
         return new MySQL2QueryExecutionHandler(
             this.target,
-            new FindSQLBuilder(this.target, {
-                ...options,
-                limit: 1
-            }),
+            new FindOneSQLBuilder(this.target, options),
             mapTo
         )
             .exec()

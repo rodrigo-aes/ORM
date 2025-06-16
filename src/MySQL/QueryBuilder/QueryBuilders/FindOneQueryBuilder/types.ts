@@ -4,17 +4,14 @@ import type SelectQueryBuilder from "../SelectQueryBuilder"
 import type WhereQueryBuilder from "../WhereQueryBuilder"
 import type JoinQueryBuilder from "../JoinQueryBuilder"
 import type GroupQueryBuilder from "../GroupQueryBuilder"
-import type OrderQueryBuilder from "../OrderQueryBuilder"
 import type { JoinQueryOptions } from "../JoinQueryBuilder"
 
-export type FindQueryOptions<T extends EntityTarget> = {
+export type FindOneQueryOptions<T extends EntityTarget> = {
     select?: SelectQueryBuilder<T>
     where?: WhereQueryBuilder<T>
     relations?: JoinQueryOptions<T>
     group?: GroupQueryBuilder<T>
-    order?: OrderQueryBuilder<T>
-    limit?: number
-    offset?: number
+
 }
 
 export type SelectQueryFunction<T extends EntityTarget> = (

@@ -2,6 +2,8 @@ import type { EntityTarget } from "../../../types/General"
 import type { ResultSetHeader } from "mysql2"
 
 import type {
+    FindByPkSQLBuilder,
+    FindOneSQLBuilder,
     FindSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
@@ -12,6 +14,8 @@ import type {
 import type { Collection } from "../../BaseEntity"
 
 export type SQLBuilder<T extends EntityTarget> = (
+    FindByPkSQLBuilder<T> |
+    FindOneSQLBuilder<T> |
     FindSQLBuilder<T> |
     CreateSQLBuilder<T> |
     UpdateSQLBuilder<T> |
@@ -34,6 +38,10 @@ export type ExecResult<
 > = (
         Builder extends FindSQLBuilder<T>
         ? FindResult<T, MapTo>
+        : Builder extends FindOneSQLBuilder<T>
+        ? FindOneResult<T, MapTo>
+        : Builder extends FindByPkSQLBuilder<T>
+        ? FindOneResult<T, MapTo>
         : Builder extends CreateSQLBuilder<T>
         ? CreateResult<T>
         : Builder extends UpdateSQLBuilder<T>
@@ -45,15 +53,31 @@ export type ExecResult<
         : never
     )
 
-export type FindResult<T extends EntityTarget, MapTo extends ResultMapOption> = (
-    MapTo extends 'entity'
-    ? Collection<InstanceType<T>>
-    : MapTo extends 'json'
-    ? RawData<T>[]
-    : MapTo extends 'raw'
-    ? MySQL2RawData[]
-    : Collection<InstanceType<T>>
-)
+export type FindOneResult<
+    T extends EntityTarget,
+    MapTo extends ResultMapOption
+> = (
+        MapTo extends 'entity'
+        ? InstanceType<T> | null
+        : MapTo extends 'json'
+        ? RawData<T> | null
+        : MapTo extends 'raw'
+        ? MySQL2RawData[]
+        : InstanceType<T>
+    )
+
+export type FindResult<
+    T extends EntityTarget,
+    MapTo extends ResultMapOption
+> = (
+        MapTo extends 'entity'
+        ? Collection<InstanceType<T>>
+        : MapTo extends 'json'
+        ? RawData<T>[]
+        : MapTo extends 'raw'
+        ? MySQL2RawData[]
+        : Collection<InstanceType<T>>
+    )
 
 export type CreateResult<T extends EntityTarget> = (
     InstanceType<T> | Collection<InstanceType<T>>

@@ -32,6 +32,12 @@ export default abstract class BaseEntity {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public getMetadata(): EntityMetadata {
+        return EntityMetadata.findOrBuild(this.constructor as EntityTarget)
+    }
+
+    // ------------------------------------------------------------------------
+
     public toJSON<T extends BaseEntity>(this: T): EntityProperties<T> {
         const json = Object.fromEntries([...this.getMetadata().columns].map(
             ({ name }) => [name, this[name as keyof typeof this]]
@@ -67,11 +73,24 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
-    public getMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.constructor as EntityTarget)
+    public save<T extends BaseEntity>(this: T): Promise<T> {
+        return new Repository(this.constructor as EntityTarget)
+            .updateOrCreate(this) as Promise<T>
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async delete<T extends BaseEntity>(this: T): Promise<void> {
+        const primaryName = this.getMetadata().columns.primary.name as (
+            keyof T
+        )
+
+        await new Repository(this.constructor as EntityTarget)
+            .delete({ [primaryName]: this[primaryName] })
     }
 
     // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
     public static getMetadata<T extends EntityTarget>(this: T): (
         EntityMetadata
     ) {
@@ -88,12 +107,31 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    public static getRepository<
+        T extends Repository<Target> = Repository<typeof this>,
+        Target extends (EntityTarget & BaseEntity) = any
+    >(this: Target): T {
+        return this.getMetadata().repository as T
+    }
+
+    // ------------------------------------------------------------------------
+
     public static build<T extends EntityTarget>(
         this: T,
         attributes: CreationAttributes<InstanceType<T>>
     ): InstanceType<T> {
         const entity = new this().fill(attributes as any)
         return entity as InstanceType<T>
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static findByPk<T extends EntityTarget>(
+        this: T,
+        pk: any,
+        mapTo: ResultMapOption = 'entity'
+    ) {
+        return new Repository(this).findByPk(pk, mapTo)
     }
 
     // ------------------------------------------------------------------------

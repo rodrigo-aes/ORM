@@ -73,6 +73,8 @@ import JoinTableMetadata, {
     type JoinTableRelatedsGetter,
 } from './JoinTableMetadata'
 
+import Repository from '../../Repository'
+
 // Hooks
 import HooksMetadata from './HooksMetadata'
 
@@ -90,6 +92,7 @@ export default class EntityMetadata {
     public relations?: RelationsMetadata
     public joinTables?: JoinTableMetadata[]
     public hooks?: HooksMetadata
+    public repository!: Repository<any>
 
     constructor(
         public target: EntityTarget,
@@ -100,6 +103,7 @@ export default class EntityMetadata {
         this.loadRelations()
         this.loadJoinTables()
         this.loadHooks()
+        this.loadRepository()
         this.register()
     }
 
@@ -230,6 +234,17 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
+    private loadRepository() {
+        const repo: typeof Repository<any> = Reflect.getOwnMetadata(
+            'repository', this.target
+        )
+            ?? Repository
+
+        this.repository = new repo(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
     private buildJSON<T extends EntityTarget = any>(): (
         EntityMetadataJSON | undefined
     ) {
@@ -276,6 +291,15 @@ export default class EntityMetadata {
         name: string
     ): ColumnMetadata | undefined {
         return this.find(target)?.columns.findColumn(name)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static defineRepository(
+        target: EntityTarget,
+        repository: typeof Repository<any>
+    ): void {
+        Reflect.defineMetadata('repository', repository, target)
     }
 }
 

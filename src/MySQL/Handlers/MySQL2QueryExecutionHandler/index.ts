@@ -4,11 +4,13 @@ import BaseEntity from "../../BaseEntity"
 
 // SQL Builders
 import {
+    FindByPkSQLBuilder,
+    FindOneSQLBuilder,
     FindSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
-    DeleteSQLBuilder
+    DeleteSQLBuilder,
 } from "../../QueryBuilder"
 
 // Handlers
@@ -27,6 +29,7 @@ import type {
     SQLBuilder,
     ExecResult,
     ResultMapOption,
+    FindOneResult,
     FindResult,
     CreateResult,
     UpdateResult,
@@ -52,29 +55,63 @@ export default class MySQL2QueryExecutionHandler<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public exec(): Promise<ExecResult<T, Builder, MapTo>> {
-        if (this.sqlBuilder instanceof FindSQLBuilder) return (
-            this.executeFind() as Promise<ExecResult<T, Builder, MapTo>>
-        )
-
-        else if (this.sqlBuilder instanceof CreateSQLBuilder) return (
-            this.executeCreate() as Promise<ExecResult<T, Builder, MapTo>>
-        )
-
-        else if (this.sqlBuilder instanceof UpdateSQLBuilder) return (
-            this.executeUpdate() as Promise<ExecResult<T, Builder, MapTo>>
-        )
-
-        else if (this.sqlBuilder instanceof UpdateOrCreateSQLBuilder) return (
-            this.executeUpdateOrCreate() as (
-                Promise<ExecResult<T, Builder, MapTo>>
+        switch (true) {
+            case this.sqlBuilder instanceof FindByPkSQLBuilder: return (
+                this.executeFindByPk() as (
+                    Promise<ExecResult<T, Builder, MapTo>>
+                )
             )
-        )
 
-        else if (this.sqlBuilder instanceof DeleteSQLBuilder) return (
-            this.executeDelete() as Promise<ExecResult<T, Builder, MapTo>>
-        )
+            // ----------------------------------------------------------------
 
-        throw new Error
+            case this.sqlBuilder instanceof FindOneSQLBuilder: return (
+                this.executeFindOne() as (
+                    Promise<ExecResult<T, Builder, MapTo>>
+                )
+            )
+
+            // ----------------------------------------------------------------
+
+            case this.sqlBuilder instanceof FindSQLBuilder: return (
+                this.executeFind() as Promise<ExecResult<T, Builder, MapTo>>
+            )
+
+            // ----------------------------------------------------------------
+
+            case this.sqlBuilder instanceof FindOneSQLBuilder: return (
+                this.executeFind() as Promise<ExecResult<T, Builder, MapTo>>
+            )
+
+            // ----------------------------------------------------------------
+
+            case this.sqlBuilder instanceof CreateSQLBuilder: return (
+                this.executeCreate() as Promise<ExecResult<T, Builder, MapTo>>
+            )
+
+            // ----------------------------------------------------------------
+
+            case this.sqlBuilder instanceof UpdateSQLBuilder: return (
+                this.executeUpdate() as Promise<ExecResult<T, Builder, MapTo>>
+            )
+
+            // ----------------------------------------------------------------
+
+            case this.sqlBuilder instanceof UpdateOrCreateSQLBuilder: return (
+                this.executeUpdateOrCreate() as (
+                    Promise<ExecResult<T, Builder, MapTo>>
+                )
+            )
+
+            // ----------------------------------------------------------------
+
+            case this.sqlBuilder instanceof DeleteSQLBuilder: return (
+                this.executeDelete() as Promise<ExecResult<T, Builder, MapTo>>
+            )
+
+            // ----------------------------------------------------------------
+
+            default: throw new Error
+        }
     }
 
     // Privates ---------------------------------------------------------------
@@ -82,7 +119,30 @@ export default class MySQL2QueryExecutionHandler<
         return EntityMetadata.findOrBuild(this.target)
     }
 
-    // Privates ---------------------------------------------------------------
+    // ------------------------------------------------------------------------
+
+    private async executeFindByPk(): Promise<FindOneResult<T, MapTo>> {
+        const connection = this.getConnection()
+        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
+
+        return this.handleDataMapTo(mySQL2RawData, 'One') as (
+            FindOneResult<T, MapTo>
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async executeFindOne(): Promise<FindOneResult<T, MapTo>> {
+        const connection = this.getConnection()
+        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
+
+        return this.handleDataMapTo(mySQL2RawData, 'One') as (
+            FindOneResult<T, MapTo>
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     private async executeFind(): Promise<FindResult<T, MapTo>> {
         const connection = this.getConnection()
         const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
@@ -208,6 +268,7 @@ export default class MySQL2QueryExecutionHandler<
 export {
     type ExecResult,
     type ResultMapOption,
+    type FindOneResult,
     type FindResult,
     type CreateResult,
     type DeleteResult
