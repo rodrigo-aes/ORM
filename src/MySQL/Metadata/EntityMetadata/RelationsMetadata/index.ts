@@ -60,6 +60,7 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
     public toJSON(): RelationsMetadataJSON {
         return [...this].map(rel => rel.toJSON())
     }

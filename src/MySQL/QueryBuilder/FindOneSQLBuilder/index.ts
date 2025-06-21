@@ -1,7 +1,7 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 // Query Builders
-import TableUnionSQLBuilder from "../TableUnionSQLBuilder"
+import UnionSQLBuilder from "../UnionSQLBuilder"
 import SelectSQLBuilder from "../SelectSQLBuilder"
 import JoinSQLBuilder from "../JoinSQLBuilder"
 
@@ -9,21 +9,25 @@ import ConditionalSQLBuilder, {
     WhereSQLBuilder
 } from "../ConditionalSQLBuilder"
 
-
 import GroupSQLBuilder from "../GroupSQLBuilder"
 
+// Handlers
+import { MetadataHandler } from "../../Metadata"
+
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { FindOneQueryOptions } from "./types"
 import type { EntityRelationsKeys } from "../types"
 import type { RelationOptions, RelationsOptions } from "../JoinSQLBuilder/types"
 
-export default class FindOneSQLBuilder<T extends EntityTarget> {
-    private metadata: EntityMetadata
+export default class FindOneSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    private metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
 
-    public unions: TableUnionSQLBuilder[] = []
+    public unions: UnionSQLBuilder[] = []
     public select: SelectSQLBuilder<T>
     public joins: JoinSQLBuilder<any>[] = []
     public where?: WhereSQLBuilder<T>
@@ -36,16 +40,16 @@ export default class FindOneSQLBuilder<T extends EntityTarget> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
-        this.select = this.buildSelect()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
 
-        this.group = this.buildGroup()
+        this.select = this.buildSelect()
 
         if (this.options.relations) this.buildJoins(
             this.options.relations
         )
 
         this.where = this.buildWhere()
+        this.group = this.buildGroup()
     }
 
     // Instance Methods =======================================================
@@ -101,12 +105,6 @@ export default class FindOneSQLBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private buildSelect(): SelectSQLBuilder<T> {
         return new SelectSQLBuilder(
             this.target,

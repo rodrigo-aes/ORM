@@ -1,13 +1,16 @@
-import { EntityMetadata } from "../../Metadata"
+import type { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 // Query Builders
 import CountSQL from "./CountSQL"
+
+// Handlers
+import { MetadataHandler } from "../../Metadata"
 
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type {
     CountQueryOption,
     CountQueryOptions,
@@ -16,8 +19,10 @@ import type {
 import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 
 
-export default class CountSQLBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class CountSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
 
@@ -27,7 +32,7 @@ export default class CountSQLBuilder<T extends EntityTarget> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -37,12 +42,6 @@ export default class CountSQLBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
     private countsSQL(): string {
         return Object.entries(this.options)
             .map(([as, option]) =>

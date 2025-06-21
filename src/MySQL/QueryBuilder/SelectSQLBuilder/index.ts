@@ -1,4 +1,4 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import ConditionalSQLBuilder, { Case } from "../ConditionalSQLBuilder"
 import CountSQLBuilder from "../CountSQLBuilder"
@@ -6,11 +6,14 @@ import GroupSQLBuilder, {
     type GroupQueryOptions
 } from "../GroupSQLBuilder"
 
+// Handlers
+import { MetadataHandler } from "../../Metadata"
+
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type {
     SelectOptions,
     SelectPropertyKey,
@@ -18,8 +21,10 @@ import type {
     SelectPropertyOptions
 } from "./types"
 
-export default class SelectSQLBuilder<T extends EntityTarget> {
-    private metadata: EntityMetadata
+export default class SelectSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    private metadata: EntityMetadata | EntityUnionMetadata
 
     private mergedProperties: string[] = []
 
@@ -28,7 +33,7 @@ export default class SelectSQLBuilder<T extends EntityTarget> {
         public options?: SelectOptions<InstanceType<T>>,
         public alias?: string,
     ) {
-        this.metadata = this.getMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
         if (!this.alias) this.alias = this.target.name.toLowerCase()
     }
 
@@ -120,19 +125,6 @@ export default class SelectSQLBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private getMetadata(): EntityMetadata {
-        // if (this.target === UnionEntity) {
-        //     return Reflect.getOwnMetadata(
-        //         this.alias,
-        //         this.target
-        //     )
-        // }
-
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
     private handlePropertiesSQL(): string {
         return [
             this.selectedColumnsSQL(),

@@ -4,11 +4,11 @@ import FindOneSQLBuilder from "../FindOneSQLBuilder"
 import OrderSQLBuilder from "../OrderSQLBuilder"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { FindQueryOptions } from "./types"
 
 export default class FindSQLBuilder<
-    T extends EntityTarget
+    T extends EntityTarget | UnionEntityTarget
 > extends FindOneSQLBuilder<T> {
     public order?: OrderSQLBuilder<T>
     public limit?: number

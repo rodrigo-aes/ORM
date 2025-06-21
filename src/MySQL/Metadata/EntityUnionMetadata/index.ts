@@ -1,176 +1,229 @@
 import EntityMetadata, {
-    ColumnMetadata,
-    ColumnsMetadata,
-    DataType
+    type PolymorphicParentRelatedGetter,
 } from "../EntityMetadata"
-import EntityUnionColumnMetadata from "./EntityUnionColumnMetadata"
 
-import '../../BaseEntity'
-import UnionEntity from "../../UnionEntity"
+import UnionColumnsMetadata, {
+    UnionColumnMetadata
+} from "./UnionColumnsMetadata"
+
+import UnionRelationsMetadata from "./UnionRelationsMetadata"
+
+// Handlers
+import { EntityUnionBuilder } from "../../Handlers"
+import { EntityToJSONProcessMetadata } from "../ProcessMetadata"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
-import type { UnionTarget } from "../../UnionEntity/types"
+import type MySQLConnection from "../../Connection"
+import type { UnionEntityTarget, EntityTarget } from "../../../types/General"
+import type { SourcesMetadata, EntityUnionMetadataJSON } from "./types"
 
-export default class EntityUnionMetadata extends EntityMetadata {
-    public entities: EntityMetadata[]
+export default class EntityUnionMetadata {
+    public connection?: MySQLConnection
+    public sourceMetadata!: SourcesMetadata
 
-    public override columns: ColumnsMetadata<EntityUnionColumnMetadata>
+    private _columns!: UnionColumnsMetadata
+    private _relations?: UnionRelationsMetadata
 
     constructor(
-        tableName: string,
-        target: UnionTarget = UnionEntity,
-        public targets: EntityTarget[]
+        public tableName: string,
+        public target: UnionEntityTarget | null,
+        public sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
-        super(target, { tableName })
-
-        this.entities = this.loadEntities()
-        this.columns = this.registerColumns()
+        this.loadSourcesMetadata()
+        this.loadColumns()
+        this.loadRelations()
         this.register()
     }
 
     // Getters ================================================================
-    // Privates ---------------------------------------------------------------
-    public get originalPrimaries(): ColumnMetadata[] {
-        return this.entities.map(({ columns: { primary } }) => primary)
+    // Publics ----------------------------------------------------------------
+    public get name(): string {
+        return this.target!.name
     }
 
     // ------------------------------------------------------------------------
 
-    public get originalPrimary(): ColumnMetadata {
-        return this.originalPrimaries.find(() => true)!
+    public get targetName(): string {
+        return this.target?.name.toLowerCase() ?? this.tableName
+            .split('_')
+            .map(word => (
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ))
+            .join('')
     }
 
     // ------------------------------------------------------------------------
 
-    public get originalColumns(): ColumnMetadata[] {
-        return this.entities.flatMap(({ columns }) => columns)
+    public get columns(): UnionColumnsMetadata {
+        if (typeof this.sources === 'function') this.loadSourcesMetadata()
+        return this.loadColumns()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relations(): UnionRelationsMetadata | undefined {
+        return this.loadRelations()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get foreignKeys(): UnionColumnMetadata[] {
+        return this.columns.filter(({ isForeignKey }) => isForeignKey)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get constrainedForeignKeys(): UnionColumnMetadata[] {
+        return this.foreignKeys.filter(
+            ({ references }) => references?.constrained
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get dependencies(): EntityTarget[] {
+        return this.constrainedForeignKeys.flatMap(
+            ({ references }) => references!.referenced()
+        )
     }
 
     // Instance Methods =======================================================
-    // Protecteds -------------------------------------------------------------
-    protected override register() {
-        if (this.targets) Reflect.defineMetadata(
-            'entity-union',
-            this,
-            this.targets
-        )
+    // Publics ----------------------------------------------------------------
+    public defineConnection(connection: MySQLConnection) {
+        this.connection = connection
+    }
+
+    // ------------------------------------------------------------------------
+
+    public toJSON(): (
+        EntityUnionMetadataJSON | undefined
+    ) {
+        return EntityToJSONProcessMetadata.initialized
+            ? this.buildJSON()
+            : EntityToJSONProcessMetadata.apply(
+                () => this.buildJSON()
+            )
+    }
+
+    // Privates ---------------------------------------------------------------
+    private register(): void {
+        if (!this.target) this.target = this.registerInternalEntity()
 
         Reflect.defineMetadata(
-            this.tableName,
+            'union-metadata',
             this,
             this.target
         )
     }
 
-    // Privates ---------------------------------------------------------------
-    private loadEntities(): EntityMetadata[] {
-        return this.targets.map(target => EntityMetadata.findOrBuild(target))
+    // ------------------------------------------------------------------------
+
+    private registerInternalEntity(): UnionEntityTarget {
+        return EntityUnionBuilder.buildInternalEntityUnion(this)
     }
 
     // ------------------------------------------------------------------------
 
-    private registerColumns(): ColumnsMetadata<EntityUnionColumnMetadata> {
-        return new ColumnsMetadata(
-            this.target,
-            ...this.mergeColumns()
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private mergeColumns(): EntityUnionColumnMetadata[] {
-        return [
-            this.buildPrimaryColumn(),
-            this.buildEntityTypeColumn(),
-            ...this.allRestColumns()
-        ]
-    }
-
-    // ------------------------------------------------------------------------
-
-    private buildPrimaryColumn(): EntityUnionColumnMetadata {
-        if (!this.primaryKeysCompatible()) throw new Error
-
-        const [{ dataType }] = this.originalPrimaries
-
-        const column = new EntityUnionColumnMetadata(
-            this.target,
-            'primaryKey',
-            dataType,
-            ...this.targets
-        )
-
-        Object.assign(
-            column,
-            this.getEntityPrimaryKeyProperties(this.originalPrimary)
-        )
-
-        return column
-    }
-
-    // ------------------------------------------------------------------------
-
-    private buildEntityTypeColumn(): EntityUnionColumnMetadata {
-        const entityTypes = this.targets.map(target => target.name)
-
-        return new EntityUnionColumnMetadata(
-            this.target,
-            'entityType',
-            DataType.ENUM(...entityTypes),
-            ...this.targets
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private allRestColumns(): EntityUnionColumnMetadata[] {
-        const included = new Set<string>()
-        const columns: EntityUnionColumnMetadata[] = []
-
-        for (const column of this.originalColumns) if (
-            !column.primary &&
-            !included.has(column.name)
-        ) {
-            const { name, dataType } = column
-            const newColumn = new EntityUnionColumnMetadata(
-                this.target,
-                name,
-                dataType,
-                ...this.targets
+    private loadSourcesMetadata(): void {
+        try {
+            if (typeof this.sources === 'function') (
+                this.sources = this.sources()
             )
 
-            Object.assign(newColumn, column)
-            columns.push(newColumn)
+            this.sourceMetadata = Object.fromEntries(this.sources.map(
+                source => [source.name, EntityMetadata.findOrBuild(source)]
+            ))
 
-            included.add(column.name)
+        } catch (error) {
+            this.sourceMetadata = {}
         }
-
-        return columns
     }
 
     // ------------------------------------------------------------------------
 
-    private primaryKeysCompatible(): boolean {
-        const [primary, ...primaries] = this.originalPrimaries
+    private loadColumns(): UnionColumnsMetadata {
+        const metas = Object.values(this.sourceMetadata)
 
-        return primaries.every(({
-            dataType,
-            unsigned
-        }) => (
-            dataType.type === primary.dataType.type &&
-            unsigned === primary.unsigned
-        ))
+        this._columns = new UnionColumnsMetadata(
+            this.target,
+            metas.flatMap(meta => [...meta.columns])
+        )
+
+        return this._columns
     }
 
     // ------------------------------------------------------------------------
 
-    private getEntityPrimaryKeyProperties(primaryKey: ColumnMetadata) {
-        const { target, name, dataType, ...properties } = primaryKey
-        return properties
+    private loadRelations(): UnionRelationsMetadata | undefined {
+        const metas = Object.values(this.sourceMetadata)
+        const relations = metas.flatMap(meta => [...meta.relations ?? []])
+
+        if (relations.length > 0) this._relations = new UnionRelationsMetadata(
+            this.target,
+            ...relations
+        )
+
+        return this._relations
+    }
+
+    // ------------------------------------------------------------------------
+
+    private buildJSON<T extends EntityTarget = any>(): (
+        EntityUnionMetadataJSON | undefined
+    ) {
+        return EntityToJSONProcessMetadata.shouldAdd(this.name)
+            ? {
+                target: this.target as T,
+                name: this.name,
+                tableName: this.tableName,
+                columns: this.columns.toJSON(),
+                relations: this.relations?.toJSON(),
+                // joinTables: this.joinTables?.map(table => table.toJSON())
+            }
+            : undefined
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static build(
+        name: string,
+        target: UnionEntityTarget | null,
+        sources: EntityTarget[] | PolymorphicParentRelatedGetter
+    ) {
+        return new EntityUnionMetadata(
+            name,
+            target,
+            sources
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static find(origin: UnionEntityTarget | string): (
+        EntityUnionMetadata | undefined
+    ) {
+        const isString = typeof origin === 'string'
+
+        return Reflect.getOwnMetadata(
+            isString ? origin : 'union-metadata',
+            isString ? EntityUnionMetadata : origin
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static findOrBuild(
+        name: string,
+        target: UnionEntityTarget | null,
+        sources: EntityTarget[] | PolymorphicParentRelatedGetter
+    ): EntityUnionMetadata {
+        return this.find(target ?? name) ?? this.build(
+            name, target, sources
+        )
     }
 }
 
 export {
-    type EntityUnionColumnMetadata
+    UnionColumnsMetadata,
+    UnionColumnMetadata
 }

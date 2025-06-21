@@ -1,6 +1,4 @@
-import { EntityMetadata } from "../../../Metadata"
-
-import Operator from "../Operator"
+import { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
 
 // Query Builders
 import AndSQLBuilder from "../AndSQLBuilder"
@@ -9,11 +7,14 @@ import OrSQLBuilder from "../OrSQLBuilder"
 // Symbols
 import { Case } from "./Symbol"
 
+// Handlers
+import { MetadataHandler } from "../../../Metadata"
+
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../../types/General"
 import type {
     CaseQueryOptions,
     CaseQueryTuple,
@@ -22,8 +23,10 @@ import type {
 
 } from "./types"
 
-export default class CaseSQLBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class CaseSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
 
@@ -34,7 +37,7 @@ export default class CaseSQLBuilder<T extends EntityTarget> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)!
     }
 
     // Getters ================================================================
@@ -69,12 +72,6 @@ export default class CaseSQLBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
     private whenClausesSQL(): string {
         return this.whenClauses.map(
             ([when, then]) => `

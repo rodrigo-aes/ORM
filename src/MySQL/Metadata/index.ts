@@ -59,9 +59,10 @@ import EntityMetadata, {
     type ForeignIdConfig,
 } from "./EntityMetadata"
 
-// import EntityUnionMetadata, {
-//     EntityUnionColumnMetadata
-// } from "./EntityUnionMetadata"
+import EntityUnionMetadata, {
+    UnionColumnsMetadata,
+    UnionColumnMetadata
+} from "./EntityUnionMetadata"
 
 import MetadataHandler from "./MetadataHandler"
 
@@ -75,8 +76,9 @@ export {
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
-    // EntityUnionMetadata,
-    // EntityUnionColumnMetadata,
+    EntityUnionMetadata,
+    UnionColumnsMetadata,
+    UnionColumnMetadata,
     MetadataHandler,
 
     type JoinTableRelated,

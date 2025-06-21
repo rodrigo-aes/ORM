@@ -7,6 +7,8 @@ import ColumnMetadata, {
     type ForeignKeyReferencesInitMap,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
+    type ColumnMetadataJSON,
+    type ForeignKeyReferencesJSON
 } from "./ColumnMetadata"
 import type DataType from "../DataType"
 import type { EntityTarget } from "../../../../types/General"
@@ -26,6 +28,7 @@ export default class ColumnsMetadata<
     }
 
     // Getters ================================================================
+    // Publics ----------------------------------------------------------------
     public get primary(): ColumnMetadata {
         return this.find(({ primary }) => primary)!
     }
@@ -45,6 +48,7 @@ export default class ColumnsMetadata<
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
     public registerColumn(name: string, dataType: DataType) {
         const column = new ColumnMetadata(this.target, name, dataType)
         this.push(column as T)
@@ -161,5 +165,7 @@ export {
     type ForeignKeyReferencesInitMap,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
-    type ColumnsMetadataJSON
+    type ColumnsMetadataJSON,
+    type ColumnMetadataJSON,
+    type ForeignKeyReferencesJSON
 }

@@ -6,7 +6,7 @@ import CaseSQLBuilder, {
 } from "./CaseSQLBuilder"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type {
     ConditionalQueryOptions,
     AndQueryOptions,
@@ -21,7 +21,7 @@ export default class ConditionalSQLBuilder {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static where<T extends EntityTarget>(
+    public static where<T extends EntityTarget | UnionEntityTarget>(
         target: T,
         options: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
@@ -31,11 +31,11 @@ export default class ConditionalSQLBuilder {
 
     // ------------------------------------------------------------------------
 
-    public static on<T extends EntityTarget>(
+    public static on<T extends EntityTarget | UnionEntityTarget>(
         relation: RelationMetadataType,
         parentAlias: string,
         alias: string,
-        target: T,
+        target?: T,
         options?: ConditionalQueryOptions<InstanceType<T>>,
     ): OnSQLBuilder<T> {
         return new OnSQLBuilder(
@@ -49,7 +49,7 @@ export default class ConditionalSQLBuilder {
 
     // ------------------------------------------------------------------------
 
-    public static case<T extends EntityTarget>(
+    public static case<T extends EntityTarget | UnionEntityTarget>(
         target: T,
         options: CaseQueryOptions<InstanceType<T>>,
         as?: string,

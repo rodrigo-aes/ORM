@@ -1,16 +1,21 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 // SQL Builders
 import SelectSQLBuilder from "../SelectSQLBuilder"
+
+// Handlers
+import { MetadataHandler } from "../../Metadata"
 
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 
-export default class FindByPkSQLBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class FindByPkSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
     public select: SelectSQLBuilder<T>
@@ -21,7 +26,7 @@ export default class FindByPkSQLBuilder<T extends EntityTarget> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
 
         this.select = this.buildSelect()
     }
@@ -45,12 +50,6 @@ export default class FindByPkSQLBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private buildSelect(): SelectSQLBuilder<T> {
         return new SelectSQLBuilder(this.target, undefined, this.alias)
     }

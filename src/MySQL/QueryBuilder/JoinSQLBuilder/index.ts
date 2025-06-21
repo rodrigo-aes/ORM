@@ -5,6 +5,8 @@ import {
     type RelationMetadataType
 } from "../../Metadata"
 
+import UnionEntity from "../../UnionEntity"
+
 // Query Builders
 import SelectSQLBuilder, { type SelectOptions } from "../SelectSQLBuilder"
 
@@ -12,10 +14,10 @@ import ConditionalSQLBuilder, {
     type ConditionalQueryOptions
 } from "../ConditionalSQLBuilder"
 
-import TableUnionSQLBuilder from "../TableUnionSQLBuilder"
+import UnionSQLBuilder from "../UnionSQLBuilder"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { RelationOptions, RelationsOptions } from "./types"
 
 export default class JoinSQLBuilder<T extends EntityTarget> {
@@ -63,10 +65,6 @@ export default class JoinSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public tableSQL(): string {
-        if (this.relation instanceof PolymorphicBelongsToMetadata) {
-            return `${this.parentAlias}_${this.relation.name}`
-        }
-
         return `${this.metadata.tableName} ${this.alias}`
     }
 
@@ -82,12 +80,9 @@ export default class JoinSQLBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public tableUnionQueryBuilder(): TableUnionSQLBuilder | undefined {
+    public tableUnionQueryBuilder(): UnionSQLBuilder | undefined {
         if (this.relation instanceof PolymorphicBelongsToMetadata) {
-            return new TableUnionSQLBuilder(
-                `${this.parentAlias}_${this.relation.name}`,
-                this.relation.related()
-            )
+            return new UnionSQLBuilder(this.relation.unionName)
         }
     }
 
@@ -108,11 +103,7 @@ export default class JoinSQLBuilder<T extends EntityTarget> {
 
     private handleTarget(): EntityTarget {
         if (this.relation instanceof PolymorphicBelongsToMetadata) {
-            return TableUnionSQLBuilder.findOrBuildUnion(
-                this.relation.related(),
-                `${this.parentAlias}_${this.relation.name}`
-            )
-                .target
+            throw new Error
         }
 
         return this.relation.relatedTarget

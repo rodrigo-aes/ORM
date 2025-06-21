@@ -1,17 +1,22 @@
-import { EntityMetadata } from "../../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
 
 // QueryBuilders
 import AndSQLBuilder from "../AndSQLBuilder"
+
+// Handlers
+import { MetadataHandler } from "../../../Metadata"
 
 // Helpers
 import { SQLStringHelper } from "../../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../../types/General"
 import type { OrQueryOptions } from "./types"
 
-export default class OrSQLBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class OrSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
 
@@ -20,7 +25,7 @@ export default class OrSQLBuilder<T extends EntityTarget> {
         public options: OrQueryOptions<InstanceType<T>>,
         alias?: string
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)!
         this.alias = alias ?? this.target.name.toLowerCase()
     }
 
@@ -33,11 +38,6 @@ export default class OrSQLBuilder<T extends EntityTarget> {
             `)
         )
             .join(' OR ')
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
     }
 }
 

@@ -1,6 +1,7 @@
-import EntityUnionMetadata, {
-    type EntityUnionColumnMetadata
-} from "../../Metadata/EntityUnionMetadata"
+import {
+    EntityUnionMetadata,
+    type UnionColumnMetadata
+} from "../../Metadata"
 
 import type { EntityMetadata } from "../../Metadata"
 
@@ -8,29 +9,28 @@ import type { EntityMetadata } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { UnionEntityTarget } from "../../../types/General"
 
-export default class TableUnionSQLBuilder extends EntityUnionMetadata {
-    private _unionMetadata?: EntityUnionMetadata
+export default class UnionSQLBuilder {
+    protected metadata: EntityUnionMetadata
 
     constructor(
-        name: string,
-        targets: EntityTarget[]
+        public name: string,
+        public target: UnionEntityTarget | null = null
     ) {
-        super(name, undefined, targets)
+        this.metadata = this.loadMetadata()
     }
 
     // Getters ================================================================
-    // Publics ----------------------------------------------------------------
-    public get unionMetadata(): EntityMetadata {
-        return this._unionMetadata ?? this.registerEntityUnionMetadata()
+    // Privates ---------------------------------------------------------------
+    private get entities(): EntityMetadata[] {
+        return Object.values(this.metadata.sourceMetadata)
     }
 
-    // Privates ---------------------------------------------------------------
-    private get restColumns(): EntityUnionColumnMetadata[] {
-        return [...this.columns].filter(
-            ({ name }) => !['primaryKey', 'entityType'].includes(name)
-        )
+    // ------------------------------------------------------------------------
+
+    private get restColumns(): UnionColumnMetadata[] {
+        return [...this.metadata.columns].filter(({ primary }) => !primary)
     }
 
     // Instance Methods =======================================================
@@ -42,14 +42,11 @@ export default class TableUnionSQLBuilder extends EntityUnionMetadata {
     }
 
     // Privates ---------------------------------------------------------------
-    private registerEntityUnionMetadata(): EntityUnionMetadata {
-        this._unionMetadata = new EntityUnionMetadata(
-            this.name,
-            undefined,
-            this.targets
-        )
+    private loadMetadata(): EntityUnionMetadata {
+        const meta = EntityUnionMetadata.find(this.target ?? this.name)
+        if (meta) return meta
 
-        return this._unionMetadata
+        throw new Error
     }
 
     // ------------------------------------------------------------------------
@@ -104,39 +101,5 @@ export default class TableUnionSQLBuilder extends EntityUnionMetadata {
                     : `NULL AS ${column.name}`
             }
         )
-    }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static buildUnion(name: string, targets: EntityTarget[]): (
-        EntityUnionMetadata
-    ) {
-        return new EntityUnionMetadata(name, undefined, targets)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findUnion(targets: EntityTarget[]): (
-        EntityUnionMetadata | undefined
-    ) {
-        return Reflect.getOwnMetadata('entity-union', targets)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrBuildUnion(targets: EntityTarget[], name?: string): (
-        EntityUnionMetadata
-    ) {
-        return this.findUnion(targets) ?? this.buildUnion(
-            name ?? this.buildUnionName(targets),
-            targets
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private static buildUnionName(targets: EntityTarget[]): string {
-        return targets.map(({ name }) => name.toLowerCase())
-            .join('_')
     }
 }

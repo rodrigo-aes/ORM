@@ -15,12 +15,17 @@ import ColumnsMetadata, {
     type ForeignIdConfig,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
+
+    type ColumnsMetadataJSON,
+    type ColumnMetadataJSON,
+    type ForeignKeyReferencesJSON
 } from './ColumnsMetadata'
 
 // Relations Metadata
 import RelationsMetadata, {
     RelationMetadata,
     type RelationMetadataType,
+    type RelationsMetadataJSON,
 
     HasOneMetadata,
     type HasOneOptions,
@@ -319,6 +324,7 @@ export {
     type ForeignKeyActionListener,
 
     type RelationMetadataType,
+    type RelationsMetadataJSON,
 
     HasOneMetadata,
     type HasOneOptions,
@@ -362,4 +368,8 @@ export {
     type PolymorphicChildRelatedGetter,
 
     type ForeignIdConfig,
+
+    type ColumnsMetadataJSON,
+    type ColumnMetadataJSON,
+    type ForeignKeyReferencesJSON
 }

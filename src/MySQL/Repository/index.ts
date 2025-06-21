@@ -1,4 +1,3 @@
-import { EntityMetadata } from "../Metadata"
 import BaseEntity from "../BaseEntity"
 
 // SQL Builders

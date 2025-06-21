@@ -1,9 +1,13 @@
 import EntityMetadata from "../EntityMetadata"
+import EntityUnionMetadata from "../EntityUnionMetadata"
 import { JoinTableMetadata } from "../EntityMetadata"
+
+import BaseEntity from "../../BaseEntity"
+import UnionEntity from "../../UnionEntity"
 
 // Types
 import type MySQLConnection from "../../Connection"
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 
 export default class MetadataHandler {
     public static registerEntitiesConnection(
@@ -27,5 +31,29 @@ export default class MetadataHandler {
     ) {
         return EntityMetadata.findOrBuild(target).connection
             ?? Reflect.getOwnMetadata('temp-connection', target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static loadMetadata(
+        target: EntityTarget | (UnionEntityTarget | string)
+    ): (
+            EntityMetadata | EntityUnionMetadata
+        ) {
+        switch (true) {
+            case typeof target === 'string': return (
+                EntityUnionMetadata.find(target as string)!
+            )
+
+            case (target as any).prototype instanceof UnionEntity: return (
+                EntityUnionMetadata.find(target as UnionEntityTarget)!
+            )
+
+            case (target as any).prototype instanceof BaseEntity: return (
+                EntityMetadata.find(target as EntityTarget)!
+            )
+        }
+
+        throw new Error
     }
 }

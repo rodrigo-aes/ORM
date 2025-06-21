@@ -1,6 +1,11 @@
-import { EntityMetadata } from "../../Metadata"
+import {
+    EntityMetadata,
+    EntityUnionMetadata,
+    MetadataHandler
+} from "../../Metadata"
 
 import BaseEntity, { ColumnsSnapshots } from "../../BaseEntity"
+import UnionEntity from "../../UnionEntity"
 
 // SQL Builders
 import ConditionalSQLBuilder from "../ConditionalSQLBuilder"
@@ -12,30 +17,40 @@ import { ConditionalQueryJoinsHandler } from "../../Handlers"
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 import type { UpdateAttributes, UpdateAttibutesKey } from "./types"
 
-export default class UpdateSQLBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class UpdateSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
 
     constructor(
         public target: T,
-        public attributes: UpdateAttributes<InstanceType<T>>,
+        public attributes: (
+            UpdateAttributes<InstanceType<T>> |
+            BaseEntity |
+            UnionEntity<any>
+        ),
         public conditional?: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
+
+        if (this.attributes instanceof UnionEntity) this.attributes = (
+            this.attributes.toSourceEntity()
+        )
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            UPDATE ${this.metadata.tableName} ${this.alias}
+            UPDATE ${this.handleTableName()} ${this.alias}
             ${this.joinsSQL()}
             ${this.setSQL()}
             ${this.whereSQL()}
@@ -82,8 +97,15 @@ export default class UpdateSQLBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
+    private handleTableName(): string {
+        if (this.metadata instanceof EntityUnionMetadata) return (
+            this.metadata.sourceMetadata[
+                (this.attributes as BaseEntity).constructor.name
+            ]
+                .tableName
+        )
+
+        else return this.metadata.tableName
     }
 
     // ------------------------------------------------------------------------
@@ -100,7 +122,10 @@ export default class UpdateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private onlyChangedAttributes(): any {
-        return this.attributes instanceof BaseEntity
+        return (
+            this.attributes instanceof BaseEntity ||
+            this.attributes instanceof UnionEntity
+        )
             ? ColumnsSnapshots.changed(this.attributes)
             : this.attributes
     }

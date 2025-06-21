@@ -7,6 +7,7 @@ import ForeignKeyReferences, {
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
     type ForeignKeyReferencesInitMap,
+    type ForeignKeyReferencesJSON
 } from "./ForeignKeyReferences"
 
 import type { EntityTarget } from "../../../../../types/General"
@@ -180,5 +181,6 @@ export type {
     ForeignKeyReferencedGetter,
     ForeignKeyActionListener,
     ForeignIdConfig,
-    ColumnMetadataJSON
+    ColumnMetadataJSON,
+    ForeignKeyReferencesJSON
 }

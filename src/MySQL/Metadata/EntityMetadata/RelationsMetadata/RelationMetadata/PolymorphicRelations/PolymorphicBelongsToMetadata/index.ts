@@ -1,9 +1,13 @@
 import EntityMetadata from "../../../.."
+import EntityUnionMetadata from "../../../../../EntityUnionMetadata"
 import RelationMetadata from "../../RelationMetadata"
 
+import UnionEntity, {
+    InternalUnionEntities
+} from "../../../../../../UnionEntity"
+
 // Types
-import type { EntityTarget } from "../../../../../../../types/General"
-import type { EntityUnionTarget } from "../../../../../EntityUnionMetadata/types"
+import type { EntityTarget, UnionEntityTarget } from "../../../../../../../types/General"
 import type { ColumnMetadata } from "../../../.."
 import type { RelatedEntitiesMap } from "../../types"
 import type {
@@ -31,6 +35,8 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
 
         this.foreignKeyName = foreignKey
         this.typeKey = typeKey
+
+        this.registerParentsUnion()
     }
 
     // Getters ================================================================
@@ -54,8 +60,10 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get relatedTarget(): EntityUnionTarget {
-        throw new Error
+    public get relatedTarget(): UnionEntityTarget {
+        return InternalUnionEntities.get(this.unionTargetName) as (
+            UnionEntityTarget
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -69,6 +77,22 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     public get typeColum(): ColumnMetadata {
         return EntityMetadata.findOrBuild(this.target)
             .getColumn(this.typeKey)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get unionName(): string {
+        return `${this.target.name.toLowerCase()}_${this.name}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get unionTargetName(): string {
+        return this.unionName.split('_')
+            .map(word => (
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ))
+            .join('')
     }
 
     // Instance Methods =======================================================
@@ -104,6 +128,12 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     }
 
     // Privates ---------------------------------------------------------------
+    private registerParentsUnion(): void {
+        EntityUnionMetadata.findOrBuild(this.unionName, null, this.related)
+    }
+
+    // ------------------------------------------------------------------------
+
     private loadEntity(target: EntityTarget) {
         return EntityMetadata.find(target)!
     }

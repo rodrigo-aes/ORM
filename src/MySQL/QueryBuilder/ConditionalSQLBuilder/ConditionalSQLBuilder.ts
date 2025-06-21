@@ -1,29 +1,35 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 // Query Builders
-import WhereSQLBuilder from "./WhereSQLBuilder"
 import AndSQLBuilder from "./AndSQLBuilder"
 import OrSQLBuilder from "./OrSQLBuilder"
 
+// Handlers
+import { MetadataHandler } from "../../Metadata"
+
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { ConditionalQueryOptions } from "./types"
 
-export default abstract class ConditionalSQLBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default abstract class ConditionalSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata!: EntityMetadata | EntityUnionMetadata
 
     constructor(
         public target: T,
         public options?: ConditionalQueryOptions<InstanceType<T>>,
         public alias?: string
     ) {
-        this.metadata = this.loadMetadata()
-        this.alias = alias ?? this.target.name.toLowerCase()
+        this.metadata = MetadataHandler.loadMetadata(this.target!)!
+        this.alias = alias ?? this.target?.name.toLowerCase()
     }
 
     // Instance Methods =======================================================
     // Protecteds -------------------------------------------------------------
     protected conditionalSQL(): string {
+        if (!this.target) return ''
+
         return this.options ? (
             Array.isArray(this.options)
                 ? new OrSQLBuilder(
@@ -40,10 +46,5 @@ export default abstract class ConditionalSQLBuilder<T extends EntityTarget> {
         )
             .SQL()
             : ''
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
     }
 }

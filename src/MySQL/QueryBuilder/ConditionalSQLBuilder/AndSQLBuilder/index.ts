@@ -1,10 +1,13 @@
-import { EntityMetadata } from "../../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
 
 // Operators
 import Operator, {
     type OperatorKey,
     type CompatibleOperators
 } from "../Operator"
+
+// Handlers
+import { MetadataHandler } from "../../../Metadata"
 
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
@@ -15,12 +18,12 @@ import type {
     EntityAndQueryOptions,
     RelationAndQueryOptions
 } from "./types"
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../../types/General"
 import type { EntityPropertiesKeys } from "../../types"
 
 
-export default class AndSQLBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
 
@@ -33,7 +36,7 @@ export default class AndSQLBuilder<T extends EntityTarget> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target!)
 
         this.propOptions = this.filterPropetiesOptions()
         this.relOptions = this.filterRelationOptions()
@@ -52,12 +55,6 @@ export default class AndSQLBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
     private propertiesSQL(): string[] {
         const sql: string[] = []
 
@@ -140,15 +137,6 @@ export default class AndSQLBuilder<T extends EntityTarget> {
             column,
             alias ?? this.alias
         ).SQL()
-    }
-
-    // ------------------------------------------------------------------------
-
-    private objectSQL(object: object): string {
-        if (!object) return JSON.stringify(object).toUpperCase()
-        if (object instanceof Date) return JSON.stringify(object)
-
-        return `'${JSON.stringify(object)}'`
     }
 
     // ------------------------------------------------------------------------

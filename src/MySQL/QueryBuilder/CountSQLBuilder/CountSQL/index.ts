@@ -1,4 +1,4 @@
-import { EntityMetadata } from "../../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
 
 // Query Builders
 import ConditionalSQLBuilder, {
@@ -8,15 +8,21 @@ import ConditionalSQLBuilder, {
 
 } from "../../ConditionalSQLBuilder"
 
+// Handler
+import { MetadataHandler } from "../../../Metadata"
+
 // Helpers
 import { PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    UnionEntityTarget
+} from "../../../../types/General"
 import type { CountQueryOption, CountCaseOptions } from "../types"
 
-export default class CountSQL<T extends EntityTarget> {
-    private metadata: EntityMetadata
+export default class CountSQL<T extends EntityTarget | UnionEntityTarget> {
+    private metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
 
@@ -28,7 +34,7 @@ export default class CountSQL<T extends EntityTarget> {
         public isolated?: boolean
     ) {
         this.alias = alias ?? this.targetName
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Getters ================================================================
@@ -49,12 +55,6 @@ export default class CountSQL<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
     private countSQL(): string {
         if (typeof this.option === 'string') return this.commonCountSQL()
 

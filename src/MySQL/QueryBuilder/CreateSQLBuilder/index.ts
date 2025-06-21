@@ -1,6 +1,7 @@
 import { EntityMetadata } from "../../Metadata"
 
-// import UnionEntity from "../../"
+// Handlers
+import { MetadataHandler } from "../../Metadata"
 
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
@@ -14,7 +15,9 @@ import type {
     AttributesNames,
 } from "./types"
 
-export default class CreateSQLBuilder<T extends EntityTarget> {
+export default class CreateSQLBuilder<
+    T extends EntityTarget
+> {
     protected metadata: EntityMetadata
 
     public alias?: string
@@ -30,7 +33,9 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
         public absolute: boolean = false
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target) as (
+            EntityMetadata
+        )
 
         this._bulk = Array.isArray(this.attributes)
     }
@@ -88,17 +93,7 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
     private handleSQLType(): string {
-        // if (this.target.prototype instanceof UnionEntity) return (
-        //     this.unionSQL()
-        // )
-
         return this.entitySQL()
     }
 

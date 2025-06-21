@@ -20,11 +20,11 @@ import {
 import { SQLStringHelper } from "../../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../../types/General"
 import type { ConditionalQueryOptions } from "../types"
 
 export default class OnSQLBuilder<
-    T extends EntityTarget
+    T extends EntityTarget | UnionEntityTarget
 > extends ConditionalSQLBuilder<T> {
     constructor(
         public relation: RelationMetadataType,
@@ -211,18 +211,15 @@ export default class OnSQLBuilder<
     private fixedPolymorphicBelongsTo(): string {
         const {
             foreignKey,
-            typeKey
+            typeKey,
+            unionName
         } = this.relation as (
             PolymorphicBelongsToMetadata
         )
 
-        const unionTableName = `${this.parentAlias}_${this.relation.name}`
-
         return `
-            ${unionTableName}.primaryKey = 
-                ${this.parentAlias}.${foreignKey.name}
-            AND ${unionTableName}.entityType = 
-                ${this.parentAlias}.${typeKey}
+            ${unionName}.primaryKey = ${this.parentAlias}.${foreignKey.name}
+            AND ${unionName}.entityType = ${this.parentAlias}.${typeKey}
         `
     }
 }

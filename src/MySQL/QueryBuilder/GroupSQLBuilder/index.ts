@@ -1,16 +1,19 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
-// import UnionEntity from "../../UnionEntity"
+// Handlers
+import { MetadataHandler } from "../../Metadata"
 
 // Helpers
 import { PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { GroupQueryOptions } from "./types"
 
-export default class GroupSQLBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class GroupSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
     public mergedProperties: string[] = []
@@ -21,7 +24,7 @@ export default class GroupSQLBuilder<T extends EntityTarget> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -47,11 +50,6 @@ export default class GroupSQLBuilder<T extends EntityTarget> {
 
     public merge(groupQueryBuilder: GroupSQLBuilder<any>): void {
         this.mergedProperties.push(...groupQueryBuilder.options)
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
     }
 }
 
