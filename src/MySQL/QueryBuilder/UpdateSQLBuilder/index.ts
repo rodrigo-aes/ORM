@@ -5,7 +5,7 @@ import {
 } from "../../Metadata"
 
 import BaseEntity, { ColumnsSnapshots } from "../../BaseEntity"
-import UnionEntity from "../../UnionEntity"
+import EntityUnion from "../../EntityUnion"
 
 // SQL Builders
 import ConditionalSQLBuilder from "../ConditionalSQLBuilder"
@@ -33,7 +33,7 @@ export default class UpdateSQLBuilder<
         public attributes: (
             UpdateAttributes<InstanceType<T>> |
             BaseEntity |
-            UnionEntity<any>
+            EntityUnion<any>
         ),
         public conditional?: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
@@ -41,7 +41,7 @@ export default class UpdateSQLBuilder<
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.loadMetadata(this.target)
 
-        if (this.attributes instanceof UnionEntity) this.attributes = (
+        if (this.attributes instanceof EntityUnion) this.attributes = (
             this.attributes.toSourceEntity()
         )
     }
@@ -124,7 +124,7 @@ export default class UpdateSQLBuilder<
     private onlyChangedAttributes(): any {
         return (
             this.attributes instanceof BaseEntity ||
-            this.attributes instanceof UnionEntity
+            this.attributes instanceof EntityUnion
         )
             ? ColumnsSnapshots.changed(this.attributes)
             : this.attributes

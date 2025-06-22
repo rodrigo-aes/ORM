@@ -3,7 +3,7 @@ import EntityUnionMetadata from "../EntityUnionMetadata"
 import { JoinTableMetadata } from "../EntityMetadata"
 
 import BaseEntity from "../../BaseEntity"
-import UnionEntity from "../../UnionEntity"
+import EntityUnion from "../../EntityUnion"
 
 // Types
 import type MySQLConnection from "../../Connection"
@@ -36,16 +36,12 @@ export default class MetadataHandler {
     // ------------------------------------------------------------------------
 
     public static loadMetadata(
-        target: EntityTarget | (UnionEntityTarget | string)
+        target: EntityTarget | UnionEntityTarget
     ): (
             EntityMetadata | EntityUnionMetadata
         ) {
         switch (true) {
-            case typeof target === 'string': return (
-                EntityUnionMetadata.find(target as string)!
-            )
-
-            case (target as any).prototype instanceof UnionEntity: return (
+            case (target as any).prototype instanceof EntityUnion: return (
                 EntityUnionMetadata.find(target as UnionEntityTarget)!
             )
 

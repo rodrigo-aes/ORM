@@ -1,5 +1,5 @@
 import { EntityUnionMetadata } from "../../Metadata"
-import UnionEntity, { InternalUnionEntities } from "../../UnionEntity"
+import EntityUnion, { InternalUnionEntities } from "../../EntityUnion"
 import type { UnionEntityTarget } from "../../../types/General"
 
 export default class EntityUnionBuilder {
@@ -22,7 +22,7 @@ export default class EntityUnionBuilder {
                     }
                 }
             `
-        )(UnionEntity)
+        )(EntityUnion)
 
         InternalUnionEntities.set(entity.name, entity)
         return entity

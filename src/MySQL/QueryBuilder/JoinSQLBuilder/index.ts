@@ -7,7 +7,7 @@ import {
 } from "../../Metadata"
 
 import { MetadataHandler } from "../../Metadata"
-import { InternalUnionEntities } from "../../UnionEntity"
+import { InternalUnionEntities } from "../../EntityUnion"
 
 // Query Builders
 import SelectSQLBuilder, { type SelectOptions } from "../SelectSQLBuilder"

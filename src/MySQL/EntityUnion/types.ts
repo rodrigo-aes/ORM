@@ -1,8 +1,8 @@
-import type UnionEntity from "."
+import type EntityUnion from "."
 import type { EntityTarget } from "../../types/General"
 import type { UnionEntitiesMap } from "../Metadata"
 
-export type UnionTarget = new (...args: any[]) => UnionEntity<any[]>
+export type UnionTarget = new (...args: any[]) => EntityUnion<any[]>
 
 interface NamedEntity {
     name: keyof UnionEntitiesMap

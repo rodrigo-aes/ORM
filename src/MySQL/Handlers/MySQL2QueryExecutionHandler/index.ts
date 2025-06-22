@@ -1,7 +1,7 @@
 import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
-import UnionEntity from "../../UnionEntity"
+import EntityUnion from "../../EntityUnion"
 
 // SQL Builders
 import {
@@ -177,7 +177,7 @@ export default class MySQL2QueryExecutionHandler<
             ||
 
             (this.sqlBuilder as UpdateSQLBuilder<T>)
-                .attributes instanceof UnionEntity
+                .attributes instanceof EntityUnion
         )
 
         return isEntity

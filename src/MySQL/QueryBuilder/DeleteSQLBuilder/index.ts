@@ -1,7 +1,7 @@
 import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
-import UnionEntity from "../../UnionEntity"
+import EntityUnion from "../../EntityUnion"
 
 // SQL Builders
 import ConditionalSQLBuilder, {
@@ -30,14 +30,14 @@ export default class DeleteSQLBuilder<
         public where: (
             ConditionalQueryOptions<InstanceType<T>> |
             BaseEntity |
-            UnionEntity<any>
+            EntityUnion<any>
         ),
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.loadMetadata(this.target)
 
-        if (this.where instanceof UnionEntity) this.where = (
+        if (this.where instanceof EntityUnion) this.where = (
             this.where.toSourceEntity()
         )
     }
@@ -96,7 +96,7 @@ export default class DeleteSQLBuilder<
     private isConditional(): boolean {
         return (
             !(this.where instanceof BaseEntity) &&
-            !(this.where instanceof UnionEntity)
+            !(this.where instanceof EntityUnion)
         )
     }
 
