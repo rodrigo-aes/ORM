@@ -13,6 +13,8 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
     ) {
         super()
 
+        this.mergePrimaryKeys()
+        this.buildEntityTypeColumn()
         this.mergeSources()
     }
 
@@ -49,6 +51,27 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
     }
 
     // Privates ---------------------------------------------------------------
+    private mergePrimaryKeys(): void {
+        this.push(
+            this.mergeColumns(
+                this.sources.filter(({ primary }) => primary),
+                'primaryKey'
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private buildEntityTypeColumn(): void {
+        const entityTypes = new Set(this.sources.map(({ target }) => target))
+        this.push(UnionColumnMetadata.buildEntityTypeColumn(
+            this.target,
+            ...entityTypes
+        ))
+    }
+
+    // ------------------------------------------------------------------------
+
     private mergeSources(): void {
         const mapped = new Set<string>()
 
@@ -68,7 +91,9 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
 
     // ------------------------------------------------------------------------
 
-    private mergeColumns(columns: ColumnMetadata[]): UnionColumnMetadata {
+    private mergeColumns(columns: ColumnMetadata[], internalName?: string): (
+        UnionColumnMetadata
+    ) {
         const shouldMerge = columns.length > 1
 
         if (shouldMerge) this.verifyDataType(columns)
@@ -77,7 +102,7 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
 
         const unionColumn = new UnionColumnMetadata(
             this.target,
-            name,
+            internalName ?? name,
             dataType
         )
 

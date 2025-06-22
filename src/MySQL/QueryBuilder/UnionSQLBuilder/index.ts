@@ -16,7 +16,7 @@ export default class UnionSQLBuilder {
 
     constructor(
         public name: string,
-        public target: UnionEntityTarget | null = null
+        public target: UnionEntityTarget
     ) {
         this.metadata = this.loadMetadata()
     }
@@ -30,7 +30,9 @@ export default class UnionSQLBuilder {
     // ------------------------------------------------------------------------
 
     private get restColumns(): UnionColumnMetadata[] {
-        return [...this.metadata.columns].filter(({ primary }) => !primary)
+        return [...this.metadata.columns].filter(
+            ({ primary, name }) => !primary && name !== 'entityType'
+        )
     }
 
     // Instance Methods =======================================================
@@ -43,10 +45,7 @@ export default class UnionSQLBuilder {
 
     // Privates ---------------------------------------------------------------
     private loadMetadata(): EntityUnionMetadata {
-        const meta = EntityUnionMetadata.find(this.target ?? this.name)
-        if (meta) return meta
-
-        throw new Error
+        return EntityUnionMetadata.find(this.target)!
     }
 
     // ------------------------------------------------------------------------

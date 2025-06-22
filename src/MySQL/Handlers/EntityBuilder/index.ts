@@ -1,24 +1,29 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 // Objects
 import { Collection } from "../../BaseEntity"
 
+// Handlers
+import { MetadataHandler } from "../../Metadata"
+
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type {
     CreationAttributes,
     CreationAttributesOptions
 } from "../../QueryBuilder"
 
-export default class EntityBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class EntityBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     constructor(
         public target: T,
         public attibutes: CreationAttributesOptions<InstanceType<T>>,
         public primary?: number
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -30,12 +35,6 @@ export default class EntityBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private buildEntity(
         attributes?: CreationAttributesOptions<InstanceType<T>>
     ): InstanceType<T> {

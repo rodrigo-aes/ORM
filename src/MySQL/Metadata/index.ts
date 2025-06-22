@@ -61,7 +61,9 @@ import EntityMetadata, {
 
 import EntityUnionMetadata, {
     UnionColumnsMetadata,
-    UnionColumnMetadata
+    UnionColumnMetadata,
+
+    type UnionEntitiesMap
 } from "./EntityUnionMetadata"
 
 import MetadataHandler from "./MetadataHandler"
@@ -130,4 +132,6 @@ export {
     type PolymorphicChildRelatedGetter,
 
     type ForeignIdConfig,
+
+    type UnionEntitiesMap
 }

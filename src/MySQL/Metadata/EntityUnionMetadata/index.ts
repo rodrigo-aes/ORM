@@ -15,11 +15,17 @@ import { EntityToJSONProcessMetadata } from "../ProcessMetadata"
 // Types
 import type MySQLConnection from "../../Connection"
 import type { UnionEntityTarget, EntityTarget } from "../../../types/General"
-import type { SourcesMetadata, EntityUnionMetadataJSON } from "./types"
+import type {
+    UnionEntitiesMap,
+    SourcesMetadata,
+    EntityUnionMetadataJSON
+} from "./types"
 
 export default class EntityUnionMetadata {
     public connection?: MySQLConnection
-    public sourceMetadata!: SourcesMetadata
+
+    private _entities!: UnionEntitiesMap
+    private _sourceMetadata!: SourcesMetadata
 
     private _columns!: UnionColumnsMetadata
     private _relations?: UnionRelationsMetadata
@@ -29,6 +35,7 @@ export default class EntityUnionMetadata {
         public target: UnionEntityTarget | null,
         public sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
+        this.loadEntities()
         this.loadSourcesMetadata()
         this.loadColumns()
         this.loadRelations()
@@ -50,6 +57,26 @@ export default class EntityUnionMetadata {
                 word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
             ))
             .join('')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get entities(): UnionEntitiesMap {
+        if (Object.values(this._entities ?? {}).length === 0) (
+            this.loadEntities()
+        )
+
+        return this._entities
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get sourceMetadata(): SourcesMetadata {
+        if (Object.values(this._sourceMetadata ?? {}).length === 0) (
+            this.loadEntities()
+        )
+
+        return this._sourceMetadata
     }
 
     // ------------------------------------------------------------------------
@@ -124,18 +151,35 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
+    private loadEntities(): void {
+        try {
+            if (typeof this.sources === 'function') (
+                this.sources = this.sources()
+            )
+
+            this._entities = Object.fromEntries(this.sources.map(
+                source => [source.name, source]
+            ))
+
+        } catch (error) {
+            this._entities = {}
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
     private loadSourcesMetadata(): void {
         try {
             if (typeof this.sources === 'function') (
                 this.sources = this.sources()
             )
 
-            this.sourceMetadata = Object.fromEntries(this.sources.map(
+            this._sourceMetadata = Object.fromEntries(this.sources.map(
                 source => [source.name, EntityMetadata.findOrBuild(source)]
             ))
 
         } catch (error) {
-            this.sourceMetadata = {}
+            this._sourceMetadata = {}
         }
     }
 
@@ -199,15 +243,10 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    public static find(origin: UnionEntityTarget | string): (
+    public static find(target: UnionEntityTarget | null): (
         EntityUnionMetadata | undefined
     ) {
-        const isString = typeof origin === 'string'
-
-        return Reflect.getOwnMetadata(
-            isString ? origin : 'union-metadata',
-            isString ? EntityUnionMetadata : origin
-        )
+        if (target) return Reflect.getOwnMetadata('union-metadata', target)
     }
 
     // ------------------------------------------------------------------------
@@ -217,7 +256,7 @@ export default class EntityUnionMetadata {
         target: UnionEntityTarget | null,
         sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ): EntityUnionMetadata {
-        return this.find(target ?? name) ?? this.build(
+        return this.find(target) ?? this.build(
             name, target, sources
         )
     }
@@ -225,5 +264,6 @@ export default class EntityUnionMetadata {
 
 export {
     UnionColumnsMetadata,
-    UnionColumnMetadata
+    UnionColumnMetadata,
+    type UnionEntitiesMap
 }

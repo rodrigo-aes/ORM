@@ -1,6 +1,7 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
+import UnionEntity from "../../UnionEntity"
 
 // SQL Builders
 import {
@@ -14,6 +15,7 @@ import {
 } from "../../QueryBuilder"
 
 // Handlers
+import { MetadataHandler } from "../../Metadata"
 import MySQL2RawDataHandler, {
     type MySQL2RawData,
     type DataFillMethod
@@ -24,7 +26,7 @@ import EntityBuilder from "../EntityBuilder"
 // Types
 import type { ResultSetHeader } from "mysql2"
 import type MySQLConnection from "../../Connection"
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type {
     SQLBuilder,
     ExecResult,
@@ -38,18 +40,18 @@ import type {
 } from "./types"
 
 export default class MySQL2QueryExecutionHandler<
-    T extends EntityTarget,
+    T extends EntityTarget | UnionEntityTarget,
     Builder extends SQLBuilder<T>,
     MapTo extends ResultMapOption
 > {
-    protected metadata: EntityMetadata
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     constructor(
         public target: T,
         public sqlBuilder: Builder,
         public mapTo: MapTo
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -115,12 +117,6 @@ export default class MySQL2QueryExecutionHandler<
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private async executeFindByPk(): Promise<FindOneResult<T, MapTo>> {
         const connection = this.getConnection()
         const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
@@ -174,8 +170,15 @@ export default class MySQL2QueryExecutionHandler<
             this.sqlBuilder.SQL()
         ) as any
 
-        const isEntity = (this.sqlBuilder as UpdateSQLBuilder<T>)
-            .attributes instanceof BaseEntity
+        const isEntity = (
+            (this.sqlBuilder as UpdateSQLBuilder<T>)
+                .attributes instanceof BaseEntity
+
+            ||
+
+            (this.sqlBuilder as UpdateSQLBuilder<T>)
+                .attributes instanceof UnionEntity
+        )
 
         return isEntity
             ? (this.sqlBuilder as UpdateSQLBuilder<T>).attributes as (

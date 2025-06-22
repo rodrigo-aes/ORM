@@ -1,13 +1,16 @@
-import { EntityMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 // Metadata
 import { RelationMetadata } from "../../Metadata"
 
 // Base Entity
-import { Collection, RelationCollection } from "../../BaseEntity"
+import { Collection } from "../../BaseEntity"
+
+// Handlers
+import { MetadataHandler } from "../../Metadata"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type {
     MySQL2RawData,
     MappedDataType,
@@ -16,8 +19,10 @@ import type {
 } from "./types"
 import type { RelationMetadataType } from "../../Metadata"
 
-export default class MySQL2RawDataHandler<T extends EntityTarget> {
-    private metadata: EntityMetadata
+export default class MySQL2RawDataHandler<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    private metadata: EntityMetadata | EntityUnionMetadata
     private mySQL2RawData!: MySQL2RawData[]
     private _raw?: RawData<T> | RawData<T>[]
     private _entity?: InstanceType<T> | Collection<InstanceType<T>>
@@ -27,7 +32,7 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
         public fillMethod: DataFillMethod,
         rawData?: MySQL2RawData[]
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
         this.mySQL2RawData = rawData ?? []
     }
 
@@ -81,19 +86,15 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
             ? new Collection(...reduced)
             : reduced[0]
 
-        return this._entity
+        return this._entity as (
+            InstanceType<T> | Collection<InstanceType<T>>
+        )
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private reduceMySQL2RawData(
         rawData: MySQL2RawData[],
-        metadata: EntityMetadata = this.metadata,
+        metadata: EntityMetadata | EntityUnionMetadata = this.metadata,
         method: 'raw' | 'entity' = 'raw',
         relation?: RelationMetadataType
     ): MappedDataType<T, typeof method>[] {
@@ -104,9 +105,7 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
 
         const reduced: MappedDataType<T, typeof method>[] = method === 'raw'
             ? []
-            : relation
-                ? new RelationCollection(relation)
-                : new Collection<InstanceType<T>>
+            : new Collection<InstanceType<T>>
 
         const mapped = new Set
         const primaryName = metadata.columns.primary.name
@@ -122,7 +121,9 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
 
             const columns = this.filterColumns(toMerge[0])
             const relations = this.filterRelations(
-                toMerge, columns, metadata, method
+                toMerge,
+                metadata,
+                method
             )
 
             mapped.add(primary)
@@ -133,9 +134,13 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
                     break
 
                 case "entity": reduced.push(
-                    (new metadata.target() as InstanceType<T>).fill(
-                        reducedData as any
-                    )
+                    relation && relation.type === 'PolymorphicBelongsTo'
+                        ? (new metadata.target!() as InstanceType<T>)
+                            .fill(reducedData as any)
+                            .toSourceEntity()
+
+                        : (new metadata.target!() as InstanceType<T>)
+                            .fill(reducedData as any)
                 )
                     break
             }
@@ -160,8 +165,7 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
 
     private filterRelations(
         raw: MySQL2RawData[],
-        columns: RawData<T>,
-        metadata: EntityMetadata = this.metadata,
+        metadata: EntityMetadata | EntityUnionMetadata = this.metadata,
         method: 'raw' | 'entity' = 'raw'
     ): { [K: string]: MappedDataType<T, typeof method> } {
         const relations: any = {}
@@ -171,15 +175,22 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
             const toMerge = this.filterRelationsByKey(raw, key)
             if (toMerge.length === 0) continue
 
-            const meta = metadata.relations!.find(({ name }) => name === key)!
-            const fillMethod = RelationMetadata.relationFillMethod(meta)
+            const relationMetadata = metadata.relations!.find(
+                ({ name }) => name === key
+            )!
 
-            const nextMetadata = EntityMetadata.findOrBuild(
-                RelationMetadata.extractEntityTarget(meta, columns)
+            const fillMethod = RelationMetadata.relationFillMethod(
+                relationMetadata
             )
+
+            const nextMetadata = MetadataHandler.loadMetadata(
+                relationMetadata.relatedTarget
+            )
+
             const data = this.reduceMySQL2RawData(
-                toMerge, nextMetadata, method, meta
+                toMerge, nextMetadata, method, relationMetadata
             )
+
             relations[key] = fillMethod === 'Many' ? data : data[0]
         }
 
@@ -193,7 +204,7 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
         key: string
     ): MySQL2RawData[] {
         return raw.map(item => Object.fromEntries(Object.entries(item).flatMap(
-            ([path, value]) => path.startsWith(key)
+            ([path, value]) => path.startsWith(`${key}_`)
                 ? [[path, value]]
                 : []
         )) as MySQL2RawData
@@ -223,7 +234,7 @@ export default class MySQL2RawDataHandler<T extends EntityTarget> {
 
     private removeAlias(raw: any, alias: string): any {
         return Object.fromEntries(Object.entries(raw).flatMap(
-            ([key, value]) => key.startsWith(alias)
+            ([key, value]) => key.startsWith(`${alias}_`)
                 ? [[key.replace(`${alias}_`, ''), value]]
                 : []
         ))

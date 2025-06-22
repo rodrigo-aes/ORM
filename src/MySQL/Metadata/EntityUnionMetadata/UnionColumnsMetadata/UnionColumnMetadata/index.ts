@@ -3,7 +3,10 @@ import UnionForeignKeyReferences from "./UnionForeignKeyReferences"
 
 
 // Types
-import type { UnionEntityTarget } from "../../../../../types/General"
+import type {
+    EntityTarget,
+    UnionEntityTarget
+} from "../../../../../types/General"
 import type { ColumnMetadataJSON } from "../../../EntityMetadata"
 
 export default class UnionColumnMetadata {
@@ -46,5 +49,18 @@ export default class UnionColumnMetadata {
                     .includes(key)
             )
         ]) as ColumnMetadataJSON
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static buildEntityTypeColumn(
+        target: UnionEntityTarget | null,
+        ...types: EntityTarget[]
+    ): UnionColumnMetadata {
+        return new UnionColumnMetadata(
+            target,
+            'entityType',
+            DataType.ENUM(...types.map(target => target.name))
+        )
     }
 }

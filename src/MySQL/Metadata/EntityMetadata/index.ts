@@ -121,7 +121,7 @@ export default class EntityMetadata {
     // ------------------------------------------------------------------------
 
     public get foreignKeys(): ColumnMetadata[] {
-        return this.columns.filter(({ isForeignKey }) => isForeignKey)
+        return [...this.columns].filter(({ isForeignKey }) => isForeignKey)
     }
 
     // ------------------------------------------------------------------------

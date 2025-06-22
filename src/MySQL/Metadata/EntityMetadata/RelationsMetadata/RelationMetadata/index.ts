@@ -169,64 +169,6 @@ export default
     ) {
         return relation instanceof PolymorphicBelongsToMetadata
     }
-
-    // ------------------------------------------------------------------------
-
-    public static extractEntityTarget(
-        relation: RelationMetadataType,
-        auxiliarData?: any
-    ) {
-        switch (relation.type) {
-            case "HasOne":
-            case "HasMany":
-            case "HasOneThrough":
-            case "HasManyThrough":
-            case "BelongsTo":
-            case "BelongsToThrough":
-            case "BelongsToMany":
-            case "PolymorphicHasOne":
-            case "PolymorphicHasMany": return (relation as (
-                HasOneMetadata |
-                HasManyMetadata |
-                HasOneThroughMetadata |
-                HasManyThroughMetadata |
-                BelongsToMetadata |
-                BelongsToThroughMetadata |
-                BelongsToManyMetadata |
-                PolymorphicHasManyMetadata |
-                PolymorphicHasOneMetadata
-            ))
-                .entity
-                .target
-
-            case "PolymorphicBelongsTo": return (
-                this.extractPolymorphicBelongsToTarget(
-                    relation as PolymorphicBelongsToMetadata,
-                    auxiliarData!
-                )
-            )
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static extractPolymorphicBelongsToTarget(
-        relation: PolymorphicBelongsToMetadata,
-        auxiliarData?: any
-    ): EntityTarget {
-        if (!auxiliarData) throw new Error
-
-        switch (typeof auxiliarData) {
-            case "string": return relation.entities[auxiliarData].target
-            case "object":
-                const typeKey = relation.typeKey
-                const typeValue = auxiliarData[typeKey]
-
-                return relation.entities[typeValue].target
-        }
-
-        throw new Error
-    }
 }
 
 export {

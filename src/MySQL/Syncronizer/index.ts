@@ -72,7 +72,7 @@ export default class Syncronizer {
                 if (a instanceof JoinTableBuilder) return 1
                 if (b instanceof JoinTableBuilder) return -1
 
-                return a.dependencies.includes(b.target) ? 1 : -1
+                return a.dependencies.includes(b.target) ? -1 : 1
             }
         )
     }

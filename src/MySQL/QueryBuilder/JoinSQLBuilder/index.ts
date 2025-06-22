@@ -1,11 +1,13 @@
 import {
     EntityMetadata,
+    EntityUnionMetadata,
     PolymorphicBelongsToMetadata,
 
     type RelationMetadataType
 } from "../../Metadata"
 
-import UnionEntity from "../../UnionEntity"
+import { MetadataHandler } from "../../Metadata"
+import { InternalUnionEntities } from "../../UnionEntity"
 
 // Query Builders
 import SelectSQLBuilder, { type SelectOptions } from "../SelectSQLBuilder"
@@ -20,8 +22,10 @@ import UnionSQLBuilder from "../UnionSQLBuilder"
 import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { RelationOptions, RelationsOptions } from "./types"
 
-export default class JoinSQLBuilder<T extends EntityTarget> {
-    private metadata: EntityMetadata
+export default class JoinSQLBuilder<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    private metadata: EntityMetadata | EntityUnionMetadata
 
     public target: T
     public alias: string
@@ -38,9 +42,9 @@ export default class JoinSQLBuilder<T extends EntityTarget> {
     ) {
         Object.assign(this, options)
 
-        this.target = this.handleTarget() as T
+        this.target = this.relation.relatedTarget as T
         this.alias = alias ?? this.handleAlias()
-        this.metadata = this.getMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -82,31 +86,22 @@ export default class JoinSQLBuilder<T extends EntityTarget> {
 
     public tableUnionQueryBuilder(): UnionSQLBuilder | undefined {
         if (this.relation instanceof PolymorphicBelongsToMetadata) {
-            return new UnionSQLBuilder(this.relation.unionName)
+            return new UnionSQLBuilder(
+                this.relation.unionName,
+                InternalUnionEntities.get(this.relation.unionTargetName)!
+            )
         }
     }
 
     // ------------------------------------------------------------------------
 
     public hasTableUnion(): boolean {
-        return (
-            this.relation instanceof PolymorphicBelongsToMetadata
-        )
+        return this.relation instanceof PolymorphicBelongsToMetadata
     }
 
     // Privates ---------------------------------------------------------------
     private getMetadata(): EntityMetadata {
         return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
-    private handleTarget(): EntityTarget {
-        if (this.relation instanceof PolymorphicBelongsToMetadata) {
-            throw new Error
-        }
-
-        return this.relation.relatedTarget
     }
 
     // ------------------------------------------------------------------------

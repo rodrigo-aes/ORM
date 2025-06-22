@@ -1,5 +1,5 @@
 import { EntityUnionMetadata } from "../Metadata"
-import { InternalUnionEntities } from "./Coponents"
+import { InternalUnionEntities } from "./Components"
 
 import { ColumnsSnapshots } from "../BaseEntity"
 
@@ -7,18 +7,20 @@ import { ColumnsSnapshots } from "../BaseEntity"
 import { EntityBuilder } from "../Handlers"
 
 import type { UnionEntityTarget, EntityTarget } from "../../types/General"
-import type { EntityName, UnionEntityMap, SourceEntity } from "./types"
+import type { EntityName, SourceEntity } from "./types"
+import type { UnionEntitiesMap } from "../Metadata"
 import type { EntityProperties } from "../QueryBuilder"
 
 export default class UnionEntity<Targets extends EntityTarget[]> {
     protected hidden: string[] = []
 
-    public entities!: UnionEntityMap
+    public entities: UnionEntitiesMap
 
     public primaryKey: any
     public entityType!: EntityName<Targets>
 
     constructor() {
+        this.entities = this.getMetadata().entities
         ColumnsSnapshots.set(this, this.toJSON())
     }
 
@@ -53,6 +55,16 @@ export default class UnionEntity<Targets extends EntityTarget[]> {
         for (const key of this.hidden) delete json[key as keyof typeof json]
 
         return json
+    }
+
+    // ------------------------------------------------------------------------
+
+    public fill<T extends UnionEntity<Targets>>(
+        this: T,
+        data: Partial<EntityProperties<T>>
+    ): T {
+        Object.assign(this, data)
+        return this
     }
 
     // ------------------------------------------------------------------------

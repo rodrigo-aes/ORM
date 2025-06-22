@@ -44,7 +44,6 @@ export default class EntityTableBuilder extends EntityMetadata {
         await connection.query(this.alterSQL(columns))
 
         for (const foreignKeySQL of this.alterForeignKeysSQL(columns)) {
-            console.log(foreignKeySQL)
             await connection.query(foreignKeySQL)
         }
     }

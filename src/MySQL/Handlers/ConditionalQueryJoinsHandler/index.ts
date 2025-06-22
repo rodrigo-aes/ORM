@@ -1,14 +1,19 @@
-import { EntityMetadata, RelationMetadata } from "../../Metadata"
+import { EntityMetadata, EntityUnionMetadata, RelationMetadata } from "../../Metadata"
 
 // SQL Builders
 import JoinSQLBuilder from "../../QueryBuilder/JoinSQLBuilder"
 
+// Handlers
+import { MetadataHandler } from "../../Metadata"
+
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { ConditionalQueryOptions } from "../../QueryBuilder/ConditionalSQLBuilder"
 
-export default class ConditionalQueryJoinsHandler<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class ConditionalQueryJoinsHandler<
+    T extends EntityTarget | UnionEntityTarget
+> {
+    protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string
 
@@ -19,7 +24,7 @@ export default class ConditionalQueryJoinsHandler<T extends EntityTarget> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -55,7 +60,7 @@ export default class ConditionalQueryJoinsHandler<T extends EntityTarget> {
 
     private handleJoin(
         key: string,
-        metadata: EntityMetadata = this.metadata,
+        metadata: EntityMetadata | EntityUnionMetadata = this.metadata,
         parentAlias: string = this.alias
     ): JoinSQLBuilder<any> | JoinSQLBuilder<any>[] {
         const [first, second, ...rest] = key.split('.')
@@ -71,9 +76,7 @@ export default class ConditionalQueryJoinsHandler<T extends EntityTarget> {
 
         if (rest.length === 0) return join
 
-        metadata = EntityMetadata.findOrBuild(
-            RelationMetadata.extractEntityTarget(relation, this.auxiliarData)
-        )
+        metadata = MetadataHandler.loadMetadata(relation.relatedTarget)
 
         const next = this.handleJoin(
             `${second}.${rest.join('.')}`,
