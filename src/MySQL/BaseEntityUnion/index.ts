@@ -11,7 +11,7 @@ import type { EntityName, SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
 import type { EntityProperties } from "../QueryBuilder"
 
-export default class EntityUnion<Targets extends EntityTarget[]> {
+export default abstract class BaseEntityUnion<Targets extends EntityTarget[]> {
     protected hidden: string[] = []
 
     public entities: UnionEntitiesMap
@@ -32,7 +32,7 @@ export default class EntityUnion<Targets extends EntityTarget[]> {
 
     // ------------------------------------------------------------------------
 
-    public toJSON<T extends EntityUnion<Targets>>(this: T): (
+    public toJSON<T extends BaseEntityUnion<Targets>>(this: T): (
         EntityProperties<T>
     ) {
         const json = Object.fromEntries([...this.getMetadata().columns].map(
@@ -41,14 +41,12 @@ export default class EntityUnion<Targets extends EntityTarget[]> {
                 EntityProperties<T>
             )
 
-        this.hide(json)
-
-        return json
+        return this.hide(json)
     }
 
     // ------------------------------------------------------------------------
 
-    public hide<T extends EntityUnion<Targets>>(
+    public hide<T extends BaseEntityUnion<Targets>>(
         this: T, json?: EntityProperties<T>
     ): EntityProperties<T> {
         if (!json) json = this.toJSON()
@@ -59,7 +57,7 @@ export default class EntityUnion<Targets extends EntityTarget[]> {
 
     // ------------------------------------------------------------------------
 
-    public fill<T extends EntityUnion<Targets>>(
+    public fill<T extends BaseEntityUnion<Targets>>(
         this: T,
         data: Partial<EntityProperties<T>>
     ): T {

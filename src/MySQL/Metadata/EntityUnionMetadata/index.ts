@@ -35,6 +35,8 @@ export default class EntityUnionMetadata {
         public target: UnionEntityTarget | null,
         public sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
+        console.log(tableName)
+
         this.loadEntities()
         this.loadSourcesMetadata()
         this.loadColumns()
@@ -212,7 +214,7 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    private buildJSON<T extends EntityTarget = any>(): (
+    private buildJSON<T extends UnionEntityTarget = any>(): (
         EntityUnionMetadataJSON | undefined
     ) {
         return EntityToJSONProcessMetadata.shouldAdd(this.name)

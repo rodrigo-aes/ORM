@@ -1,7 +1,7 @@
 import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
-import EntityUnion from "../../EntityUnion"
+import EntityUnion from "../../BaseEntityUnion"
 
 // SQL Builders
 import ConditionalSQLBuilder, {

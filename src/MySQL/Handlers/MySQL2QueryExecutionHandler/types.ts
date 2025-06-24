@@ -1,4 +1,4 @@
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { ResultSetHeader } from "mysql2"
 
 import type {
@@ -13,14 +13,23 @@ import type {
 
 import type { Collection } from "../../BaseEntity"
 
-export type SQLBuilder<T extends EntityTarget> = (
+export type UnionSQLBuilder<T extends EntityTarget | UnionEntityTarget> = (
     FindByPkSQLBuilder<T> |
     FindOneSQLBuilder<T> |
     FindSQLBuilder<T> |
-    CreateSQLBuilder<T> |
     UpdateSQLBuilder<T> |
-    UpdateOrCreateSQLBuilder<T> |
     DeleteSQLBuilder<T>
+)
+
+export type SQLBuilder<T extends EntityTarget | UnionEntityTarget> = (
+    T extends UnionEntityTarget
+    ? UnionSQLBuilder<T>
+    : T extends EntityTarget
+    ? UnionSQLBuilder<T> | (
+        CreateSQLBuilder<T> |
+        UpdateOrCreateSQLBuilder<T>
+    )
+    : never
 )
 
 import type { MySQL2RawData, RawData } from "../MySQL2RawDataHandler"
@@ -31,11 +40,30 @@ export type ExecOptions = {
     mapTo?: ResultMapOption
 }
 
-export type ExecResult<
-    T extends EntityTarget,
+export type UnionExecResult<
+    T extends EntityTarget | UnionEntityTarget,
     Builder extends SQLBuilder<T>,
     MapTo extends ResultMapOption
 > = (
+        Builder extends FindSQLBuilder<T>
+        ? FindResult<T, MapTo>
+        : Builder extends FindOneSQLBuilder<T>
+        ? FindOneResult<T, MapTo>
+        : Builder extends FindByPkSQLBuilder<T>
+        ? FindOneResult<T, MapTo>
+        : Builder extends UpdateSQLBuilder<T>
+        ? UpdateResult<T>
+        : Builder extends DeleteSQLBuilder<T>
+        ? DeleteResult
+        : never
+    )
+
+export type ExecResult<
+    T extends EntityTarget | UnionEntityTarget,
+    Builder extends SQLBuilder<T>,
+    MapTo extends ResultMapOption
+> = T extends EntityTarget
+    ? (
         Builder extends FindSQLBuilder<T>
         ? FindResult<T, MapTo>
         : Builder extends FindOneSQLBuilder<T>
@@ -52,9 +80,10 @@ export type ExecResult<
         ? DeleteResult
         : never
     )
+    : UnionExecResult<T, Builder, MapTo>
 
 export type FindOneResult<
-    T extends EntityTarget,
+    T extends EntityTarget | UnionEntityTarget,
     MapTo extends ResultMapOption
 > = (
         MapTo extends 'entity'
@@ -67,7 +96,7 @@ export type FindOneResult<
     )
 
 export type FindResult<
-    T extends EntityTarget,
+    T extends EntityTarget | UnionEntityTarget,
     MapTo extends ResultMapOption
 > = (
         MapTo extends 'entity'
@@ -83,7 +112,7 @@ export type CreateResult<T extends EntityTarget> = (
     InstanceType<T> | Collection<InstanceType<T>>
 )
 
-export type UpdateResult<T extends EntityTarget> = (
+export type UpdateResult<T extends EntityTarget | UnionEntityTarget> = (
     InstanceType<T> | ResultSetHeader
 )
 

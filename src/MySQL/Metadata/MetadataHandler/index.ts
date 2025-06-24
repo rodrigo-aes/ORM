@@ -3,7 +3,7 @@ import EntityUnionMetadata from "../EntityUnionMetadata"
 import { JoinTableMetadata } from "../EntityMetadata"
 
 import BaseEntity from "../../BaseEntity"
-import EntityUnion from "../../EntityUnion"
+import EntityUnion from "../../BaseEntityUnion"
 
 // Types
 import type MySQLConnection from "../../Connection"

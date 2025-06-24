@@ -1,5 +1,5 @@
 import type BaseEntity from "../../MySQL/BaseEntity"
-import type EntityUnion from "../../MySQL/EntityUnion"
+import type BaseEntityUnion from "../../MySQL/BaseEntityUnion"
 
-export type EntityTarget = new (...args: any[]) => BaseEntity
-export type UnionEntityTarget = new (...args: any[]) => EntityUnion
+export type EntityTarget = new () => BaseEntity
+export type UnionEntityTarget = new (...args: any[]) => BaseEntityUnion<any>

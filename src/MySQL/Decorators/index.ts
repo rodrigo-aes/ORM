@@ -1,4 +1,5 @@
 import Entity from "./Entity"
+import EntityUnion from "./EntityUnion"
 
 import Column from "./Column"
 import Primary from "./Primary"
@@ -37,6 +38,7 @@ import {
 
 export {
     Entity,
+    EntityUnion,
 
     Column,
     Primary,

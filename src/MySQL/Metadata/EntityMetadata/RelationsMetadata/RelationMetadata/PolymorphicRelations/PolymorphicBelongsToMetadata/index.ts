@@ -2,7 +2,7 @@ import EntityMetadata from "../../../.."
 import EntityUnionMetadata from "../../../../../EntityUnionMetadata"
 import RelationMetadata from "../../RelationMetadata"
 
-import { InternalUnionEntities } from "../../../../../../EntityUnion"
+import { InternalUnionEntities } from "../../../../../../BaseEntityUnion"
 
 // Types
 import type { EntityTarget, UnionEntityTarget } from "../../../../../../../types/General"

@@ -5,7 +5,7 @@ import {
 } from "../../Metadata"
 
 import BaseEntity, { ColumnsSnapshots } from "../../BaseEntity"
-import EntityUnion from "../../EntityUnion"
+import EntityUnion from "../../BaseEntityUnion"
 
 // SQL Builders
 import ConditionalSQLBuilder from "../ConditionalSQLBuilder"

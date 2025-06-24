@@ -1,7 +1,7 @@
 import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
-import EntityUnion from "../../EntityUnion"
+import BaseEntityUnion from "../../BaseEntityUnion"
 
 // SQL Builders
 import {
@@ -150,15 +150,20 @@ export default class MySQL2QueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    private async executeCreate(): Promise<CreateResult<T>> {
+    private async executeCreate(): (
+        Promise<CreateResult<Extract<T, EntityTarget>>>
+    ) {
         const connection = this.getConnection()
 
         const resultHeader: ResultSetHeader = await connection.query(
             this.sqlBuilder.SQL(),
-            (this.sqlBuilder as CreateSQLBuilder<T>).columnsValues
+            (this.sqlBuilder as CreateSQLBuilder<Extract<T, EntityTarget>>)
+                .columnsValues
         ) as any
 
-        return this.buildCreatedEntities(resultHeader) as CreateResult<T>
+        return this.buildCreatedEntities(resultHeader) as (
+            CreateResult<Extract<T, EntityTarget>>
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -177,7 +182,7 @@ export default class MySQL2QueryExecutionHandler<
             ||
 
             (this.sqlBuilder as UpdateSQLBuilder<T>)
-                .attributes instanceof EntityUnion
+                .attributes instanceof BaseEntityUnion
         )
 
         return isEntity
@@ -190,13 +195,13 @@ export default class MySQL2QueryExecutionHandler<
     // ------------------------------------------------------------------------
 
     private async executeUpdateOrCreate(): (
-        Promise<UpdateOrCreateResult<T>>
+        Promise<UpdateOrCreateResult<Extract<T, EntityTarget>>>
     ) {
         const connection = this.getConnection()
         const [mySQL2RawData] = await connection.query(this.sqlBuilder.SQL())
 
         return this.handleDataMapTo(mySQL2RawData, 'One') as (
-            UpdateOrCreateResult<T>
+            UpdateOrCreateResult<Extract<T, EntityTarget>>
         )
     }
 
@@ -221,7 +226,8 @@ export default class MySQL2QueryExecutionHandler<
     ) {
         return new EntityBuilder(
             this.target,
-            (this.sqlBuilder as CreateSQLBuilder<T>).attributes!,
+            (this.sqlBuilder as CreateSQLBuilder<Extract<T, EntityTarget>>)
+                .attributes!,
             resultHeader.insertId ?? undefined
         )
             .build() as (

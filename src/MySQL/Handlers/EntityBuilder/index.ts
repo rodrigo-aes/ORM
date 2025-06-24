@@ -1,7 +1,7 @@
 import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 // Objects
-import { Collection } from "../../BaseEntity"
+import BaseEntity, { Collection } from "../../BaseEntity"
 
 // Handlers
 import { MetadataHandler } from "../../Metadata"
@@ -38,7 +38,7 @@ export default class EntityBuilder<
     private buildEntity(
         attributes?: CreationAttributesOptions<InstanceType<T>>
     ): InstanceType<T> {
-        const entity = new this.target().fill(
+        const entity = (new this.target() as BaseEntity).fill(
             (attributes ?? this.attibutes) as any
         ) as InstanceType<T>
 

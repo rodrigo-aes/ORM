@@ -6,9 +6,14 @@ import MySQLConnection from './Connection'
 // Metadata
 import { EntityMetadata, DataType } from './Metadata'
 
+// Bases
+import BaseEntity from './BaseEntity'
+import BaseEntityUnion from './BaseEntityUnion'
+
 // Decorators
 import {
     Entity,
+    EntityUnion,
 
     Column,
     Primary,
@@ -46,7 +51,11 @@ export {
     EntityMetadata,
     DataType,
 
+    BaseEntity,
+    BaseEntityUnion,
+
     Entity,
+    EntityUnion,
 
     Column,
     Primary,

@@ -1,6 +1,7 @@
 import type EntityUnion from "."
 import type { EntityTarget } from "../../types/General"
 import type { UnionEntitiesMap } from "../Metadata"
+import type BaseEntity from "../BaseEntity"
 
 export type UnionTarget = new (...args: any[]) => EntityUnion<any[]>
 
@@ -10,12 +11,14 @@ interface NamedEntity {
 
 export type SourceEntity<T extends EntityTarget[]> = T[number] extends infer U
     ? U extends EntityTarget
-    ? U
+    ? InstanceType<U>
     : never
-    : never;
+    : never
 
-export type EntityName<T extends EntityTarget[]> = T[number] extends infer U
+export type EntityName<T extends EntityTarget[]> = (
+    T[number] extends infer U
     ? U extends NamedEntity
     ? U['name']
     : never
-    : never;
+    : never
+)
