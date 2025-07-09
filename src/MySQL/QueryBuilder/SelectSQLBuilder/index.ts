@@ -46,6 +46,8 @@ export default class SelectSQLBuilder<
     // ------------------------------------------------------------------------
 
     public get properties(): string {
+        if (this.options?.properties === '1') return '1'
+
         return [
             this.propertiesSQL(),
             ...this.mergedProperties
@@ -55,7 +57,7 @@ export default class SelectSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private get stringProperties(): string[] {
-        return this.options!.properties!.filter(
+        return (this.options!.properties as string[]).filter(
             option => typeof option === 'string'
         )
     }
@@ -63,7 +65,7 @@ export default class SelectSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get objectProperties(): any[] {
-        return this.options!.properties!.filter(
+        return (this.options!.properties as string[]).filter(
             option => typeof option === 'object'
         )
     }
@@ -89,6 +91,7 @@ export default class SelectSQLBuilder<
 
     public propertiesSQL(): string {
         if (this.options?.properties === null) return ''
+        if (this.options?.properties === '1') return '1'
 
         return !this.options?.properties
             ? this.allColumnsSQL()

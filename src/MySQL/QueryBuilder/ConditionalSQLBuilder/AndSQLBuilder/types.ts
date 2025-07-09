@@ -1,5 +1,6 @@
 import type { EntityPropertiesKeys } from "../../types"
 import type { CompatibleOperators } from "../Operator"
+import type { ExistsQueryOptions } from "../ExistsSQLBuilder"
 
 export type EntityAndQueryOptions<Entity extends object> = Partial<{
     [k in EntityPropertiesKeys<Entity>]: (
@@ -14,5 +15,6 @@ export type RelationAndQueryOptions = {
 
 export type AndQueryOptions<Entity extends object> = (
     EntityAndQueryOptions<Entity> &
-    RelationAndQueryOptions
+    RelationAndQueryOptions &
+    Partial<ExistsQueryOptions<Entity>>
 )

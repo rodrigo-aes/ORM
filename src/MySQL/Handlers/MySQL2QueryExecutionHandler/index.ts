@@ -26,7 +26,11 @@ import EntityBuilder from "../EntityBuilder"
 // Types
 import type { ResultSetHeader } from "mysql2"
 import type MySQLConnection from "../../Connection"
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type {
+    EntityTarget,
+    UnionEntityTarget,
+    AsEntityTarget
+} from "../../../types/General"
 import type {
     SQLBuilder,
     ExecResult,
@@ -36,7 +40,7 @@ import type {
     CreateResult,
     UpdateResult,
     UpdateOrCreateResult,
-    DeleteResult
+    DeleteResult,
 } from "./types"
 
 export default class MySQL2QueryExecutionHandler<
@@ -280,5 +284,5 @@ export {
     type FindOneResult,
     type FindResult,
     type CreateResult,
-    type DeleteResult
+    type DeleteResult,
 }

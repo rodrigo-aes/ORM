@@ -37,7 +37,8 @@ export default class FindOneSQLBuilder<
     constructor(
         public target: T,
         public options: FindOneQueryOptions<InstanceType<T>>,
-        alias?: string
+        alias?: string,
+        protected primary: boolean = true
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.loadMetadata(this.target)
@@ -50,13 +51,15 @@ export default class FindOneSQLBuilder<
 
         this.where = this.buildWhere()
         this.group = this.buildGroup()
+
+        if (this.where) this.mergeUnions(this.where.unions())
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return [
-            this.unionsSQL(),
+            this.primary ? this.unionsSQL() : '',
             this.selectSQL(),
             this.joinsSQL(),
             this.whereSQL(),
@@ -69,7 +72,16 @@ export default class FindOneSQLBuilder<
     // ------------------------------------------------------------------------
 
     public unionsSQL(): string {
-        return this.unions.map(union => union.SQL())
+        const included = new Set<string>()
+
+        return this.unions
+            .filter(({ name }) => {
+                if (included.has(name)) return false
+
+                included.add(name)
+                return true
+            })
+            .map(union => union.SQL())
             .join(' ')
     }
 
@@ -102,6 +114,12 @@ export default class FindOneSQLBuilder<
 
     public limitSQL(): string {
         return 'LIMIT 1'
+    }
+
+    // ------------------------------------------------------------------------
+
+    public mergeUnions(unions: UnionSQLBuilder[]): void {
+        this.unions.push(...unions)
     }
 
     // Privates ---------------------------------------------------------------

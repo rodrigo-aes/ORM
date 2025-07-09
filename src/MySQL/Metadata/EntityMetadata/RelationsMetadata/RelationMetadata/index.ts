@@ -1,5 +1,3 @@
-import type { EntityTarget } from "../../../../../types/General"
-
 import AbstractRelationMetadata from "./RelationMetadata"
 
 // Objects
@@ -58,6 +56,8 @@ import type {
     RelatedEntitiesMap,
     RelationMetadataType,
     RelationMetadataName,
+    OneRelationMetadataType,
+    ManyRelationMetadatatype,
     RelationJSON
 } from "./types"
 
@@ -173,6 +173,8 @@ export default
 
 export {
     type RelationMetadataType,
+    type OneRelationMetadataType,
+    type ManyRelationMetadatatype,
     type RelationJSON,
 
     HasOneMetadata,

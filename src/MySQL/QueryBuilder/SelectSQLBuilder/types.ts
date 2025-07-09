@@ -21,6 +21,6 @@ export type SelectPropertyOptions<Entity extends object> = (
 )
 
 export type SelectOptions<Entity extends object> = {
-    properties?: SelectPropertyOptions<Entity>[] | null,
+    properties?: SelectPropertyOptions<Entity>[] | '1' | null,
     count?: CountQueryOptions<Entity>
 }

@@ -4,6 +4,10 @@ import CaseSQLBuilder, {
     Case,
     type CaseQueryOptions,
 } from "./CaseSQLBuilder"
+import ExistsSQLBuilder, {
+    Exists,
+    ExistsQueryOptions
+} from "./ExistsSQLBuilder"
 
 // Types
 import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
@@ -35,7 +39,7 @@ export default class ConditionalSQLBuilder {
         relation: RelationMetadataType,
         parentAlias: string,
         alias: string,
-        target?: T,
+        target: T,
         options?: ConditionalQueryOptions<InstanceType<T>>,
     ): OnSQLBuilder<T> {
         return new OnSQLBuilder(
@@ -73,5 +77,8 @@ export {
     type OrQueryOptions,
 
     Case,
-    type CaseQueryOptions
+    type CaseQueryOptions,
+
+    Exists,
+    type ExistsQueryOptions
 }

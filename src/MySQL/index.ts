@@ -10,6 +10,9 @@ import { EntityMetadata, DataType } from './Metadata'
 import BaseEntity from './BaseEntity'
 import BaseEntityUnion from './BaseEntityUnion'
 
+// Symbols
+import { Case, Exists } from './QueryBuilder'
+
 // Decorators
 import {
     Entity,
@@ -85,4 +88,7 @@ export {
 
     BeforeSync,
     AfterSync,
+
+    Case,
+    Exists
 }

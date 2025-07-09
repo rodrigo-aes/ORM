@@ -25,6 +25,9 @@ import DeleteSQLBuilder from "./DeleteSQLBuilder"
 
 import { RegisterProcedures } from "./Procedures"
 
+// Symbols
+import { Case, Exists } from "./ConditionalSQLBuilder"
+
 // Types
 import type {
     EntityProperties,
@@ -33,7 +36,11 @@ import type {
     EntityRelationsKeys
 } from "./types"
 
-import type { ConditionalQueryOptions } from "./ConditionalSQLBuilder"
+import type {
+    ConditionalQueryOptions,
+    AndQueryOptions,
+    OrQueryOptions
+} from "./ConditionalSQLBuilder"
 
 export {
     QueryBuilder,
@@ -49,6 +56,9 @@ export {
 
     RegisterProcedures,
 
+    Case,
+    Exists,
+
     type EntityProperties,
     type EntityRelations,
     type EntityPropertiesKeys,
@@ -60,5 +70,7 @@ export {
     type CreationAttributesOptions,
     type UpdateAttributes,
     type UpdateOrCreateAttibutes,
-    type ConditionalQueryOptions
+    type ConditionalQueryOptions,
+    type AndQueryOptions,
+    type OrQueryOptions,
 }

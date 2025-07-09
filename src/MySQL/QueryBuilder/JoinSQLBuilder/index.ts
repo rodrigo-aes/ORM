@@ -100,12 +100,6 @@ export default class JoinSQLBuilder<
     }
 
     // Privates ---------------------------------------------------------------
-    private getMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
     private handleAlias(): string {
         return `${this.parentAlias}_${this.relation.name}`
     }

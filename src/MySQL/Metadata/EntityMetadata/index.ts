@@ -25,6 +25,8 @@ import ColumnsMetadata, {
 import RelationsMetadata, {
     RelationMetadata,
     type RelationMetadataType,
+    type OneRelationMetadataType,
+    type ManyRelationMetadatatype,
     type RelationsMetadataJSON,
 
     HasOneMetadata,
@@ -324,6 +326,8 @@ export {
     type ForeignKeyActionListener,
 
     type RelationMetadataType,
+    type OneRelationMetadataType,
+    type ManyRelationMetadatatype,
     type RelationsMetadataJSON,
 
     HasOneMetadata,

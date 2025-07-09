@@ -4,9 +4,7 @@ import { EntityUnionMetadata } from "../../Metadata"
 import type { UnionEntityTarget, EntityTarget } from "../../../types/General"
 
 export default function EntityUnion(...entities: EntityTarget[]) {
-    return function (
-        target: UnionEntityTarget,
-    ) {
+    return function (target: UnionEntityTarget) {
         EntityUnionMetadata.findOrBuild(
             target.name.toLowerCase(),
             target,

@@ -1,5 +1,6 @@
 import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { ResultSetHeader } from "mysql2"
+import type { AsEntityTarget } from "../../../types/General"
 
 import type {
     FindByPkSQLBuilder,
@@ -13,23 +14,16 @@ import type {
 
 import type { Collection } from "../../BaseEntity"
 
-export type UnionSQLBuilder<T extends EntityTarget | UnionEntityTarget> = (
-    FindByPkSQLBuilder<T> |
-    FindOneSQLBuilder<T> |
-    FindSQLBuilder<T> |
-    UpdateSQLBuilder<T> |
-    DeleteSQLBuilder<T>
-)
+
 
 export type SQLBuilder<T extends EntityTarget | UnionEntityTarget> = (
-    T extends UnionEntityTarget
-    ? UnionSQLBuilder<T>
-    : T extends EntityTarget
-    ? UnionSQLBuilder<T> | (
-        CreateSQLBuilder<T> |
-        UpdateOrCreateSQLBuilder<T>
-    )
-    : never
+    FindByPkSQLBuilder<T> |
+    FindSQLBuilder<T> |
+    FindOneSQLBuilder<T> |
+    CreateSQLBuilder<AsEntityTarget<T>> |
+    UpdateOrCreateSQLBuilder<AsEntityTarget<T>> |
+    UpdateSQLBuilder<T> |
+    DeleteSQLBuilder<T>
 )
 
 import type { MySQL2RawData, RawData } from "../MySQL2RawDataHandler"
@@ -49,8 +43,6 @@ export type UnionExecResult<
         ? FindResult<T, MapTo>
         : Builder extends FindOneSQLBuilder<T>
         ? FindOneResult<T, MapTo>
-        : Builder extends FindByPkSQLBuilder<T>
-        ? FindOneResult<T, MapTo>
         : Builder extends UpdateSQLBuilder<T>
         ? UpdateResult<T>
         : Builder extends DeleteSQLBuilder<T>
@@ -67,6 +59,8 @@ export type ExecResult<
         Builder extends FindSQLBuilder<T>
         ? FindResult<T, MapTo>
         : Builder extends FindOneSQLBuilder<T>
+        ? FindOneResult<T, MapTo>
+        : Builder extends FindByPkSQLBuilder<T>
         ? FindOneResult<T, MapTo>
         : Builder extends FindByPkSQLBuilder<T>
         ? FindOneResult<T, MapTo>

@@ -1,13 +1,13 @@
 import BaseEntity from "../BaseEntity"
+import BaseEntityUnion from "../BaseEntityUnion"
+
 
 // SQL Builders
 import {
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
     FindSQLBuilder,
-    CreateSQLBuilder,
     UpdateSQLBuilder,
-    UpdateOrCreateSQLBuilder,
     DeleteSQLBuilder,
 
     type FindOneQueryOptions,
@@ -27,11 +27,11 @@ import {
 } from "../Handlers"
 
 // Types 
-import type { EntityTarget, AsEntityTarget } from "../../types/General"
+import type { UnionEntityTarget } from "../../types/General"
 import type { UpdateQueryResult } from "./types"
 import type { ResultSetHeader } from "mysql2"
 
-export default class Repository<T extends EntityTarget> {
+export default class UnionRepository<T extends UnionEntityTarget> {
     constructor(
         public target: T
     ) { }
@@ -41,8 +41,8 @@ export default class Repository<T extends EntityTarget> {
     public findByPk(pk: any, mapTo: ResultMapOption = 'entity') {
         return new MySQL2QueryExecutionHandler(
             this.target,
-            new FindByPkSQLBuilder<AsEntityTarget<T>>(
-                this.target as AsEntityTarget<T>,
+            new FindByPkSQLBuilder<T>(
+                this.target,
                 pk
             ),
             mapTo
@@ -80,44 +80,8 @@ export default class Repository<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public create(attributes: CreationAttributes<InstanceType<T>>): (
-        Promise<InstanceType<T>>
-    ) {
-        return new MySQL2QueryExecutionHandler(
-            this.target,
-            new CreateSQLBuilder<AsEntityTarget<T>>(
-                this.target as AsEntityTarget<T>,
-                attributes
-            ),
-            'entity'
-        )
-            .exec() as (
-                Promise<InstanceType<T>>
-            )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public createMany(attributes: CreationAttributes<InstanceType<T>>[]): (
-        Promise<InstanceType<T>[]>
-    ) {
-        return new MySQL2QueryExecutionHandler(
-            this.target,
-            new CreateSQLBuilder<AsEntityTarget<T>>(
-                this.target as AsEntityTarget<T>,
-                attributes
-            ),
-            'entity'
-        )
-            .exec() as (
-                Promise<InstanceType<T>[]>
-            )
-    }
-
-    // ------------------------------------------------------------------------
-
     public async update<Data extends (
-        (BaseEntity & InstanceType<T>) |
+        (BaseEntityUnion<any> & InstanceType<T>) |
         UpdateAttributes<InstanceType<T>>
     )>(
         attributes: Data,
@@ -140,24 +104,6 @@ export default class Repository<T extends EntityTarget> {
                 : header
         ) as (
                 UpdateQueryResult<T, Data>
-            )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public updateOrCreate(
-        attributes: UpdateOrCreateAttibutes<InstanceType<T>>
-    ): Promise<InstanceType<T>> {
-        return new MySQL2QueryExecutionHandler(
-            this.target,
-            new UpdateOrCreateSQLBuilder<AsEntityTarget<T>>(
-                this.target as AsEntityTarget<T>,
-                attributes as UpdateOrCreateAttibutes<EntityTarget>
-            ),
-            'entity'
-        )
-            .exec() as (
-                Promise<InstanceType<T>>
             )
     }
 

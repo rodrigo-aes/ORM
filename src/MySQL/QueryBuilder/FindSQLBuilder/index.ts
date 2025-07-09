@@ -17,7 +17,8 @@ export default class FindSQLBuilder<
     constructor(
         public target: T,
         public options: FindQueryOptions<InstanceType<T>>,
-        alias?: string
+        alias?: string,
+        protected primary: boolean = true
     ) {
         super(target, options, alias)
 
@@ -29,7 +30,7 @@ export default class FindSQLBuilder<
     // Publics ----------------------------------------------------------------
     public override SQL(): string {
         return [
-            this.unionsSQL(),
+            this.primary ? this.unionsSQL() : '',
             this.selectSQL(),
             this.joinsSQL(),
             this.whereSQL(),

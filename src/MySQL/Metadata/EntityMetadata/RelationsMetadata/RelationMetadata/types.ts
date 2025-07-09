@@ -48,6 +48,22 @@ export type RelationMetadataType = (
     PolymorphicBelongsToMetadata
 )
 
+export type OneRelationMetadataType = Omit<RelationMetadataType, (
+    'HasManyMetadata' |
+    'HasManyThroughMetadata' |
+    'BelongsToManyMetadata' |
+    'PolymorphicHasManyMetadata'
+)>
+
+export type ManyRelationMetadatatype = Omit<RelationMetadataType, (
+    'HasOneMetadata' |
+    'HasOneThroughMetadata' |
+    'BelongsToMetadata' |
+    'BelongsToThroughMetadata' |
+    'PolymorphicHasOneMetadata' |
+    'PolymorphicBelongsToMetadata'
+)>
+
 export type RelationMetadataName = (
     'HasOne' |
     'HasMany' |

@@ -25,5 +25,5 @@ export {
     type FindOneResult,
     type FindResult,
     type CreateResult,
-    type DeleteResult
+    type DeleteResult,
 }

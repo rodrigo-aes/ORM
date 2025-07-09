@@ -1,6 +1,8 @@
 import RelationMetadata, {
     type RelationJSON,
     type RelationMetadataType,
+    type OneRelationMetadataType,
+    type ManyRelationMetadatatype,
 
     HasOneMetadata,
     type HasOneOptions,
@@ -169,7 +171,10 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
 
 export {
     RelationMetadata,
+    type RelationJSON,
     type RelationsMetadataJSON,
+    type OneRelationMetadataType,
+    type ManyRelationMetadatatype,
     type RelationMetadataType,
 
     HasOneMetadata,

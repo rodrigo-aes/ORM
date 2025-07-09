@@ -14,6 +14,8 @@ import EntityMetadata, {
     type ForeignKeyActionListener,
 
     type RelationMetadataType,
+    type OneRelationMetadataType,
+    type ManyRelationMetadatatype,
 
     HasOneMetadata,
     type HasOneOptions,
@@ -89,6 +91,8 @@ export {
     type ForeignKeyActionListener,
 
     type RelationMetadataType,
+    type OneRelationMetadataType,
+    type ManyRelationMetadatatype,
 
     HasOneMetadata,
     type HasOneOptions,

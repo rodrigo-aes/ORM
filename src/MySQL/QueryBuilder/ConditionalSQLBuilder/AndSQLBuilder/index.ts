@@ -1,10 +1,10 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
-
 // Operators
 import Operator, {
     type OperatorKey,
     type CompatibleOperators
 } from "../Operator"
+
+import ExistsSQLBuilder, { Exists } from '../ExistsSQLBuilder'
 
 // Handlers
 import { MetadataHandler } from "../../../Metadata"
@@ -13,6 +13,7 @@ import { MetadataHandler } from "../../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
+import type { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
 import type {
     AndQueryOptions,
     EntityAndQueryOptions,
@@ -20,6 +21,8 @@ import type {
 } from "./types"
 import type { EntityTarget, UnionEntityTarget } from "../../../../types/General"
 import type { EntityPropertiesKeys } from "../../types"
+import type { ConditionalQueryOptions } from "../types"
+import type UnionSQLBuilder from "../../UnionSQLBuilder"
 
 
 export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
@@ -29,6 +32,8 @@ export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
 
     protected propOptions!: EntityAndQueryOptions<InstanceType<T>>
     protected relOptions!: RelationAndQueryOptions
+
+    private existsSQLBuilder?: ExistsSQLBuilder<T>
 
     constructor(
         public target: T,
@@ -40,6 +45,7 @@ export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
 
         this.propOptions = this.filterPropetiesOptions()
         this.relOptions = this.filterRelationOptions()
+        this.existsSQLBuilder = this.buildExistsSQLBuilder()
     }
 
     // Instance Methods =======================================================
@@ -48,10 +54,17 @@ export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
         return SQLStringHelper.normalizeSQL(
             [
                 ...this.propertiesSQL(),
-                ...this.relationsSQL()
+                ...this.relationsSQL(),
+                ...this.existsSQL()
             ]
                 .join(' AND ')
         )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public unions(): UnionSQLBuilder[] {
+        return this.existsSQLBuilder?.unions() ?? []
     }
 
     // Privates ---------------------------------------------------------------
@@ -83,7 +96,17 @@ export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private propertySQL<Key extends keyof EntityAndQueryOptions<InstanceType<T>>>(
+    private existsSQL(): string[] {
+        return this.existsSQLBuilder
+            ? [this.existsSQLBuilder?.SQL()]
+            : []
+    }
+
+    // ------------------------------------------------------------------------
+
+    private propertySQL<
+        Key extends keyof EntityAndQueryOptions<InstanceType<T>>
+    >(
         columnName: Key,
         value: EntityAndQueryOptions<InstanceType<T>>[Key]
     ): string {
@@ -179,6 +202,26 @@ export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
         }
 
         return opts
+    }
+
+    // ------------------------------------------------------------------------
+
+    private buildExistsSQLBuilder(): ExistsSQLBuilder<T> | undefined {
+        const options = this.extractExistsQueryOptions()
+
+        if (options) return new ExistsSQLBuilder(
+            this.target,
+            options,
+            this.alias
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private extractExistsQueryOptions(): (
+        ConditionalQueryOptions<InstanceType<T>> | undefined
+    ) {
+        return this.options[Exists]
     }
 }
 

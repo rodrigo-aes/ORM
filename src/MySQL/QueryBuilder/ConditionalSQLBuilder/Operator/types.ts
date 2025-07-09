@@ -24,6 +24,7 @@ import {
 } from './Symbols'
 
 import type { OrOperatorValue } from './Or/types'
+import type { ConditionalQueryOptions } from '../types'
 
 export type Primitive = string | number | boolean | Date | null
 
@@ -46,7 +47,7 @@ export type OperatorKey = (
     typeof RegExp |
     typeof NotRegExp
     // typeof Not |
-    // typeof Exists |
+    // typeof Exists
     // typeof NotExists |
     // typeof Any |
     // typeof All |
@@ -71,7 +72,7 @@ export type OperatorType<T extends any = any> = {
     [RegExp]: RegExp | string
     [NotRegExp]: RegExp | string
     [Not]: any
-    [Exists]: string | object
+    [Exists]: ConditionalQueryOptions<any>
     [NotExists]: string | object
     [Any]: Primitive[] | string
     [All]: Primitive[] | string
