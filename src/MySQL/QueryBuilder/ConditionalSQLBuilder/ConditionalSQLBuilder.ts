@@ -36,8 +36,9 @@ export default abstract class ConditionalSQLBuilder<
         return this.sqlBuilder?.unions() ?? []
     }
 
-    // Protecteds -------------------------------------------------------------
-    protected conditionalSQL(): string {
+    // ------------------------------------------------------------------------
+
+    public conditionalSQL(): string {
         return this.sqlBuilder?.SQL() ?? ''
     }
 

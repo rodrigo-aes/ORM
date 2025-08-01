@@ -103,7 +103,7 @@ export default class OnSQLBuilder<
         )
         const throughPrimary = throughEntity.columns.primary.name
 
-        return `EXISTS(
+        return `EXISTS (
             SELECT 1 FROM ${entity.tableName} ${this.alias} 
                 WHERE EXISTS (
                     SELECT 1 FROM ${throughEntity.tableName} ${throughEntityName}

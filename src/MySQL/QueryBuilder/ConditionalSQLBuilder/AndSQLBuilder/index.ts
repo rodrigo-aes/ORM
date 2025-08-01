@@ -219,7 +219,7 @@ export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
     // ------------------------------------------------------------------------
 
     private extractExistsQueryOptions(): (
-        ConditionalQueryOptions<InstanceType<T>> | undefined
+        string | ConditionalQueryOptions<InstanceType<T>> | undefined
     ) {
         return this.options[Exists]
     }

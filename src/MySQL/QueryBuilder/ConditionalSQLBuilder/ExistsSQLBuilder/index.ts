@@ -29,35 +29,44 @@ export default class ExistsSQLBuilder<
 
     protected relOptions: ConditionalQueryOptions<InstanceType<T>>
 
-    public findSQLBuilder: FindOneSQLBuilder<T>
+    public findSQLBuilder?: FindOneSQLBuilder<T>
 
     constructor(
         public target: T,
-        public options: ConditionalQueryOptions<InstanceType<T>>,
+        public options: string | ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.loadMetadata(this.target!)
 
         this.relOptions = this.filterRelationsOptions()
-        this.findSQLBuilder = this.buildFindSQLBuilder()
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            EXISTS (${this.findSQLBuilder.SQL()})
+            EXISTS (${this.handleExistQuery()})
         `)
     }
 
     // ------------------------------------------------------------------------
 
-    public unions(): UnionSQLBuilder[] {
-        return this.findSQLBuilder.unions
+    public unions(): UnionSQLBuilder[] | undefined {
+        return this.findSQLBuilder?.unions
     }
 
     // Privates ---------------------------------------------------------------
+    private handleExistQuery(): string {
+        switch (typeof this.options) {
+            case "string": return this.options
+            case "object":
+                this.findSQLBuilder = this.buildFindSQLBuilder()
+                return this.findSQLBuilder.SQL()
+
+            default: throw new Error
+        }
+    }
 
     private buildFindSQLBuilder(): FindOneSQLBuilder<T> {
         return new FindOneSQLBuilder(
@@ -66,7 +75,9 @@ export default class ExistsSQLBuilder<
                 select: {
                     properties: '1'
                 },
-                where: this.options,
+                where: this.options as (
+                    ConditionalQueryOptions<InstanceType<T>>
+                ),
                 relations: this.buildRelationsOptions()
             },
             this.alias,

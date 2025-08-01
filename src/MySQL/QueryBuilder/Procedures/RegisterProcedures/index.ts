@@ -1,4 +1,5 @@
 import UpdateOrCreate from "../UpdateOrCreate"
+import SyncManyToMany from "../SyncManyToMany"
 
 // Types
 import type MySQLConnection from "../../../Connection"
@@ -9,7 +10,8 @@ export default class RegisterProcedures {
     }
 
     public static readonly procedures = [
-        UpdateOrCreate
+        UpdateOrCreate,
+        SyncManyToMany
     ]
 
     // Static Methods =========================================================

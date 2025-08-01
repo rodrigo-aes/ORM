@@ -9,6 +9,8 @@ import type {
     UpdateOrCreateAttibutes
 } from "../../QueryBuilder"
 
+import { Exists } from "../../QueryBuilder"
+
 export default class BelongsToMany<
     T extends EntityTarget,
     Parent extends BaseEntity
@@ -33,6 +35,24 @@ export default class BelongsToMany<
     protected get whereOptions(): (
         ConditionalQueryOptions<InstanceType<T>>
     ) {
-        return {}
+        const target = this.metadata.entity
+        const joinTable = this.metadata.joinTable
+        const targetForeignKey = this.metadata.entityForeignKey.name
+        const parentForeignKey = this.metadata.targetForeignKey.name
+
+        return {
+            [Exists]: `
+                SELECT 1 FROM ${target.tableName} ${target.name}
+                WHERE EXISTS(
+                    SELECT 1 FROM ${joinTable.tableName}
+                        WHERE ${joinTable.tableName}.${targetForeignKey} =
+                            ${target.name}.${target.columns.primary.name}
+                        AND ${joinTable.tableName}.${parentForeignKey} = 
+                            ${this.parentMetadata.name}.${this.parentMetadata.columns.primary.name}
+                )
+            `
+        } as (
+                ConditionalQueryOptions<InstanceType<T>>
+            )
     }
 }

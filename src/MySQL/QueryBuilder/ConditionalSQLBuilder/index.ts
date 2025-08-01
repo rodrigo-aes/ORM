@@ -4,7 +4,8 @@ import CaseSQLBuilder, {
     Case,
     type CaseQueryOptions,
 } from "./CaseSQLBuilder"
-import ExistsSQLBuilder, {
+
+import {
     Exists,
     ExistsQueryOptions
 } from "./ExistsSQLBuilder"
