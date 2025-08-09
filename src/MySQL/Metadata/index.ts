@@ -7,6 +7,7 @@ import EntityMetadata, {
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
+    HooksMetadata,
 
     type JoinTableRelated,
 
@@ -84,6 +85,7 @@ export {
     UnionColumnsMetadata,
     UnionColumnMetadata,
     MetadataHandler,
+    HooksMetadata,
 
     type JoinTableRelated,
 

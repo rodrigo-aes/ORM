@@ -14,6 +14,8 @@ import {
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
     DeleteSQLBuilder,
+
+    FindQueryOptions,
 } from "../../QueryBuilder"
 
 // Handlers
@@ -135,23 +137,33 @@ export default class MySQL2QueryExecutionHandler<
     // ------------------------------------------------------------------------
 
     private async executeFindOne(): Promise<FindOneResult<T, MapTo>> {
-        const connection = this.getConnection()
-        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
+        await this.callBeforeFindHook()
 
-        return this.handleDataMapTo(mySQL2RawData, 'One') as (
+        const connection = this.getConnection();
+        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
+        const result = this.handleDataMapTo(mySQL2RawData, 'One') as (
             FindOneResult<T, MapTo>
         )
+
+        await this.callAfterFindHook(result)
+
+        return result
     }
 
     // ------------------------------------------------------------------------
 
     private async executeFind(): Promise<FindResult<T, MapTo>> {
+        await this.callBeforeBulkFindHook()
+
         const connection = this.getConnection()
         const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
-
-        return this.handleDataMapTo(mySQL2RawData, 'Many') as (
+        const result = this.handleDataMapTo(mySQL2RawData, 'Many') as (
             FindResult<T, MapTo>
         )
+
+        await this.callAfterBulkFindHook(result)
+
+        return result
     }
 
     // ------------------------------------------------------------------------
@@ -159,6 +171,8 @@ export default class MySQL2QueryExecutionHandler<
     private async executeCreate(): (
         Promise<CreateResult<Extract<T, EntityTarget>>>
     ) {
+        this.callBeforeCreateHook()
+
         const connection = this.getConnection()
 
         const resultHeader: ResultSetHeader = await connection.query(
@@ -167,9 +181,13 @@ export default class MySQL2QueryExecutionHandler<
                 .columnsValues
         ) as any
 
-        return this.buildCreatedEntities(resultHeader) as (
+        const result = this.buildCreatedEntities(resultHeader) as (
             CreateResult<Extract<T, EntityTarget>>
         )
+
+        await this.callAfterCreateHook(result)
+
+        return result
     }
 
     // ------------------------------------------------------------------------
@@ -277,6 +295,69 @@ export default class MySQL2QueryExecutionHandler<
     private getConnection(): MySQLConnection {
         if (!this.metadata.connection) throw new Error
         return this.metadata.connection
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callBeforeFindHook(): Promise<void> {
+        await this.metadata.hooks?.callBeforeFind(
+            (this.sqlBuilder as FindOneSQLBuilder<T>).options
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callAfterFindHook(result: FindOneResult<T, MapTo>): (
+        Promise<void>
+    ) {
+        if (result) await this.metadata.hooks?.callAfterFind(result)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callBeforeBulkFindHook(): Promise<void> {
+        await this.metadata.hooks?.callBeforeBulkFind(
+            (this.sqlBuilder as FindOneSQLBuilder<T>).options
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callAfterBulkFindHook(result: FindResult<T, MapTo>): (
+        Promise<void>
+    ) {
+        if (result) await this.metadata.hooks?.callAfterBulkFind(result)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callBeforeCreateHook(): Promise<void> {
+        await (
+            Array.isArray(
+                (this.sqlBuilder as CreateSQLBuilder<AsEntityTarget<T>>)
+                    .attributes
+            )
+                ? this.metadata.hooks?.callBeforeBulkCreate(
+                    (this.sqlBuilder as CreateSQLBuilder<AsEntityTarget<T>>)
+                        .attributes as any
+                )
+                : this.metadata.hooks?.callBeforeCreate(
+                    (this.sqlBuilder as CreateSQLBuilder<AsEntityTarget<T>>)
+                        .attributes as any
+                )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callAfterCreateHook(
+        result: CreateResult<Extract<T, EntityTarget>>
+    ): Promise<void> {
+        await (
+            Array.isArray(result)
+                ? this.metadata.hooks?.callAfterBulkCreate(result)
+                : this.metadata.hooks?.callAfterCreate(result)
+        )
     }
 
     // Static Methods =========================================================

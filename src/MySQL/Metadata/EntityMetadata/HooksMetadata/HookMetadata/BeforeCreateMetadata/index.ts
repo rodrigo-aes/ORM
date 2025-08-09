@@ -1,15 +1,20 @@
 import HookMetadata from "../HookMetadata"
 
-export default class AfterSyncMetadata extends HookMetadata {
+// Types
+import type { CreationAttributes } from "../../../../../QueryBuilder"
+
+export default class BeforeCreateMetadata extends HookMetadata {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get type(): 'after-sync' {
-        return 'after-sync'
+    public get type(): 'before-create' {
+        return 'before-create'
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public call(): void | Promise<void> {
-        return this.hookFn()
+    public call<Entity extends object>(
+        attributes: CreationAttributes<Entity>
+    ) {
+        return this.hookFn(attributes)
     }
 }

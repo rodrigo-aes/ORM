@@ -1,9 +1,12 @@
-import type { EntityTarget } from "../../../../../types/General"
+import type {
+    EntityTarget,
+    UnionEntityTarget
+} from "../../../../../types/General"
 import type { HookType, HookFunction } from "./types"
 
 export default abstract class HookMetadata {
     constructor(
-        public target: EntityTarget,
+        public target: EntityTarget | UnionEntityTarget,
         public propertName: string
     ) { }
 
@@ -11,13 +14,11 @@ export default abstract class HookMetadata {
     // Publics ----------------------------------------------------------------
     public abstract get type(): HookType
 
-    public get propertyFn(): HookFunction {
+    public get hookFn(): HookFunction {
         return this.target[this.propertName as keyof EntityTarget]
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public call(...args: any[]): void | Promise<void> {
-        return this.propertyFn(...args)
-    }
+    public abstract call(...args: any[]): void | Promise<void>
 }

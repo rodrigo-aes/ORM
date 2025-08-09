@@ -6,4 +6,10 @@ export default class BeforeSyncMetadata extends HookMetadata {
     public get type(): 'before-sync' {
         return 'before-sync'
     }
+
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public call(): void | Promise<void> {
+        return this.hookFn()
+    }
 }

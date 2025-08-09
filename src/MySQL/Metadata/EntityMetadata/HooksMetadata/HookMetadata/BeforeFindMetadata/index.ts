@@ -1,15 +1,18 @@
 import HookMetadata from "../HookMetadata"
 
-export default class AfterSyncMetadata extends HookMetadata {
+// Types
+import type { FindQueryOptions } from "../../../../../QueryBuilder"
+
+export default class BeforeFindMetadata extends HookMetadata {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get type(): 'after-sync' {
-        return 'after-sync'
+    public get type(): 'before-find' {
+        return 'before-find'
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public call(): void | Promise<void> {
-        return this.hookFn()
+    public call(options: FindQueryOptions<any>): void | Promise<void> {
+        return this.hookFn(options)
     }
 }

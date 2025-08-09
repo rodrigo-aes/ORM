@@ -99,9 +99,14 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
-    public save<T extends BaseEntity>(this: T): Promise<T> {
-        return new Repository(this.constructor as EntityTarget)
-            .updateOrCreate(this) as Promise<T>
+    public async save<T extends BaseEntity>(this: T): Promise<T> {
+        Object.assign(
+            this,
+            await new Repository(this.constructor as EntityTarget)
+                .updateOrCreate(this)
+        )
+
+        return this
     }
 
     // ------------------------------------------------------------------------
