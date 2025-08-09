@@ -3,6 +3,8 @@ import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 import BaseEntity from "../../BaseEntity"
 import BaseEntityUnion from "../../BaseEntityUnion"
 
+import RelationQueryExecutionHandler from "./RelationQueryExecutionHandler"
+
 // SQL Builders
 import {
     FindByPkSQLBuilder,
@@ -276,6 +278,14 @@ export default class MySQL2QueryExecutionHandler<
         if (!this.metadata.connection) throw new Error
         return this.metadata.connection
     }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static relation<T extends EntityTarget | UnionEntityTarget>(
+        related: T
+    ): RelationQueryExecutionHandler<T> {
+        return new RelationQueryExecutionHandler(related)
+    }
 }
 
 export {
@@ -285,4 +295,6 @@ export {
     type FindResult,
     type CreateResult,
     type DeleteResult,
+
+    type RelationQueryExecutionHandler
 }

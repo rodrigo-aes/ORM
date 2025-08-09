@@ -1,18 +1,18 @@
 import ManyRelation from "../ManyRelation"
 
 // SQL Builders
-import { HasManyHandlerSQLBuilder } from "../../QueryBuilder"
+import { HasManyThroughHandlerSQLBuilder } from "../../QueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { HasManyMetadata } from "../../Metadata"
+import type { HasManyThroughMetadata } from "../../Metadata"
 
-export default class HasMany<
+export default class HasManyThrough<
     Target extends object,
     Related extends EntityTarget
-> extends ManyRelation.HasMany<Target, Related> {
+> extends ManyRelation<Target, Related> {
     constructor(
-        protected metadata: HasManyMetadata,
+        protected metadata: HasManyThroughMetadata,
         protected target: Target,
         protected related: Related
     ) {
@@ -21,8 +21,10 @@ export default class HasMany<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
-    protected get sqlBuilder(): HasManyHandlerSQLBuilder<Target, Related> {
-        return new HasManyHandlerSQLBuilder(
+    protected get sqlBuilder(): (
+        HasManyThroughHandlerSQLBuilder<Target, Related>
+    ) {
+        return new HasManyThroughHandlerSQLBuilder(
             this.metadata,
             this.target,
             this.related

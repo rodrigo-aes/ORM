@@ -35,12 +35,6 @@ export default class ConditionalQueryJoinsHandler<
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private extractConditionalRelations(): (
         ConditionalQueryOptions<InstanceType<T>>
     ) {

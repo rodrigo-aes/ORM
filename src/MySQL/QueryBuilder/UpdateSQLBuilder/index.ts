@@ -99,7 +99,7 @@ export default class UpdateSQLBuilder<
     // Privates ---------------------------------------------------------------
     private handleTableName(): string {
         if (this.metadata instanceof EntityUnionMetadata) return (
-            this.metadata.sourceMetadata[
+            this.metadata.sourcesMetadata[
                 (this.attributes as BaseEntity).constructor.name
             ]
                 .tableName

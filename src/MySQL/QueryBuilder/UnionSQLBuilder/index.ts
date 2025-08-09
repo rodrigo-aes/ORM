@@ -24,7 +24,7 @@ export default class UnionSQLBuilder {
     // Getters ================================================================
     // Privates ---------------------------------------------------------------
     private get entities(): EntityMetadata[] {
-        return Object.values(this.metadata.sourceMetadata)
+        return Object.values(this.metadata.sourcesMetadata)
     }
 
     // ------------------------------------------------------------------------

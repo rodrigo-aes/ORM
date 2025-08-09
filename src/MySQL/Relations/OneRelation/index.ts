@@ -1,97 +1,71 @@
-import Repository from "../../Repository"
-import UnionRepository from "../../UnionRepository"
+// Childs
+import HasOneRelation from "./HasOneRelation"
 
-import BaseEntity from "../../BaseEntity"
-import BaseEntityUnion from "../../BaseEntityUnion"
+// Handlers
+import {
+    MySQL2QueryExecutionHandler,
+    type RelationQueryExecutionHandler,
+    type DeleteResult
+} from "../../Handlers"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
-import type {
-    OneRelationMetadataType,
-    EntityMetadata,
-    EntityUnionMetadata
-} from "../../Metadata"
-
-import type {
-    DeleteResult,
-    ConditionalQueryOptions
-} from "../../Repository"
-
-import type { UpdateAttributes } from "../../Repository"
-import type { TypedRepository } from "../types"
 import type { ResultSetHeader } from "mysql2"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { OneRelationMetadataType } from "../../Metadata"
+import type { OneRelationHandlerSQLBuilder } from "../../QueryBuilder"
+import type { UpdateAttributes } from "../../QueryBuilder"
 
 export default abstract class OneRelation<
-    T extends EntityTarget | UnionEntityTarget
+    Target extends object,
+    Related extends EntityTarget | UnionEntityTarget
 > {
-    protected abstract metadata: OneRelationMetadataType
-    protected abstract parent: BaseEntity
+    constructor(
+        protected metadata: OneRelationMetadataType,
+        protected target: Target,
+        protected related: Related
+    ) { }
 
     // Getters ================================================================
-    // protecteds -------------------------------------------------------------
-    protected get parentMetadata(): EntityMetadata | EntityUnionMetadata {
-        return this.parent.getMetadata()
-    }
+    // Protecteds -------------------------------------------------------------
+    protected abstract get sqlBuilder(): OneRelationHandlerSQLBuilder
 
     // ------------------------------------------------------------------------
 
-    protected abstract get whereOptions(): (
-        ConditionalQueryOptions<InstanceType<T>>
-    )
+    protected get queryExecutionHandler(): (
+        RelationQueryExecutionHandler<Related>
+    ) {
+        return MySQL2QueryExecutionHandler.relation(this.related)
+    }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public load(): Promise<InstanceType<T>> {
-        return this.getRepository().findOne({
-            where: this.whereOptions
-        }) as (
-                Promise<InstanceType<T>>
-            )
+    public load(): Promise<InstanceType<Related> | null> {
+        return this.queryExecutionHandler.executeFindOne(
+            this.sqlBuilder.loadSQL()
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    public update(attributes: UpdateAttributes<InstanceType<T>>): (
+    public update(attributes: UpdateAttributes<InstanceType<Related>>): (
         Promise<ResultSetHeader>
     ) {
-        return (this.getRepository().update as any)(
-            attributes,
-            this.whereOptions
+        return this.queryExecutionHandler.executeUpdate(
+            this.sqlBuilder.updateSQL(attributes)
         )
     }
 
     // ------------------------------------------------------------------------
 
     public delete(): Promise<DeleteResult> {
-        return this.getRepository().delete(this.whereOptions)
+        return this.queryExecutionHandler.executeDelete(
+            this.sqlBuilder.deleteSQL()
+        )
     }
 
-    // Protecteds -------------------------------------------------------------
-    protected getRepository(): TypedRepository<T> {
-        switch (true) {
-            case (
-                this.metadata.relatedTarget.prototype
-                instanceof BaseEntity
-            ):
-                return new Repository(this.metadata.relatedTarget as (
-                    EntityTarget
-                )) as (
-                        TypedRepository<T>
-                    )
-
-            // ----------------------------------------------------------------
-
-            case (
-                this.metadata.relatedTarget.prototype
-                instanceof BaseEntityUnion
-            ):
-                return new UnionRepository(this.metadata.relatedTarget as (
-                    UnionEntityTarget
-                )) as (
-                        TypedRepository<T>
-                    )
-        }
-
-        throw new Error
+    // Static Getters =========================================================
+    // Publics ----------------------------------------------------------------
+    public static get HasOne(): typeof HasOneRelation {
+        return HasOneRelation
     }
 }

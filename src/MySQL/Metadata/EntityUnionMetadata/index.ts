@@ -25,7 +25,7 @@ export default class EntityUnionMetadata {
     public connection?: MySQLConnection
 
     private _entities!: UnionEntitiesMap
-    private _sourceMetadata!: SourcesMetadata
+    private _sourcesMetadata!: SourcesMetadata
 
     private _columns!: UnionColumnsMetadata
     private _relations?: UnionRelationsMetadata
@@ -35,8 +35,6 @@ export default class EntityUnionMetadata {
         public target: UnionEntityTarget | null,
         public sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
-        console.log(tableName)
-
         this.loadEntities()
         this.loadSourcesMetadata()
         this.loadColumns()
@@ -73,12 +71,12 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get sourceMetadata(): SourcesMetadata {
-        if (Object.values(this._sourceMetadata ?? {}).length === 0) (
+    public get sourcesMetadata(): SourcesMetadata {
+        if (Object.values(this._sourcesMetadata ?? {}).length === 0) (
             this.loadEntities()
         )
 
-        return this._sourceMetadata
+        return this._sourcesMetadata
     }
 
     // ------------------------------------------------------------------------
@@ -176,19 +174,19 @@ export default class EntityUnionMetadata {
                 this.sources = this.sources()
             )
 
-            this._sourceMetadata = Object.fromEntries(this.sources.map(
+            this._sourcesMetadata = Object.fromEntries(this.sources.map(
                 source => [source.name, EntityMetadata.findOrBuild(source)]
             ))
 
         } catch (error) {
-            this._sourceMetadata = {}
+            this._sourcesMetadata = {}
         }
     }
 
     // ------------------------------------------------------------------------
 
     private loadColumns(): UnionColumnsMetadata {
-        const metas = Object.values(this.sourceMetadata)
+        const metas = Object.values(this.sourcesMetadata)
 
         this._columns = new UnionColumnsMetadata(
             this.target,
@@ -201,7 +199,7 @@ export default class EntityUnionMetadata {
     // ------------------------------------------------------------------------
 
     private loadRelations(): UnionRelationsMetadata | undefined {
-        const metas = Object.values(this.sourceMetadata)
+        const metas = Object.values(this.sourcesMetadata)
         const relations = metas.flatMap(meta => [...meta.relations ?? []])
 
         if (relations.length > 0) this._relations = new UnionRelationsMetadata(

@@ -138,6 +138,19 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
         )
     }
 
+    // ------------------------------------------------------------------------
+
+    public findPolymorphicBelongsToByRelateds(relateds: EntityTarget[]): (
+        PolymorphicBelongsToMetadata | undefined
+    ) {
+        return this.find(relation => (
+            relation instanceof PolymorphicBelongsToMetadata &&
+            relation.related().every(related => relateds.includes(related))
+        )) as (
+                PolymorphicBelongsToMetadata | undefined
+            )
+    }
+
     // Protecteds -------------------------------------------------------------
     protected register() {
         Reflect.defineMetadata('relations', this, this.target)

@@ -1,4 +1,17 @@
-import { EntityMetadata } from "../Metadata"
+import {
+    EntityMetadata,
+    HasOneMetadata,
+    HasManyMetadata,
+    BelongsToMetadata,
+    HasOneThroughMetadata,
+    HasManyThroughMetadata,
+    BelongsToManyMetadata,
+    PolymorphicHasOneMetadata,
+    PolymorphicHasManyMetadata,
+    PolymorphicBelongsToMetadata,
+
+    type RelationMetadataType
+} from "../Metadata"
 
 // Query Builder
 import { QueryBuilder } from "../QueryBuilder"
@@ -18,9 +31,22 @@ import Repository, {
     type DeleteResult
 } from "../Repository"
 
+// Relations
+import {
+    HasOne,
+    HasMany,
+    BelongsTo,
+    HasOneThrough,
+    HasManyThrough,
+    BelongsToMany,
+    PolymorphicHasOne,
+    PolymorphicHasMany,
+    PolymorphicBelongsTo
+} from '../Relations'
+
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget, UnionEntityTarget } from "../../types/General"
 import type { EntityProperties } from "../QueryBuilder"
 
 export default abstract class BaseEntity {
@@ -87,6 +113,176 @@ export default abstract class BaseEntity {
 
         await new Repository(this.constructor as EntityTarget)
             .delete({ [primaryName]: this[primaryName] })
+    }
+
+    // Protecteds -------------------------------------------------------------
+    protected hasOne<
+        T extends BaseEntity,
+        Related extends EntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): HasOne<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof HasOneMetadata)) throw new Error
+
+        return new HasOne(metadata, this, related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected hasMany<
+        T extends BaseEntity,
+        Related extends EntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): HasMany<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof HasManyMetadata)) throw new Error
+
+        return new HasMany(metadata, this, related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected belongsTo<
+        T extends BaseEntity,
+        Related extends EntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): BelongsTo<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof BelongsToMetadata)) throw new Error
+
+        return new BelongsTo(metadata, this, related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected hasOneThrough<
+        T extends BaseEntity,
+        Related extends EntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): HasOneThrough<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof HasOneThroughMetadata)) throw new Error
+
+        return new HasOneThrough(metadata, this, related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected hasManyThrough<
+        T extends BaseEntity,
+        Related extends EntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): HasManyThrough<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof HasManyThroughMetadata)) throw new Error
+
+        return new HasManyThrough(metadata, this, related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected belongsToMany<
+        T extends BaseEntity,
+        Related extends EntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): BelongsToMany<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof BelongsToManyMetadata)) throw new Error
+
+        return new BelongsToMany(metadata, this, related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected polymorphicHasOne<
+        T extends BaseEntity,
+        Related extends EntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): PolymorphicHasOne<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof PolymorphicHasOneMetadata)) throw new Error
+
+        return new PolymorphicHasOne(metadata, this, related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected polymorphicHasMany<
+        T extends BaseEntity,
+        Related extends EntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): PolymorphicHasMany<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof PolymorphicHasManyMetadata)) throw new Error
+
+        return new PolymorphicHasMany(metadata, this, related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected polymorphicBelongsTo<
+        T extends BaseEntity,
+        Related extends UnionEntityTarget
+    >(
+        this: T,
+        name: string,
+        related: Related
+    ): PolymorphicBelongsTo<T, Related> {
+        const metadata = this.getRelationMetadataByName(name)
+
+        if (!metadata) throw new Error
+        if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw new Error
+
+        return new PolymorphicBelongsTo(metadata, this, related)
+    }
+
+    // Privates ---------------------------------------------------------------
+    private getRelationMetadataByName(name: string): (
+        RelationMetadataType | undefined
+    ) {
+        return this.getMetadata().relations?.find(
+            rel => rel.name === name
+        )
     }
 
     // Static Methods =========================================================

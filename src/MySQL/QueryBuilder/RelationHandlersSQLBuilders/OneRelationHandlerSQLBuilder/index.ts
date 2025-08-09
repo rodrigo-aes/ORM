@@ -39,13 +39,17 @@ export default abstract class OneRelationHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     public createSQL(attributes: CreationAttributes<InstanceType<Related>>): (
-        string
+        [string, any[]]
     ) {
-        return SQLStringHelper.normalizeSQL(`
+        const sql = SQLStringHelper.normalizeSQL(`
             INSERT INTO ${this.relatedTable}
             (${this.insertColumnsSQL(attributes)})
-            VALUES (${this.insertValuesSQL(attributes)})
+            VALUES (${this.placeholderSetSQL(attributes)})
         `)
+
+        const values = this.createValues(attributes)
+
+        return [sql, values]
     }
 
     // ------------------------------------------------------------------------

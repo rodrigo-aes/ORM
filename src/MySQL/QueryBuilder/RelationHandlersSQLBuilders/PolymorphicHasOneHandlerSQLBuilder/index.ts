@@ -9,7 +9,7 @@ import type {
     EntityTarget
 } from "../../../../types/General"
 
-export default class HasOneThroughHandlerSQLBuilder<
+export default class PolymorphicHasOneHandlerSQLBuilder<
     Target extends object,
     Related extends EntityTarget
 > extends OneRelationHandlerSQLBuilder<

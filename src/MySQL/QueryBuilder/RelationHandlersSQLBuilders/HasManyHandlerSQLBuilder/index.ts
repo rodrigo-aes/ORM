@@ -9,7 +9,7 @@ import type {
     EntityTarget
 } from "../../../../types/General"
 
-export default class HasManyRelationHandlerSQLBuilder<
+export default class HasManyHandlerSQLBuilder<
     Target extends object,
     Related extends EntityTarget
 > extends ManyRelationHandlerSQLBuilder<

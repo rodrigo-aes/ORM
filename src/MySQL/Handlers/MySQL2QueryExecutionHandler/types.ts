@@ -14,8 +14,6 @@ import type {
 
 import type { Collection } from "../../BaseEntity"
 
-
-
 export type SQLBuilder<T extends EntityTarget | UnionEntityTarget> = (
     FindByPkSQLBuilder<T> |
     FindSQLBuilder<T> |

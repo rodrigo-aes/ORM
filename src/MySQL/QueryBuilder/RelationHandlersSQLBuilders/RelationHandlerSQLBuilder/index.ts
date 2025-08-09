@@ -28,20 +28,20 @@ export default abstract class RelationHandlerSQLBuilder<
     Target extends object,
     Related extends EntityTarget | UnionEntityTarget
 > {
-    protected targetMetadata: EntityMetadata | EntityUnionMetadata
-    protected relatedMetadata: EntityMetadata | EntityUnionMetadata
+    protected targetMetadata: EntityMetadata | EntityUnionMetadata = (
+        MetadataHandler.loadMetadata(
+            this.target.constructor as EntityTarget | UnionEntityTarget
+        )
+    )
+    protected relatedMetadata: EntityMetadata | EntityUnionMetadata = (
+        MetadataHandler.loadMetadata(this.related)
+    )
 
     constructor(
         protected metadata: RelationMetadata,
         protected target: Target,
         protected related: Related
-    ) {
-        this.targetMetadata = MetadataHandler.loadMetadata(
-            target.constructor as EntityTarget | UnionEntityTarget
-        )
-
-        this.relatedMetadata = MetadataHandler.loadMetadata(related)
-    }
+    ) { }
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------

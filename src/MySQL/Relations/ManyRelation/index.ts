@@ -1,152 +1,150 @@
-import Repository from "../../Repository"
-import BaseEntity from "../../BaseEntity"
+import {
+    MetadataHandler,
+    type EntityMetadata,
+    type EntityUnionMetadata
+} from "../../Metadata"
 
-import type { EntityTarget } from "../../../types/General"
-import type { ManyRelationMetadatatype, EntityMetadata } from "../../Metadata"
+// Childs
+import HasManyRelation from "./HasManyRelation"
+
+// Handlers
+import {
+    MySQL2QueryExecutionHandler,
+    type RelationQueryExecutionHandler,
+    type DeleteResult
+} from "../../Handlers"
+
+// Types
+import type { ResultSetHeader } from "mysql2"
+import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { ManyRelationMetadatatype } from "../../Metadata"
+import type { ManyRelationHandlerSQLBuilder } from "../../QueryBuilder"
 import type {
-    FindOneQueryOptions,
-    FindQueryOptions,
     ConditionalQueryOptions,
-    CreationAttributes,
-    UpdateAttributes,
-    UpdateOrCreateAttibutes,
-    DeleteResult
-} from "../../Repository"
-
-import type { UpdateQueryResult } from "../../Repository/types"
+    UpdateAttributes
+} from "../../QueryBuilder"
 
 export default abstract class ManyRelation<
-    T extends EntityTarget
-> extends Array<InstanceType<T>> {
-    protected abstract metadata: ManyRelationMetadatatype
-    protected abstract parent: BaseEntity
+    Target extends object,
+    Related extends EntityTarget | UnionEntityTarget
+> extends Array<InstanceType<Related>> {
+    private _relatedMetadata?: EntityMetadata | EntityUnionMetadata
+
+    constructor(
+        protected metadata: ManyRelationMetadatatype,
+        protected target: Target,
+        protected related: Related,
+        ...instances: InstanceType<Related>[]
+    ) {
+        super(...instances)
+    }
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
-    protected get parentMetadata(): EntityMetadata {
-        return this.parent.getMetadata()
+    protected abstract get sqlBuilder(): ManyRelationHandlerSQLBuilder
+
+    // ------------------------------------------------------------------------
+
+    protected get queryExecutionHandler(): (
+        RelationQueryExecutionHandler<Related>
+    ) {
+        return MySQL2QueryExecutionHandler.relation(this.related)
     }
 
     // ------------------------------------------------------------------------
 
-    protected abstract get primaryKeyName(): keyof InstanceType<T>
+    protected get relatedMetadata(): EntityMetadata | EntityUnionMetadata {
+        return this._relatedMetadata ?? this.loadRelatedMetadata()
+    }
 
     // ------------------------------------------------------------------------
 
-    protected abstract get whereOptions(): (
-        ConditionalQueryOptions<InstanceType<T>>
-    )
+    protected get relatedPrimary(): keyof InstanceType<Related> {
+        return this.relatedMetadata.columns.primary.name as (
+            keyof InstanceType<Related>
+        )
+    }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async findAll(
-        options: Omit<FindQueryOptions<InstanceType<T>>, (
-            'group' |
-            'limit' |
-            'offset'
-        )>
-    ): Promise<InstanceType<T>[]> {
-        const result = await this.getRepository()
-            .find(this.mergeFindOptions(options)) as (
-                InstanceType<T>[]
-            )
+    public async load(
+        where?: ConditionalQueryOptions<InstanceType<Related>>
+    ): Promise<InstanceType<Related>[]> {
+        return this.mergeResults(
+            await this.queryExecutionHandler
+                .executeFind(this.sqlBuilder.loadSQL(where))
+        )
+    }
 
-        this.mergeResult(result)
+    // ------------------------------------------------------------------------
 
+    public async loadOne(
+        where?: ConditionalQueryOptions<InstanceType<Related>>
+    ): Promise<InstanceType<Related> | null> {
+        return this.mergeResult(
+            await this.queryExecutionHandler
+                .executeFindOne(this.sqlBuilder.loadOneSQL(where))
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public update(
+        attributes: UpdateAttributes<InstanceType<Related>>,
+        where?: ConditionalQueryOptions<InstanceType<Related>>
+    ): Promise<ResultSetHeader> {
+        return this.queryExecutionHandler
+            .executeUpdate(this.sqlBuilder.updateSQL(attributes, where))
+    }
+
+    // ------------------------------------------------------------------------
+
+    public delete(where?: ConditionalQueryOptions<InstanceType<Related>>): (
+        Promise<DeleteResult>
+    ) {
+        return this.queryExecutionHandler
+            .executeDelete(this.sqlBuilder.deleteSQL(where))
+    }
+
+    // Privates ---------------------------------------------------------------
+    private loadRelatedMetadata(): EntityMetadata | EntityUnionMetadata {
+        this._relatedMetadata = MetadataHandler.loadMetadata(this.related)
+        return this._relatedMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    private mergeResult(result: InstanceType<Related> | null): (
+        InstanceType<Related> | null
+    ) {
+        if (!result) return result
+
+        const existent = this.find(existent => (
+            existent[this.relatedPrimary] === result[this.relatedPrimary]
+        ))
+
+        if (existent) {
+            Object.assign(existent, result)
+            return existent
+        }
+
+        this.push(result)
         return result
     }
 
     // ------------------------------------------------------------------------
 
-    public findOne(
-        options: Omit<FindOneQueryOptions<InstanceType<T>>, (
-            'group'
-        )>
-    ): Promise<InstanceType<T> | null> {
-        return this.getRepository()
-            .findOne(this.mergeFindOptions(options)) as (
-                Promise<InstanceType<T> | null>
-            )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public update<
-        Data extends UpdateAttributes<InstanceType<T>>
-    >(
-        attributes: Data,
-        where: ConditionalQueryOptions<InstanceType<T>>
-    ): Promise<UpdateQueryResult<T, Data>> {
-        return this.getRepository().update(attributes, {
-            ...where,
-            ...this.whereOptions
-        })
-    }
-
-    // ------------------------------------------------------------------------
-
-    public delete(where: ConditionalQueryOptions<InstanceType<T>>): (
-        Promise<DeleteResult>
+    private mergeResults(results: InstanceType<Related>[]): (
+        InstanceType<Related>[]
     ) {
-        return this.getRepository().delete({
-            ...where,
-            ...this.whereOptions
-        })
+        return results.map(result => this.mergeResult(result) as (
+            InstanceType<Related>
+        ))
     }
 
-    // Protecteds -------------------------------------------------------------
-    protected getRepository(): Repository<T> {
-        return new Repository(this.metadata.relatedTarget as T)
-    }
-
-    // ------------------------------------------------------------------------
-
-    protected mergeResult(result: InstanceType<T>[]): void {
-        const newResults = this.extractNewResults(result)
-        const existent = this.extractExistentResults(result)
-
-        this.push(...newResults)
-
-        for (const entity of existent) this.splice(
-            this.findIndex(old =>
-                old[this.primaryKeyName] === entity[this.primaryKeyName]
-            ),
-            1,
-            entity
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    protected mergeFindOptions(
-        options: (
-            FindQueryOptions<InstanceType<T>> |
-            FindOneQueryOptions<InstanceType<T>>
-        )
-    ) {
-        return {
-            ...options,
-            where: {
-                ...options.where,
-                ...this.whereOptions
-            }
-        }
-    }
-
-    // Privates ---------------------------------------------------------------
-    private extractNewResults(result: InstanceType<T>[]): InstanceType<T>[] {
-        return result.filter(entity => !this.find(existent => (
-            existent[this.primaryKeyName] === entity[this.primaryKeyName]
-        )))
-    }
-
-    // ------------------------------------------------------------------------
-
-    private extractExistentResults(result: InstanceType<T>[]): (
-        InstanceType<T>[]
-    ) {
-        return result.filter(entity => this.find(existent => (
-            existent[this.primaryKeyName] === entity[this.primaryKeyName]
-        )))
+    // Static Getters =========================================================
+    // Publics ----------------------------------------------------------------
+    public static get HasMany(): typeof HasManyRelation {
+        return HasManyRelation
     }
 }

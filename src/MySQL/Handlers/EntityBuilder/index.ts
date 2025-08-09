@@ -21,7 +21,7 @@ export default class EntityBuilder<
     constructor(
         public target: T,
         public attibutes: CreationAttributesOptions<InstanceType<T>>,
-        public primary?: number
+        public primary?: any
     ) {
         this.metadata = MetadataHandler.loadMetadata(this.target)
     }

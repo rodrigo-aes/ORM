@@ -1,6 +1,4 @@
 import RelationHandlerSQLBuilder from "../RelationHandlerSQLBuilder"
-import BaseEntity, { ColumnsSnapshots } from "../../../BaseEntity"
-import BaseEntityUnion from "../../../BaseEntityUnion"
 
 // SQL Builders
 import { WhereSQLBuilder } from "../../ConditionalSQLBuilder"
@@ -34,7 +32,7 @@ export default abstract class ManyRelationHandlerSQLBuilder<
 > {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public findSQL(where?: ConditionalQueryOptions<InstanceType<Related>>): (
+    public loadSQL(where?: ConditionalQueryOptions<InstanceType<Related>>): (
         string
     ) {
         return SQLStringHelper.normalizeSQL(`
@@ -44,10 +42,10 @@ export default abstract class ManyRelationHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    public findOneSQL(
+    public loadOneSQL(
         where?: ConditionalQueryOptions<InstanceType<Related>>
     ): string {
-        return SQLStringHelper.normalizeSQL(`${this.findSQL(where)} LIMIT 1`)
+        return SQLStringHelper.normalizeSQL(`${this.loadSQL(where)} LIMIT 1`)
     }
 
     // ------------------------------------------------------------------------
@@ -84,7 +82,7 @@ export default abstract class ManyRelationHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    public updateOrCreate(
+    public updateOrCreateSQL(
         attributes: UpdateOrCreateAttibutes<InstanceType<Related>>
     ) {
         return new UpdateOrCreateSQLBuilder(
@@ -118,9 +116,9 @@ export default abstract class ManyRelationHandlerSQLBuilder<
     }
 
     // Protecteds -------------------------------------------------------------
-    protected whereSQL(where?: ConditionalQueryOptions<InstanceType<Related>>): (
-        string
-    ) {
+    protected whereSQL(
+        where?: ConditionalQueryOptions<InstanceType<Related>>
+    ): string {
         return `
             ${this.fixedWhereSQL()}
             ${where ? `AND ${this.andSQL(where)}` : ''}

@@ -1,18 +1,24 @@
 import OneRelation from "../OneRelation"
 
 // SQL Builders
-import { BelongsToHandlerSQLBuilder } from "../../QueryBuilder"
+import { BelongsToThroughHandlerSQLBuilder } from "../../QueryBuilder"
+
+// Handlers
+import {
+    MySQL2QueryExecutionHandler,
+    type RelationQueryExecutionHandler
+} from "../../Handlers"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { BelongsToMetadata } from "../../Metadata"
+import type { BelongsToThroughMetadata } from "../../Metadata"
 
 export default class BelongsTo<
     Target extends object,
     Related extends EntityTarget
 > extends OneRelation<Target, Related> {
     constructor(
-        protected metadata: BelongsToMetadata,
+        protected metadata: BelongsToThroughMetadata,
         protected target: Target,
         protected related: Related
     ) {
@@ -21,8 +27,10 @@ export default class BelongsTo<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
-    protected get sqlBuilder(): BelongsToHandlerSQLBuilder<Target, Related> {
-        return new BelongsToHandlerSQLBuilder(
+    protected get sqlBuilder(): (
+        BelongsToThroughHandlerSQLBuilder<Target, Related>
+    ) {
+        return new BelongsToThroughHandlerSQLBuilder(
             this.metadata,
             this.target,
             this.related

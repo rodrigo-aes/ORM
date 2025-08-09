@@ -46,7 +46,7 @@ export default class BelongsToHandlerSQLBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public override createSQL(_: CreationAttributes<InstanceType<Related>>): (
-        string
+        [string, any[]]
     ) {
         throw new Error
     }

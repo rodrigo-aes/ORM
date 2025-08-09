@@ -6,6 +6,7 @@ import MySQL2QueryExecutionHandler, {
     type CreateResult,
     type DeleteResult,
 
+    type RelationQueryExecutionHandler
 } from "./MySQL2QueryExecutionHandler"
 
 import EntityBuilder from "./EntityBuilder"
@@ -26,4 +27,6 @@ export {
     type FindResult,
     type CreateResult,
     type DeleteResult,
+
+    type RelationQueryExecutionHandler
 }

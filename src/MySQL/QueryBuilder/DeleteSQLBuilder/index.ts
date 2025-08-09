@@ -82,7 +82,7 @@ export default class DeleteSQLBuilder<
     // Privates ---------------------------------------------------------------
     private handleTableName(): string {
         if (this.metadata instanceof EntityUnionMetadata) return (
-            this.metadata.sourceMetadata[
+            this.metadata.sourcesMetadata[
                 (this.where as BaseEntity).constructor.name
             ]
                 .tableName

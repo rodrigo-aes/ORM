@@ -2,7 +2,7 @@ import ManyRelationHandlerSQLBuilder from "../ManyRelationHandlerSQLBuilder"
 
 // Types
 import type {
-    HasOneThroughMetadata,
+    HasManyThroughMetadata,
 } from "../../../Metadata"
 
 import type {
@@ -14,12 +14,12 @@ export default class HasManyThroughHandlerSQLBuilder<
     Target extends object,
     Related extends EntityTarget
 > extends ManyRelationHandlerSQLBuilder<
-    HasOneThroughMetadata,
+    HasManyThroughMetadata,
     Target,
     Related
 > {
     constructor(
-        protected metadata: HasOneThroughMetadata,
+        protected metadata: HasManyThroughMetadata,
         protected target: Target,
         protected related: Related
     ) {
@@ -46,13 +46,13 @@ export default class HasManyThroughHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get foreignKey(): string {
-        return this.metadata.foreignKeyName
+        return this.metadata.foreignKey.name
     }
 
     // ------------------------------------------------------------------------
 
     private get throughForeignKey(): string {
-        return this.metadata.throughForeigKeyName
+        return this.metadata.throughForeignKey.name
     }
 
     // ------------------------------------------------------------------------

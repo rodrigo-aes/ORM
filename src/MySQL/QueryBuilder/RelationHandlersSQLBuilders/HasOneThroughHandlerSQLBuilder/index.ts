@@ -8,7 +8,11 @@ import type {
 import type {
     EntityTarget
 } from "../../../../types/General"
-import { CreationAttributes } from "../../CreateSQLBuilder"
+
+import type { CreationAttributes } from "../../CreateSQLBuilder"
+import type { UpdateOrCreateAttibutes } from "../../UpdateOrCreateSQLBuilder"
+import { OptionalNullable } from "../../../../types/Properties"
+import { EntityProperties } from "../../types"
 
 export default class HasOneThroughHandlerSQLBuilder<
     Target extends object,
@@ -64,7 +68,15 @@ export default class HasOneThroughHandlerSQLBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public override createSQL(
-        attributes: CreationAttributes<InstanceType<Related>>
+        _: CreationAttributes<InstanceType<Related>>
+    ): [string, any[]] {
+        throw new Error
+    }
+
+    // ------------------------------------------------------------------------
+
+    public override updateOrCreateSQL(
+        attributes: UpdateOrCreateAttibutes<InstanceType<Related>>
     ): string {
         throw new Error
     }
