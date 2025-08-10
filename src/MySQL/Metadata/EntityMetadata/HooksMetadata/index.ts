@@ -8,7 +8,15 @@ import HookMetadata, {
     BeforeCreateMetadata,
     AfterCreateMetadata,
     BeforeBulkCreateMetadata,
-    AfterBulkCreateMetadata
+    AfterBulkCreateMetadata,
+    BeforeUpdateMetadata,
+    AfterUpdateMetadata,
+    BeforeBulkUpdateMetadata,
+    AfterBulkUpdateMetadata,
+    BeforeDeleteMetadata,
+    AfterDeleteMetadata,
+    BeforeBulkDeleteMetadata,
+    AfterBulkDeleteMetadata,
 } from "./HookMetadata"
 
 // Types
@@ -24,8 +32,13 @@ import type {
     RawData,
     MySQL2RawData
 } from "../../../Handlers/MySQL2RawDataHandler"
-
-import type { CreationAttributes } from "../../../QueryBuilder"
+import type { ResultSetHeader } from "mysql2"
+import type {
+    CreationAttributes,
+    UpdateAttributes,
+    ConditionalQueryOptions
+} from "../../../QueryBuilder"
+import { DeleteResult } from "../../../Handlers"
 
 export default class HooksMetadata {
     private toCall!: Set<HookType>
@@ -40,6 +53,14 @@ export default class HooksMetadata {
     public afterCreate: AfterCreateMetadata[] = []
     public beforeBulkCreate: BeforeBulkCreateMetadata[] = []
     public afterBulkCreate: AfterBulkCreateMetadata[] = []
+    public beforeUpdate: BeforeUpdateMetadata[] = []
+    public afterUpdate: AfterUpdateMetadata[] = []
+    public beforeBulkUpdate: BeforeBulkUpdateMetadata[] = []
+    public afterBulkUpdate: AfterBulkUpdateMetadata[] = []
+    public beforeDelete: BeforeDeleteMetadata[] = []
+    public afterDelete: AfterDeleteMetadata[] = []
+    public beforeBulkDelete: BeforeBulkDeleteMetadata[] = []
+    public afterBulkDelete: AfterBulkDeleteMetadata[] = []
 
     constructor(public target: EntityTarget | UnionEntityTarget) {
         this.register()
@@ -115,9 +136,7 @@ export default class HooksMetadata {
     // ------------------------------------------------------------------------
 
     public async callAfterCreate<T extends (
-        (BaseEntity | BaseEntityUnion<any>) |
-        RawData<any> |
-        MySQL2RawData
+        (BaseEntity | BaseEntityUnion<any>)
     )>(entity: T) {
         if (this.toCall.has('after-create'))
             for (const hook of this.afterCreate) await hook.call(entity)
@@ -143,6 +162,96 @@ export default class HooksMetadata {
     )>(result: T[]) {
         if (this.toCall.has('after-bulk-create'))
             for (const hook of this.afterBulkCreate) await hook.call(result)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async callBeforeUpdate<Entity extends object>(
+        attributes: Entity | UpdateAttributes<Entity>,
+        where?: ConditionalQueryOptions<Entity>
+    ) {
+        if (this.toCall.has('before-update'))
+            for (const hook of this.beforeUpdate) await hook.call(
+                attributes,
+                where
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async callAfterUpdate<Entity extends object>(entity: Entity) {
+        if (this.toCall.has('after-update'))
+            for (const hook of this.afterUpdate) await hook.call(entity)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async callBeforeBulkUpdate<Entity extends object>(
+        attributes: UpdateAttributes<Entity>,
+        where?: ConditionalQueryOptions<Entity>
+    ) {
+        if (this.toCall.has('before-bulk-update'))
+            for (const hook of this.beforeBulkUpdate) await hook.call(
+                attributes,
+                where
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async callAfterBulkUpdate<Entity extends object>(
+        where: ConditionalQueryOptions<Entity> | undefined,
+        result: ResultSetHeader
+    ) {
+        if (this.toCall.has('after-bulk-update'))
+            for (const hook of this.afterBulkUpdate) await hook.call(
+                where,
+                result
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async callBeforeDelete<Entity extends object>(
+        entity: Entity
+    ) {
+        if (this.toCall.has('before-delete'))
+            for (const hook of this.beforeDelete) await hook.call(entity)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async callAfterDelete<Entity extends object>(
+        entity: Entity,
+        result: DeleteResult
+    ) {
+        if (this.toCall.has('after-delete'))
+            for (const hook of this.afterDelete) await hook.call(
+                entity,
+                result
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async callBeforeBulkDelete<Entity extends object>(
+        where: ConditionalQueryOptions<Entity>
+    ) {
+        if (this.toCall.has('before-bulk-delete'))
+            for (const hook of this.beforeBulkDelete) await hook.call(where)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async callAfterBulkDelete<Entity extends object>(
+        where: ConditionalQueryOptions<Entity>,
+        result: DeleteResult
+    ) {
+        if (this.toCall.has('after-bulk-delete'))
+            for (const hook of this.afterBulkDelete) await hook.call(
+                where,
+                result
+            )
     }
 
     // ------------------------------------------------------------------------
@@ -245,6 +354,90 @@ export default class HooksMetadata {
         )
 
         this.toCall.add('after-bulk-create')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addBeforeUpdate(propertyName: string) {
+        this.beforeUpdate.push(
+            new HookMetadata.BeforeUpdateMetadata(this.target, propertyName)
+        )
+
+        this.toCall.add('before-update')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addAfterUpdate(propertyName: string) {
+        this.afterUpdate.push(
+            new HookMetadata.AfterUpdateMetadata(this.target, propertyName)
+        )
+
+        this.toCall.add('after-update')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addBeforeBulkUpdate(propertyName: string) {
+        this.beforeBulkUpdate.push(
+            new HookMetadata.BeforeBulkUpdateMetadata(
+                this.target, propertyName
+            )
+        )
+
+        this.toCall.add('before-bulk-update')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addAfterBulkUpdate(propertyName: string) {
+        this.afterBulkUpdate.push(
+            new HookMetadata.AfterBulkUpdateMetadata(this.target, propertyName)
+        )
+
+        this.toCall.add('after-bulk-update')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addBeforeDelete(propertyName: string) {
+        this.beforeDelete.push(
+            new HookMetadata.BeforeDeleteMetadata(this.target, propertyName)
+        )
+
+        this.toCall.add('before-delete')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addAfterDelete(propertyName: string) {
+        this.afterDelete.push(
+            new HookMetadata.AfterDeleteMetadata(this.target, propertyName)
+        )
+
+        this.toCall.add('after-delete')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addBeforeBulkDelete(propertyName: string) {
+        this.beforeBulkDelete.push(
+            new HookMetadata.BeforeBulkDeleteMetadata(
+                this.target, propertyName
+            )
+        )
+
+        this.toCall.add('before-bulk-delete')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addAfterBulkDelete(propertyName: string) {
+        this.afterBulkDelete.push(
+            new HookMetadata.AfterBulkDeleteMetadata(this.target, propertyName)
+        )
+
+        this.toCall.add('after-bulk-delete')
     }
 
     // Privates ---------------------------------------------------------------

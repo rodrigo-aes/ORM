@@ -10,6 +10,14 @@ import BeforeCreateMetadata from "./BeforeCreateMetadata"
 import AfterCreateMetadata from "./AfterCreateMetadata"
 import BeforeBulkCreateMetadata from "./BeforeBulkCreateMetadata"
 import AfterBulkCreateMetadata from "./AfterBulkCreateMetadata"
+import BeforeUpdateMetadata from "./BeforeUpdateMetadata"
+import AfterUpdateMetadata from "./AfterUpdateMetadata"
+import BeforeBulkUpdateMetadata from "./BeforeBulkUpdateMetadata"
+import AfterBulkUpdateMetadata from "./AfterBulkUpdateMetadata"
+import BeforeDeleteMetadata from "./BeforeDeleteMetadata"
+import AfterDeleteMetadata from "./AfterDeleteMetadata"
+import BeforeBulkDeleteMetadata from "./BeforeBulkDeleteMetadata"
+import AfterBulkDeleteMetadata from "./AfterBulkDeleteMetadata"
 
 export default abstract class HookMetadata extends AbstractHookMetadata {
     public static BeforeSync = BeforeSyncMetadata
@@ -22,6 +30,14 @@ export default abstract class HookMetadata extends AbstractHookMetadata {
     public static AfterCreateMetadata = AfterCreateMetadata
     public static BeforeBulkCreateMetadata = BeforeBulkCreateMetadata
     public static AfterBulkCreateMetadata = AfterBulkCreateMetadata
+    public static BeforeUpdateMetadata = BeforeUpdateMetadata
+    public static AfterUpdateMetadata = AfterUpdateMetadata
+    public static BeforeBulkUpdateMetadata = BeforeBulkUpdateMetadata
+    public static AfterBulkUpdateMetadata = AfterBulkUpdateMetadata
+    public static BeforeDeleteMetadata = BeforeDeleteMetadata
+    public static AfterDeleteMetadata = AfterDeleteMetadata
+    public static BeforeBulkDeleteMetadata = BeforeBulkDeleteMetadata
+    public static AfterBulkDeleteMetadata = AfterBulkDeleteMetadata
 }
 
 export {
@@ -34,5 +50,13 @@ export {
     BeforeCreateMetadata,
     AfterCreateMetadata,
     BeforeBulkCreateMetadata,
-    AfterBulkCreateMetadata
+    AfterBulkCreateMetadata,
+    BeforeUpdateMetadata,
+    AfterUpdateMetadata,
+    BeforeBulkUpdateMetadata,
+    AfterBulkUpdateMetadata,
+    BeforeDeleteMetadata,
+    AfterDeleteMetadata,
+    BeforeBulkDeleteMetadata,
+    AfterBulkDeleteMetadata,
 }

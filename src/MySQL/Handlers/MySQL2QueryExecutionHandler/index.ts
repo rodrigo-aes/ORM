@@ -14,8 +14,8 @@ import {
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
     DeleteSQLBuilder,
-
-    FindQueryOptions,
+    UpdateAttributes,
+    ConditionalQueryOptions,
 } from "../../QueryBuilder"
 
 // Handlers
@@ -193,27 +193,24 @@ export default class MySQL2QueryExecutionHandler<
     // ------------------------------------------------------------------------
 
     private async executeUpdate(): Promise<UpdateResult<T>> {
-        const connection = this.getConnection()
+        const isEntity = (this.sqlBuilder as UpdateSQLBuilder<T>)
+            .attributes instanceof BaseEntity
 
+        this.callBeforeUpdateHook(isEntity)
+
+        const connection = this.getConnection()
         const resultHeader: ResultSetHeader = await connection.query(
             this.sqlBuilder.SQL()
         ) as any
-
-        const isEntity = (
-            (this.sqlBuilder as UpdateSQLBuilder<T>)
-                .attributes instanceof BaseEntity
-
-            ||
-
-            (this.sqlBuilder as UpdateSQLBuilder<T>)
-                .attributes instanceof BaseEntityUnion
-        )
-
-        return isEntity
+        const result = isEntity
             ? (this.sqlBuilder as UpdateSQLBuilder<T>).attributes as (
                 InstanceType<T>
             )
             : resultHeader
+
+        this.callAfterUpdateHook(result)
+
+        return result
     }
 
     // ------------------------------------------------------------------------
@@ -232,15 +229,17 @@ export default class MySQL2QueryExecutionHandler<
     // ------------------------------------------------------------------------
 
     private async executeDelete(): Promise<DeleteResult> {
+        this.callBeforeDeleteHook()
+
         const connection = this.getConnection()
         const { affectedRows, serverStatus }: ResultSetHeader = (
             await connection.query(this.sqlBuilder.SQL()) as any
         )
+        const result = { affectedRows, serverStatus }
 
-        return {
-            affectedRows,
-            serverStatus
-        }
+        this.callAfterDeleteHook(result)
+
+        return result
     }
 
     // ------------------------------------------------------------------------
@@ -357,6 +356,82 @@ export default class MySQL2QueryExecutionHandler<
             Array.isArray(result)
                 ? this.metadata.hooks?.callAfterBulkCreate(result)
                 : this.metadata.hooks?.callAfterCreate(result)
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callBeforeUpdateHook(single: boolean): Promise<void> {
+        await (
+            single
+                ? this.metadata.hooks?.callBeforeUpdate(
+                    (this.sqlBuilder as UpdateSQLBuilder<T>).attributes,
+                    (this.sqlBuilder as UpdateSQLBuilder<T>).conditional
+                )
+
+                : this.metadata.hooks?.callBeforeBulkUpdate(
+                    (this.sqlBuilder as UpdateSQLBuilder<T>).attributes as (
+                        UpdateAttributes<InstanceType<T>>
+                    ),
+                    (this.sqlBuilder as UpdateSQLBuilder<T>).conditional
+                )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callAfterUpdateHook(
+        result: InstanceType<T> | ResultSetHeader
+    ): Promise<void> {
+        await (
+            result instanceof BaseEntity
+                ? this.metadata.hooks?.callAfterUpdate(result)
+                : this.metadata.hooks?.callAfterBulkUpdate(
+                    (this.sqlBuilder as UpdateSQLBuilder<T>).conditional,
+                    result as ResultSetHeader
+                )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callBeforeDeleteHook(): Promise<void> {
+        await (
+            (this.sqlBuilder as DeleteSQLBuilder<T>)
+                .where instanceof BaseEntity
+
+                ? this.metadata.hooks?.callBeforeDelete(
+                    (this.sqlBuilder as DeleteSQLBuilder<T>).where
+                )
+
+                : this.metadata.hooks?.callBeforeBulkDelete(
+                    (this.sqlBuilder as DeleteSQLBuilder<T>).where as (
+                        ConditionalQueryOptions<InstanceType<T>>
+                    )
+                )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async callAfterDeleteHook(
+        result: DeleteResult
+    ): Promise<void> {
+        await (
+            (this.sqlBuilder as DeleteSQLBuilder<T>)
+                .where instanceof BaseEntity
+
+                ? this.metadata.hooks?.callAfterDelete(
+                    (this.sqlBuilder as DeleteSQLBuilder<T>)
+                        .where,
+                    result,
+                )
+
+                : this.metadata.hooks?.callAfterBulkDelete(
+                    (this.sqlBuilder as DeleteSQLBuilder<T>)
+                        .where as ConditionalQueryOptions<InstanceType<T>>,
+                    result,
+                )
         )
     }
 

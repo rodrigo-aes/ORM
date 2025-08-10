@@ -3,10 +3,6 @@ import HookMetadata from "../HookMetadata"
 // Types
 import type BaseEntity from "../../../../../BaseEntity"
 import type BaseEntityUnion from "../../../../../BaseEntityUnion"
-import type {
-    RawData,
-    MySQL2RawData
-} from "../../../../../Handlers/MySQL2RawDataHandler"
 
 export default class AfterCreateMetadata extends HookMetadata {
     // Getters ================================================================
@@ -18,9 +14,7 @@ export default class AfterCreateMetadata extends HookMetadata {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public call<T extends (
-        (BaseEntity | BaseEntityUnion<any>) |
-        RawData<any> |
-        MySQL2RawData
+        (BaseEntity | BaseEntityUnion<any>)
     )>(result: T): void | Promise<void> {
         return this.hookFn(result)
     }
