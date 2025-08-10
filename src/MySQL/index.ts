@@ -46,6 +46,22 @@ import {
 
     BeforeSync,
     AfterSync,
+    BeforeFind,
+    AfterFind,
+    BeforeBulkFind,
+    AfterBulkFind,
+    BeforeCreate,
+    AfterCreate,
+    BeforeBulkCreate,
+    AfterBulkCreate,
+    BeforeUpdate,
+    AfterUpdate,
+    BeforeBulkUpdate,
+    AfterBulkUpdate,
+    BeforeDelete,
+    AfterDelete,
+    BeforeBulkDelete,
+    AfterBulkDelete,
 } from './Decorators'
 
 export {
@@ -88,6 +104,22 @@ export {
 
     BeforeSync,
     AfterSync,
+    BeforeFind,
+    AfterFind,
+    BeforeBulkFind,
+    AfterBulkFind,
+    BeforeCreate,
+    AfterCreate,
+    BeforeBulkCreate,
+    AfterBulkCreate,
+    BeforeUpdate,
+    AfterUpdate,
+    BeforeBulkUpdate,
+    AfterBulkUpdate,
+    BeforeDelete,
+    AfterDelete,
+    BeforeBulkDelete,
+    AfterBulkDelete,
 
     Case,
     Exists

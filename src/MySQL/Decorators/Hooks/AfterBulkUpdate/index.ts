@@ -5,7 +5,7 @@ import type { EntityTarget } from "../../../../types/General"
 import type { ResultSetHeader } from "mysql2"
 import type { ConditionalQueryOptions } from "../../../QueryBuilder"
 
-export default function AfterUpdate<Entity extends object>(
+export default function AfterBulkUpdate<Entity extends object>(
     target: Entity,
     propertyName: string,
     hookFn: TypedPropertyDescriptor<(
