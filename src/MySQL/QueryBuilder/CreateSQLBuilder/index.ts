@@ -1,5 +1,8 @@
 import { EntityMetadata } from "../../Metadata"
 
+// Symbols
+import { Old, New } from "../../Triggers"
+
 // Handlers
 import { MetadataHandler } from "../../Metadata"
 
@@ -150,7 +153,19 @@ export default class CreateSQLBuilder<
 
     private valueSetSQL(values: any[]): string {
         return `(
-            ${values.map(v => PropertySQLHelper.valueSQL(v)).join(', ')}
+            ${values.map(value =>
+            (
+                typeof value === 'object' &&
+                Object.getOwnPropertySymbols(value).some(
+                    symbol => [Old, New].includes(symbol)
+                )
+            )
+                ? (
+                    value![Old as keyof typeof value]
+                    ?? value![New as keyof typeof value]
+                )
+                : PropertySQLHelper.valueSQL(value)
+        ).join(', ')}
         )`
     }
 

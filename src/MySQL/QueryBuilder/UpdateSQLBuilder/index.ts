@@ -10,6 +10,9 @@ import BaseEntityUnion from "../../BaseEntityUnion"
 // SQL Builders
 import ConditionalSQLBuilder from "../ConditionalSQLBuilder"
 
+// Symbols
+import { Old, New } from "../../Triggers"
+
 // Handlers
 import { ConditionalQueryJoinsHandler } from "../../Handlers"
 import { ScopeMetadataHandler } from "../../Metadata"
@@ -121,9 +124,18 @@ export default class UpdateSQLBuilder<
 
     private setValuesSQL(): string {
         return Object.entries(this.onlyChangedAttributes()).map(
-            ([column, value]) => `
-                ${this.alias}.${column} = ${PropertySQLHelper.valueSQL(value)}
-            `
+            ([column, value]) => (
+                typeof value === 'object' &&
+                Object.getOwnPropertySymbols(value).some(
+                    symbol => [Old, New].includes(symbol)
+                )
+            )
+
+                ? `${this.alias}.${column} = ${(
+                    value![Old as keyof typeof value]
+                    ?? value![New as keyof typeof value]
+                )}`
+                : `${this.alias}.${column} = ${PropertySQLHelper.valueSQL(value)}`
         )
             .join(' ')
     }

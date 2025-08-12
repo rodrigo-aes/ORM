@@ -4,6 +4,9 @@ import Operator, {
     type CompatibleOperators
 } from "../Operator"
 
+// Symbols
+import { Old, New } from "../../../Triggers"
+
 import ExistsSQLBuilder, { Exists } from '../ExistsSQLBuilder'
 
 // Handlers
@@ -139,7 +142,18 @@ export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
                 value as CompatibleOperators<any>,
                 alias
             )
-            : `${alias}.${columnName} = ${PropertySQLHelper.valueSQL(value)}`
+            : (
+                typeof value === 'object' &&
+                Object.getOwnPropertySymbols(value).some(
+                    symbol => [Old, New].includes(symbol)
+                )
+            )
+
+                ? `${this.alias}.${columnName} = ${(
+                    (value as { [Old]: any })[Old]
+                    ?? (value as { [New]: any })[New]
+                )}`
+                : `${this.alias}.${columnName} = ${PropertySQLHelper.valueSQL(value)}`
     }
 
     // ------------------------------------------------------------------------
