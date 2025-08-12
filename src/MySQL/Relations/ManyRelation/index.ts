@@ -4,9 +4,6 @@ import {
     type EntityUnionMetadata
 } from "../../Metadata"
 
-// Childs
-import HasManyRelation from "./HasManyRelation"
-
 // Handlers
 import {
     MySQL2QueryExecutionHandler,
@@ -144,7 +141,4 @@ export default abstract class ManyRelation<
 
     // Static Getters =========================================================
     // Publics ----------------------------------------------------------------
-    public static get HasMany(): typeof HasManyRelation {
-        return HasManyRelation
-    }
 }

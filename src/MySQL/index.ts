@@ -11,7 +11,7 @@ import BaseEntity from './BaseEntity'
 import BaseEntityUnion from './BaseEntityUnion'
 
 // Symbols
-import { Case, Exists } from './QueryBuilder'
+import { Case, Exists, Cross } from './QueryBuilder'
 
 // Decorators
 import {
@@ -122,5 +122,6 @@ export {
     AfterBulkDelete,
 
     Case,
-    Exists
+    Exists,
+    Cross
 }

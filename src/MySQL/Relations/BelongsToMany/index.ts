@@ -1,4 +1,4 @@
-import ManyRelation from "../ManyRelation"
+import HasManyRelation from "../ManyRelation/HasManyRelation"
 
 // SQL Builders
 import {
@@ -13,7 +13,7 @@ import type { BelongsToManyMetadata } from "../../Metadata"
 export default class BelongsToMany<
     Target extends object,
     Related extends EntityTarget
-> extends ManyRelation.HasMany<Target, Related> {
+> extends HasManyRelation<Target, Related> {
     constructor(
         protected metadata: BelongsToManyMetadata,
         protected target: Target,

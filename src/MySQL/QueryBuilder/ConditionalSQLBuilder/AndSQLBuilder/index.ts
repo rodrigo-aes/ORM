@@ -64,7 +64,7 @@ export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
     // ------------------------------------------------------------------------
 
     public unions(): UnionSQLBuilder[] {
-        return this.existsSQLBuilder?.unions() ?? []
+        return []
     }
 
     // Privates ---------------------------------------------------------------

@@ -1,4 +1,4 @@
-import ManyRelation from "../ManyRelation"
+import HasManyRelation from "../ManyRelation/HasManyRelation"
 
 // SQL Builders
 import { HasManyHandlerSQLBuilder } from "../../QueryBuilder"
@@ -10,7 +10,7 @@ import type { HasManyMetadata } from "../../Metadata"
 export default class HasMany<
     Target extends object,
     Related extends EntityTarget
-> extends ManyRelation.HasMany<Target, Related> {
+> extends HasManyRelation<Target, Related> {
     constructor(
         protected metadata: HasManyMetadata,
         protected target: Target,

@@ -7,7 +7,8 @@ import CaseSQLBuilder, {
 
 import {
     Exists,
-    ExistsQueryOptions
+    Cross,
+    type ExistsQueryOptions
 } from "./ExistsSQLBuilder"
 
 // Types
@@ -81,5 +82,6 @@ export {
     type CaseQueryOptions,
 
     Exists,
+    Cross,
     type ExistsQueryOptions
 }

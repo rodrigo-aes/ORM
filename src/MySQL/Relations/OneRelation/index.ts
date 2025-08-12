@@ -1,6 +1,3 @@
-// Childs
-import HasOneRelation from "./HasOneRelation"
-
 // Handlers
 import {
     MySQL2QueryExecutionHandler,
@@ -61,11 +58,5 @@ export default abstract class OneRelation<
         return this.queryExecutionHandler.executeDelete(
             this.sqlBuilder.deleteSQL()
         )
-    }
-
-    // Static Getters =========================================================
-    // Publics ----------------------------------------------------------------
-    public static get HasOne(): typeof HasOneRelation {
-        return HasOneRelation
     }
 }

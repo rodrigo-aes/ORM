@@ -44,7 +44,7 @@ import { RegisterProcedures } from "./Procedures"
 
 
 // Symbols
-import { Case, Exists } from "./ConditionalSQLBuilder"
+import { Case, Exists, Cross } from "./ConditionalSQLBuilder"
 
 // Types
 import type {
@@ -87,6 +87,7 @@ export {
 
     Case,
     Exists,
+    Cross,
 
     type EntityProperties,
     type EntityRelations,

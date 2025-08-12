@@ -10,7 +10,7 @@ export default class SyncManyToMany extends Procedure {
     public argsSQL(): string {
         return `
             IN insertSQL TEXT,
-            IN deleteSQL TEXT,
+            IN deleteSQL TEXT
         `
     }
 

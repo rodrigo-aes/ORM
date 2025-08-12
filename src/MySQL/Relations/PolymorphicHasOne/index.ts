@@ -1,13 +1,7 @@
-import OneRelation from "../OneRelation"
+import HasOneRelation from "../OneRelation/HasOneRelation"
 
 // SQL Builders
 import { PolymorphicHasOneHandlerSQLBuilder } from "../../QueryBuilder"
-
-// Handlers
-import {
-    MySQL2QueryExecutionHandler,
-    type RelationQueryExecutionHandler
-} from "../../Handlers"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
@@ -16,7 +10,7 @@ import type { PolymorphicHasOneMetadata } from "../../Metadata"
 export default class PolymorphicHasOne<
     Target extends object,
     Related extends EntityTarget
-> extends OneRelation.HasOne<Target, Related> {
+> extends HasOneRelation<Target, Related> {
     constructor(
         protected metadata: PolymorphicHasOneMetadata,
         protected target: Target,

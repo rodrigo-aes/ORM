@@ -3,6 +3,9 @@ import FindOneSQLBuilder from "../FindOneSQLBuilder"
 // SQL Builders
 import OrderSQLBuilder from "../OrderSQLBuilder"
 
+// Helpers
+import { SQLStringHelper } from "../../Helpers"
+
 // Types
 import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { FindQueryOptions } from "./types"
@@ -29,17 +32,19 @@ export default class FindSQLBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public override SQL(): string {
-        return [
-            this.primary ? this.unionsSQL() : '',
-            this.selectSQL(),
-            this.joinsSQL(),
-            this.whereSQL(),
-            this.groupSQL(),
-            this.orderSQL(),
-            this.limitSQL(),
-            this.offsetSQL(),
-        ]
-            .join(' ')
+        return SQLStringHelper.normalizeSQL(
+            [
+                this.primary ? this.unionsSQL() : '',
+                this.selectSQL(),
+                this.joinsSQL(),
+                this.whereSQL(),
+                this.groupSQL(),
+                this.orderSQL(),
+                this.limitSQL(),
+                this.offsetSQL(),
+            ]
+                .join(' ')
+        )
     }
 
     // ------------------------------------------------------------------------

@@ -14,6 +14,9 @@ import GroupSQLBuilder from "../GroupSQLBuilder"
 // Handlers
 import { MetadataHandler } from "../../Metadata"
 
+// Helpers
+import { SQLStringHelper } from "../../Helpers"
+
 // Types
 import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
 import type { FindOneQueryOptions } from "./types"
@@ -58,15 +61,17 @@ export default class FindOneSQLBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
-        return [
-            this.primary ? this.unionsSQL() : '',
-            this.selectSQL(),
-            this.joinsSQL(),
-            this.whereSQL(),
-            this.groupSQL(),
-            this.limitSQL()
-        ]
-            .join(' ')
+        return SQLStringHelper.normalizeSQL(
+            [
+                this.primary ? this.unionsSQL() : '',
+                this.selectSQL(),
+                this.joinsSQL(),
+                this.whereSQL(),
+                this.groupSQL(),
+                this.limitSQL()
+            ]
+                .join(' ')
+        )
     }
 
     // ------------------------------------------------------------------------

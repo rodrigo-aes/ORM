@@ -1,4 +1,4 @@
-import OneRelation from "../OneRelation"
+import HasOneRelation from "../OneRelation/HasOneRelation"
 
 // SQL Builders
 import { HasOneHandlerSQLBuilder } from "../../QueryBuilder"
@@ -10,7 +10,7 @@ import type { HasOneMetadata } from "../../Metadata"
 export default class HasOne<
     Target extends object,
     Related extends EntityTarget
-> extends OneRelation.HasOne<Target, Related> {
+> extends HasOneRelation<Target, Related> {
     constructor(
         protected metadata: HasOneMetadata,
         protected target: Target,

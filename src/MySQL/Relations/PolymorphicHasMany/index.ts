@@ -1,13 +1,7 @@
-import ManyRelation from "../ManyRelation"
+import HasManyRelation from "../ManyRelation/HasManyRelation"
 
 // SQL Builders
 import { PolymorphicHasManyHandlerSQLBuilder } from "../../QueryBuilder"
-
-// Handlers
-import {
-    MySQL2QueryExecutionHandler,
-    type RelationQueryExecutionHandler
-} from "../../Handlers"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
@@ -16,7 +10,7 @@ import type { PolymorphicHasManyMetadata } from "../../Metadata"
 export default class PolymorphicHasMany<
     Target extends object,
     Related extends EntityTarget
-> extends ManyRelation.HasMany<Target, Related> {
+> extends HasManyRelation<Target, Related> {
     constructor(
         protected metadata: PolymorphicHasManyMetadata,
         protected target: Target,
