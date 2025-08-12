@@ -1,5 +1,6 @@
 import EntityMetadata, {
     HooksMetadata,
+    ScopesMetadata,
     type PolymorphicParentRelatedGetter,
 } from "../EntityMetadata"
 
@@ -30,7 +31,9 @@ export default class EntityUnionMetadata {
 
     private _columns!: UnionColumnsMetadata
     private _relations?: UnionRelationsMetadata
+
     public hooks?: HooksMetadata
+    public scopes?: ScopesMetadata
 
     constructor(
         public tableName: string,
@@ -41,7 +44,11 @@ export default class EntityUnionMetadata {
         this.loadSourcesMetadata()
         this.loadColumns()
         this.loadRelations()
-        if (target) this.loadHooks()
+
+        if (target) {
+            this.loadHooks()
+            this.loadScopes()
+        }
 
         this.register()
     }
@@ -218,6 +225,12 @@ export default class EntityUnionMetadata {
 
     private loadHooks() {
         this.hooks = HooksMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private loadScopes() {
+        this.scopes = ScopesMetadata.find(this.target!)
     }
 
     // ------------------------------------------------------------------------

@@ -10,8 +10,9 @@ import BaseEntityUnion from "../../BaseEntityUnion"
 // SQL Builders
 import ConditionalSQLBuilder from "../ConditionalSQLBuilder"
 
-// Hanlders
+// Handlers
 import { ConditionalQueryJoinsHandler } from "../../Handlers"
+import { ScopeMetadataHandler } from "../../Metadata"
 
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
@@ -40,6 +41,14 @@ export default class UpdateSQLBuilder<
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.loadMetadata(this.target)
+
+        if (this.conditional) this.conditional = (
+            ScopeMetadataHandler.applyScope(
+                this.target,
+                'conditional',
+                this.conditional
+            )
+        )
 
         if (this.attributes instanceof BaseEntityUnion) this.attributes = (
             this.attributes.toSourceEntity()

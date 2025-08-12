@@ -12,7 +12,7 @@ import ConditionalSQLBuilder, {
 import GroupSQLBuilder from "../GroupSQLBuilder"
 
 // Handlers
-import { MetadataHandler } from "../../Metadata"
+import { MetadataHandler, ScopeMetadataHandler } from "../../Metadata"
 
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
@@ -45,6 +45,12 @@ export default class FindOneSQLBuilder<
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.loadMetadata(this.target)
+
+        this.options = ScopeMetadataHandler.applyScope(
+            this.target,
+            'findOne',
+            this.options
+        )
 
         this.select = this.buildSelect()
 

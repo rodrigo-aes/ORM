@@ -317,6 +317,25 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    public static scope<T extends EntityTarget>(
+        this: T & BaseEntity,
+        name: string,
+        ...args: any[]
+    ): T {
+        const scope = this.getMetadata().scopes?.getScopeOptions(name, ...args)
+        if (!scope) throw new Error
+
+        const scoped = class extends (this as new (...args: any[]) => any) { }
+
+        Object.assign(scoped, this)
+        Reflect.defineMetadata('entity-metadata', this.getMetadata(), scoped)
+        Reflect.defineMetadata('current-scope', scope, scoped)
+
+        return scoped as T
+    }
+
+    // ------------------------------------------------------------------------
+
     public static build<T extends EntityTarget>(
         this: T,
         attributes: CreationAttributes<InstanceType<T>>

@@ -60,6 +60,8 @@ import type {
     OrQueryOptions
 } from "./ConditionalSQLBuilder"
 
+import type { RelationsOptions } from "./JoinSQLBuilder"
+
 export {
     QueryBuilder,
     ConnectionQueryBuilder,
@@ -103,6 +105,7 @@ export {
     type ConditionalQueryOptions,
     type AndQueryOptions,
     type OrQueryOptions,
+    type RelationsOptions,
 
     type RelationHandlerSQLBuilder,
     type OneRelationHandlerSQLBuilder,

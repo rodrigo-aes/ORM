@@ -1,4 +1,4 @@
-import FindOneSQLBuilder, { type FindQueryOptions } from "../FindOneSQLBuilder"
+import FindSQLBuilder, { type FindQueryOptions } from "../FindSQLBuilder"
 
 // Query Builders
 import CountSQLBuilder from "../CountSQLBuilder"
@@ -9,7 +9,7 @@ import type { PaginationOptions } from "./types"
 
 export default class PaginationSQLBuilder<
     T extends EntityTarget
-> extends FindOneSQLBuilder<T> {
+> extends FindSQLBuilder<T> {
     public page: number = 1
     public perPage: number = 26
 

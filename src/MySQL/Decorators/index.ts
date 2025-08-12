@@ -17,6 +17,8 @@ import UpdatedTimestamp from "./UpdatedTimestamp"
 
 import Repository from "./Repository"
 
+import Scopes, { DefaultScope } from "./Scopes"
+
 import {
     HasOne,
     HasMany,
@@ -102,4 +104,6 @@ export {
     AfterBulkDelete,
 
     Repository,
+    Scopes,
+    DefaultScope,
 }

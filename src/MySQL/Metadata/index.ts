@@ -8,6 +8,8 @@ import EntityMetadata, {
     JoinColumnsMetadata,
     JoinColumnMetadata,
     HooksMetadata,
+    ScopesMetadata,
+    ScopeMetadataHandler,
 
     type JoinTableRelated,
 
@@ -60,6 +62,9 @@ import EntityMetadata, {
     type PolymorphicChildRelatedGetter,
 
     type ForeignIdConfig,
+
+    type Scope,
+    type ScopeFunction,
 } from "./EntityMetadata"
 
 import EntityUnionMetadata, {
@@ -73,6 +78,7 @@ import MetadataHandler from "./MetadataHandler"
 
 export {
     EntityMetadata,
+    EntityUnionMetadata,
     DataType,
     ColumnsMetadata,
     ColumnMetadata,
@@ -81,11 +87,13 @@ export {
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
-    EntityUnionMetadata,
+    HooksMetadata,
+    ScopesMetadata,
     UnionColumnsMetadata,
     UnionColumnMetadata,
+
     MetadataHandler,
-    HooksMetadata,
+    ScopeMetadataHandler,
 
     type JoinTableRelated,
 
@@ -138,6 +146,9 @@ export {
     type PolymorphicChildRelatedGetter,
 
     type ForeignIdConfig,
+
+    type Scope,
+    type ScopeFunction,
 
     type UnionEntitiesMap
 }

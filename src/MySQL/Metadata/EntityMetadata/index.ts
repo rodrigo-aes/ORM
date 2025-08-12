@@ -85,6 +85,14 @@ import Repository from '../../Repository'
 // Hooks
 import HooksMetadata from './HooksMetadata'
 
+// Scopes
+import ScopesMetadata, {
+    ScopeMetadataHandler,
+
+    type Scope,
+    type ScopeFunction
+} from './ScopesMetadata'
+
 import { EntityToJSONProcessMetadata } from '../ProcessMetadata'
 
 // Types
@@ -99,6 +107,7 @@ export default class EntityMetadata {
     public relations?: RelationsMetadata
     public joinTables?: JoinTableMetadata[]
     public hooks?: HooksMetadata
+    public scopes?: ScopesMetadata
     public repository!: Repository<any>
 
     constructor(
@@ -110,6 +119,7 @@ export default class EntityMetadata {
         this.loadRelations()
         this.loadJoinTables()
         this.loadHooks()
+        this.loadScopes()
         this.loadRepository()
         this.register()
     }
@@ -241,6 +251,13 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
+    private loadScopes() {
+        this.scopes = ScopesMetadata.find(this.target)
+    }
+
+
+    // ------------------------------------------------------------------------
+
     private loadRepository() {
         const repo: typeof Repository<any> = Reflect.getOwnMetadata(
             'repository', this.target
@@ -320,6 +337,8 @@ export {
     JoinColumnsMetadata,
     JoinColumnMetadata,
     HooksMetadata,
+    ScopesMetadata,
+    ScopeMetadataHandler,
 
     type JoinTableRelated,
 
@@ -373,6 +392,9 @@ export {
     type PolymorphicChildRelatedGetter,
 
     type ForeignIdConfig,
+
+    type Scope,
+    type ScopeFunction,
 
     type ColumnsMetadataJSON,
     type ColumnMetadataJSON,

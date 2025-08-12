@@ -3,6 +3,9 @@ import FindOneSQLBuilder from "../FindOneSQLBuilder"
 // SQL Builders
 import OrderSQLBuilder from "../OrderSQLBuilder"
 
+// Handlers
+import { ScopeMetadataHandler } from "../../Metadata"
+
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
 
@@ -24,6 +27,12 @@ export default class FindSQLBuilder<
         protected primary: boolean = true
     ) {
         super(target, options, alias)
+
+        this.options = ScopeMetadataHandler.applyScope(
+            this.target,
+            'find',
+            this.options
+        )
 
         this.order = this.buildOrder()
         this.assingRestQueryOptions()

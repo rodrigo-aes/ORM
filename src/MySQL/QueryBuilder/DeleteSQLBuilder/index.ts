@@ -1,7 +1,7 @@
 import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
-import EntityUnion from "../../BaseEntityUnion"
+import BaseEntityUnion from "../../BaseEntityUnion"
 
 // SQL Builders
 import ConditionalSQLBuilder, {
@@ -9,7 +9,7 @@ import ConditionalSQLBuilder, {
 } from "../ConditionalSQLBuilder"
 
 // Handlers
-import { MetadataHandler } from "../../Metadata"
+import { MetadataHandler, ScopeMetadataHandler } from "../../Metadata"
 import { ConditionalQueryJoinsHandler } from "../../Handlers"
 
 // Helpers
@@ -30,14 +30,16 @@ export default class DeleteSQLBuilder<
         public where: (
             ConditionalQueryOptions<InstanceType<T>> |
             BaseEntity |
-            EntityUnion<any>
+            BaseEntityUnion<any>
         ),
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.loadMetadata(this.target)
 
-        if (this.where instanceof EntityUnion) this.where = (
+        this.applyWhereScope()
+
+        if (this.where instanceof BaseEntityUnion) this.where = (
             this.where.toSourceEntity()
         )
     }
@@ -80,6 +82,21 @@ export default class DeleteSQLBuilder<
     }
 
     // Privates ---------------------------------------------------------------
+    private applyWhereScope(): void {
+        if (
+            this.where instanceof BaseEntity ||
+            this.where instanceof BaseEntityUnion
+        ) return
+
+        this.where = ScopeMetadataHandler.applyScope(
+            this.target,
+            'conditional',
+            this.where
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     private handleTableName(): string {
         if (this.metadata instanceof EntityUnionMetadata) return (
             this.metadata.sourcesMetadata[
@@ -96,7 +113,7 @@ export default class DeleteSQLBuilder<
     private isConditional(): boolean {
         return (
             !(this.where instanceof BaseEntity) &&
-            !(this.where instanceof EntityUnion)
+            !(this.where instanceof BaseEntityUnion)
         )
     }
 
