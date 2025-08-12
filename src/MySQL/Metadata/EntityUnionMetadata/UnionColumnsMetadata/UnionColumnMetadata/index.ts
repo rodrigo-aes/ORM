@@ -5,7 +5,7 @@ import UnionForeignKeyReferences from "./UnionForeignKeyReferences"
 // Types
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../../types/General"
 import type { ColumnMetadataJSON } from "../../../EntityMetadata"
 
@@ -21,7 +21,7 @@ export default class UnionColumnMetadata {
     public references?: UnionForeignKeyReferences
 
     constructor(
-        public target: UnionEntityTarget | null,
+        public target: EntityUnionTarget | null,
         public name: string,
         public dataType: DataType
     ) { }
@@ -54,7 +54,7 @@ export default class UnionColumnMetadata {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static buildEntityTypeColumn(
-        target: UnionEntityTarget | null,
+        target: EntityUnionTarget | null,
         ...types: EntityTarget[]
     ): UnionColumnMetadata {
         return new UnionColumnMetadata(

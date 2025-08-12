@@ -4,7 +4,7 @@ import MetadataHandler from "../../../MetadataHandler"
 // Types
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../../types/General"
 
 import type {
@@ -16,7 +16,7 @@ import type {
 
 export default class ScopeMetadataHandler {
     public static applyScope<
-        T extends EntityTarget | UnionEntityTarget,
+        T extends EntityTarget | EntityUnionTarget,
         Type extends 'find' | 'findOne' | 'conditional' | 'relations',
         Options extends (
             Type extends 'find'

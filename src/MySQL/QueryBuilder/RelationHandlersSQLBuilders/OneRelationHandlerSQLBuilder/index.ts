@@ -13,7 +13,7 @@ import type { OneRelationMetadataType } from "../../../Metadata"
 
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../types/General"
 
 import type { CreationAttributes } from "../../CreateSQLBuilder"
@@ -22,7 +22,7 @@ import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 export default abstract class OneRelationHandlerSQLBuilder<
     RelationMetadata extends OneRelationMetadataType,
     Target extends object,
-    Related extends EntityTarget | UnionEntityTarget
+    Related extends EntityTarget | EntityUnionTarget
 > extends RelationHandlerSQLBuilder<
     RelationMetadata,
     Target,

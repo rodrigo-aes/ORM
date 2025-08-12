@@ -7,14 +7,14 @@ import BaseEntity, { Collection } from "../../BaseEntity"
 import { MetadataHandler } from "../../Metadata"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 import type {
     CreationAttributes,
     CreationAttributesOptions
 } from "../../QueryBuilder"
 
 export default class EntityBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > {
     protected metadata: EntityMetadata | EntityUnionMetadata
 

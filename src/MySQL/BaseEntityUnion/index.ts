@@ -6,7 +6,7 @@ import { ColumnsSnapshots } from "../BaseEntity"
 // Handlers
 import { EntityBuilder } from "../Handlers"
 
-import type { UnionEntityTarget, EntityTarget } from "../../types/General"
+import type { EntityUnionTarget, EntityTarget } from "../../types/General"
 import type { EntityName, SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
 import type { EntityProperties } from "../QueryBuilder"
@@ -27,7 +27,7 @@ export default abstract class BaseEntityUnion<Targets extends EntityTarget[]> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public getMetadata(): EntityUnionMetadata {
-        return EntityUnionMetadata.find(this.constructor as UnionEntityTarget)!
+        return EntityUnionMetadata.find(this.constructor as EntityUnionTarget)!
     }
 
     // ------------------------------------------------------------------------

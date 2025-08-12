@@ -8,12 +8,12 @@ import OrSQLBuilder from "./OrSQLBuilder"
 import { MetadataHandler } from "../../Metadata"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 import type { ConditionalQueryOptions } from "./types"
 import type UnionSQLBuilder from "../UnionSQLBuilder"
 
 export default abstract class ConditionalSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > {
     protected metadata!: EntityMetadata | EntityUnionMetadata
 

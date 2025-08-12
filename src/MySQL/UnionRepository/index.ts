@@ -27,11 +27,11 @@ import {
 } from "../Handlers"
 
 // Types 
-import type { UnionEntityTarget } from "../../types/General"
+import type { EntityUnionTarget } from "../../types/General"
 import type { UpdateQueryResult } from "./types"
 import type { ResultSetHeader } from "mysql2"
 
-export default class UnionRepository<T extends UnionEntityTarget> {
+export default class UnionRepository<T extends EntityUnionTarget> {
     constructor(
         public target: T
     ) { }

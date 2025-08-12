@@ -10,11 +10,11 @@ import { ScopeMetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 import type { FindQueryOptions } from "./types"
 
 export default class FindSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > extends FindOneSQLBuilder<T> {
     public order?: OrderSQLBuilder<T>
     public limit?: number

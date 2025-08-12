@@ -1,4 +1,4 @@
-import type { UnionEntityTarget, EntityTarget } from "../../../types/General"
+import type { EntityUnionTarget, EntityTarget } from "../../../types/General"
 import type EntityMetadata from "../EntityMetadata"
 import type { ColumnsMetadataJSON, RelationsMetadataJSON } from "../EntityMetadata"
 
@@ -12,7 +12,7 @@ export type SourcesMetadata = {
 }
 
 export type EntityUnionMetadataJSON = {
-    target: UnionEntityTarget
+    target: EntityUnionTarget
     name: string
     tableName: string
     columns: ColumnsMetadataJSON

@@ -14,7 +14,7 @@ import type { ManyRelationMetadatatype } from "../../../Metadata"
 
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../types/General"
 
 import type { ConditionalQueryOptions } from "../../ConditionalSQLBuilder"
@@ -24,7 +24,7 @@ import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 export default abstract class ManyRelationHandlerSQLBuilder<
     RelationMetadata extends ManyRelationMetadatatype,
     Target extends object,
-    Related extends EntityTarget | UnionEntityTarget
+    Related extends EntityTarget | EntityUnionTarget
 > extends RelationHandlerSQLBuilder<
     RelationMetadata,
     Target,

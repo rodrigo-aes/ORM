@@ -9,14 +9,14 @@ import type { EntityMetadata } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { UnionEntityTarget } from "../../../types/General"
+import type { EntityUnionTarget } from "../../../types/General"
 
 export default class UnionSQLBuilder {
     protected metadata: EntityUnionMetadata
 
     constructor(
         public name: string,
-        public target: UnionEntityTarget
+        public target: EntityUnionTarget
     ) {
         this.metadata = this.loadMetadata()
     }

@@ -7,7 +7,7 @@ import EntityUnion from "../../BaseEntityUnion"
 
 // Types
 import type MySQLConnection from "../../Connection"
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 
 export default class MetadataHandler {
     public static registerEntitiesConnection(
@@ -36,13 +36,13 @@ export default class MetadataHandler {
     // ------------------------------------------------------------------------
 
     public static loadMetadata(
-        target: EntityTarget | UnionEntityTarget
+        target: EntityTarget | EntityUnionTarget
     ): (
             EntityMetadata | EntityUnionMetadata
         ) {
         switch (true) {
             case (target as any).prototype instanceof EntityUnion: return (
-                EntityUnionMetadata.find(target as UnionEntityTarget)!
+                EntityUnionMetadata.find(target as EntityUnionTarget)!
             )
 
             case (target as any).prototype instanceof BaseEntity: return (

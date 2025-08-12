@@ -3,12 +3,12 @@ import 'reflect-metadata'
 import UnionColumnMetadata from './UnionColumnMetadata'
 
 // Types
-import type { UnionEntityTarget } from '../../../../types/General'
+import type { EntityUnionTarget } from '../../../../types/General'
 import type { ColumnMetadata, ColumnsMetadataJSON } from '../../EntityMetadata'
 
 export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
     constructor(
-        public target: UnionEntityTarget | null,
+        public target: EntityUnionTarget | null,
         public sources: ColumnMetadata[]
     ) {
         super()

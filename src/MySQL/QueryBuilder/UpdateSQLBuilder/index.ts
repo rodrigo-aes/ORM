@@ -21,12 +21,12 @@ import { ScopeMetadataHandler } from "../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 import type { UpdateAttributes, UpdateAttibutesKey } from "./types"
 
 export default class UpdateSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > {
     protected metadata: EntityMetadata | EntityUnionMetadata
 

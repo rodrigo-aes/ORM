@@ -10,12 +10,12 @@ import {
 } from "../../Handlers"
 
 // Types
-import type { UnionEntityTarget } from "../../../types/General"
+import type { EntityUnionTarget } from "../../../types/General"
 import type { PolymorphicBelongsToMetadata } from "../../Metadata"
 
 export default class PolymorphicBelongsTo<
     Target extends object,
-    Related extends UnionEntityTarget
+    Related extends EntityUnionTarget
 > extends OneRelation<Target, Related> {
     constructor(
         protected metadata: PolymorphicBelongsToMetadata,

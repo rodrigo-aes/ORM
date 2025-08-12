@@ -22,7 +22,7 @@ import HookMetadata, {
 // Types
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../types/General"
 import type { HookType } from "./HookMetadata/types"
 import type BaseEntity from "../../../BaseEntity"
@@ -62,7 +62,7 @@ export default class HooksMetadata {
     public beforeBulkDelete: BeforeBulkDeleteMetadata[] = []
     public afterBulkDelete: AfterBulkDeleteMetadata[] = []
 
-    constructor(public target: EntityTarget | UnionEntityTarget) {
+    constructor(public target: EntityTarget | EntityUnionTarget) {
         this.register()
     }
 
@@ -447,7 +447,7 @@ export default class HooksMetadata {
 
     // Static Methods =========================================================
     // Publics ================================================================
-    public static find(target: EntityTarget | UnionEntityTarget): (
+    public static find(target: EntityTarget | EntityUnionTarget): (
         HooksMetadata | undefined
     ) {
         return Reflect.getOwnMetadata('hooks', target)

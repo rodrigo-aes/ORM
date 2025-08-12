@@ -22,7 +22,7 @@ import { SQLStringHelper } from "../../../Helpers"
 // Types
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../types/General"
 import type { ConditionalQueryOptions } from "../types"
 import type { RelationsOptions } from "../../JoinSQLBuilder"
@@ -33,7 +33,7 @@ import type {
 } from "./types"
 
 export default class ExistsSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > {
     protected metadata: EntityMetadata | EntityUnionMetadata
     public alias: string
@@ -208,7 +208,7 @@ export default class ExistsSQLBuilder<
     // ------------------------------------------------------------------------
 
     private addWhere(
-        target: EntityTarget | UnionEntityTarget,
+        target: EntityTarget | EntityUnionTarget,
         options: ConditionalQueryOptions<any>,
         alias: string
     ): void {
@@ -228,7 +228,7 @@ export default class ExistsSQLBuilder<
         relation: RelationMetadataType,
         parentAlias: string,
         alias: string,
-        target: EntityTarget | UnionEntityTarget
+        target: EntityTarget | EntityUnionTarget
     ): void {
         this.onWheres.push(
             ConditionalSQLBuilder.on(

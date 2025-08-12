@@ -46,7 +46,7 @@ import {
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type { EntityTarget, UnionEntityTarget } from "../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../types/General"
 import type { EntityProperties } from "../QueryBuilder"
 
 export default abstract class BaseEntity {
@@ -267,7 +267,7 @@ export default abstract class BaseEntity {
 
     protected polymorphicBelongsTo<
         T extends BaseEntity,
-        Related extends UnionEntityTarget
+        Related extends EntityUnionTarget
     >(
         this: T,
         name: string,

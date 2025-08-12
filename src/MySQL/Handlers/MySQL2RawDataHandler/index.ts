@@ -11,7 +11,7 @@ import BaseEntityUnion from "../../BaseEntityUnion"
 import { MetadataHandler } from "../../Metadata"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 import type {
     MySQL2RawData,
     MappedDataType,
@@ -21,7 +21,7 @@ import type {
 import type { RelationMetadataType } from "../../Metadata"
 
 export default class MySQL2RawDataHandler<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > {
     private metadata: EntityMetadata | EntityUnionMetadata
     private mySQL2RawData!: MySQL2RawData[]

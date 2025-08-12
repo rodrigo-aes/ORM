@@ -22,13 +22,13 @@ import type {
     EntityAndQueryOptions,
     RelationAndQueryOptions
 } from "./types"
-import type { EntityTarget, UnionEntityTarget } from "../../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../../types/General"
 import type { EntityPropertiesKeys } from "../../types"
 import type { ConditionalQueryOptions } from "../types"
 import type UnionSQLBuilder from "../../UnionSQLBuilder"
 
 
-export default class AndSQLBuilder<T extends EntityTarget | UnionEntityTarget> {
+export default class AndSQLBuilder<T extends EntityTarget | EntityUnionTarget> {
     protected metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string

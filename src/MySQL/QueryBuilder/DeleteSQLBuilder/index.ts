@@ -16,10 +16,10 @@ import { ConditionalQueryJoinsHandler } from "../../Handlers"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 
 export default class DeleteSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > {
     protected metadata: EntityMetadata | EntityUnionMetadata
 

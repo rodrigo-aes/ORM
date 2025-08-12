@@ -13,7 +13,7 @@ import type {
     PolymorphicBelongsToMetadata,
 } from "../../../Metadata"
 
-import type { UnionEntityTarget } from "../../../../types/General"
+import type { EntityUnionTarget } from "../../../../types/General"
 
 import { CreationAttributes } from "../../CreateSQLBuilder"
 import { OptionalNullable } from "../../../../types/Properties"
@@ -22,7 +22,7 @@ import { EntityProperties } from "../../types"
 import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 export default class PolymorphicBelongsToHandlerSQLBuilder<
     Target extends object,
-    Related extends UnionEntityTarget
+    Related extends EntityUnionTarget
 > extends OneRelationHandlerSQLBuilder<
     PolymorphicBelongsToMetadata,
     Target,

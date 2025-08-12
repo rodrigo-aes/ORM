@@ -1,7 +1,7 @@
 import EntityUnionMetadata from "../../.."
 import EntityMetadata from "../../../../EntityMetadata"
 
-import type { UnionEntityTarget } from "../../../../../../types/General"
+import type { EntityUnionTarget } from "../../../../../../types/General"
 
 import type {
     ForeignKeyActionListener,
@@ -34,7 +34,7 @@ export default class UnionForeignKeyReferences {
     public referenced!: ForeignKeyReferencedGetter
 
     constructor(
-        public target: UnionEntityTarget,
+        public target: EntityUnionTarget,
         private columnName: string,
         initMap: ForeignKeyReferencesInitMap
     ) {

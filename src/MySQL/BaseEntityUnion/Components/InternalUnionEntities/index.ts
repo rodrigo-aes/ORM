@@ -1,8 +1,8 @@
-import type { UnionEntityTarget } from "../../../../types/General";
+import type { EntityUnionTarget } from "../../../../types/General";
 
 class InternalUnionEntities extends Map<
     string,
-    UnionEntityTarget
+    EntityUnionTarget
 > { }
 
 export default new InternalUnionEntities

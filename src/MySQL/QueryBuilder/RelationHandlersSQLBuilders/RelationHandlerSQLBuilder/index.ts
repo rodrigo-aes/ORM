@@ -16,7 +16,7 @@ import type {
 
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../types/General"
 
 import type { CreationAttributes } from "../../CreateSQLBuilder"
@@ -26,11 +26,11 @@ import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 export default abstract class RelationHandlerSQLBuilder<
     RelationMetadata extends RelationMetadataType,
     Target extends object,
-    Related extends EntityTarget | UnionEntityTarget
+    Related extends EntityTarget | EntityUnionTarget
 > {
     protected targetMetadata: EntityMetadata | EntityUnionMetadata = (
         MetadataHandler.loadMetadata(
-            this.target.constructor as EntityTarget | UnionEntityTarget
+            this.target.constructor as EntityTarget | EntityUnionTarget
         )
     )
     protected relatedMetadata: EntityMetadata | EntityUnionMetadata = (

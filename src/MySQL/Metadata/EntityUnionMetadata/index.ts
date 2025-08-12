@@ -16,7 +16,7 @@ import { EntityToJSONProcessMetadata } from "../ProcessMetadata"
 
 // Types
 import type MySQLConnection from "../../Connection"
-import type { UnionEntityTarget, EntityTarget } from "../../../types/General"
+import type { EntityUnionTarget, EntityTarget } from "../../../types/General"
 import type {
     UnionEntitiesMap,
     SourcesMetadata,
@@ -37,7 +37,7 @@ export default class EntityUnionMetadata {
 
     constructor(
         public tableName: string,
-        public target: UnionEntityTarget | null,
+        public target: EntityUnionTarget | null,
         public sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
         this.loadEntities()
@@ -156,7 +156,7 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    private registerInternalEntity(): UnionEntityTarget {
+    private registerInternalEntity(): EntityUnionTarget {
         return EntityUnionBuilder.buildInternalEntityUnion(this)
     }
 
@@ -235,7 +235,7 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    private buildJSON<T extends UnionEntityTarget = any>(): (
+    private buildJSON<T extends EntityUnionTarget = any>(): (
         EntityUnionMetadataJSON | undefined
     ) {
         return EntityToJSONProcessMetadata.shouldAdd(this.name)
@@ -254,7 +254,7 @@ export default class EntityUnionMetadata {
     // Publics ----------------------------------------------------------------
     public static build(
         name: string,
-        target: UnionEntityTarget | null,
+        target: EntityUnionTarget | null,
         sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
         return new EntityUnionMetadata(
@@ -266,7 +266,7 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    public static find(target: UnionEntityTarget | null): (
+    public static find(target: EntityUnionTarget | null): (
         EntityUnionMetadata | undefined
     ) {
         if (target) return Reflect.getOwnMetadata('union-metadata', target)
@@ -276,7 +276,7 @@ export default class EntityUnionMetadata {
 
     public static findOrBuild(
         name: string,
-        target: UnionEntityTarget | null,
+        target: EntityUnionTarget | null,
         sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ): EntityUnionMetadata {
         return this.find(target) ?? this.build(

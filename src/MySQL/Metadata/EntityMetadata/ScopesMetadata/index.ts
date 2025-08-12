@@ -3,7 +3,7 @@ import ScopeMetadataHandler from "./ScopeMetadataHandler"
 // Types
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../types/General"
 
 import type { FindQueryOptions } from "../../../QueryBuilder"
@@ -13,7 +13,7 @@ export default class ScopesMetadata extends Map<string, Scope> {
     public default?: FindQueryOptions<any>
 
     constructor(
-        public target: EntityTarget | UnionEntityTarget,
+        public target: EntityTarget | EntityUnionTarget,
         scopes?: { [K: string]: Scope }
     ) {
         super()
@@ -23,7 +23,7 @@ export default class ScopesMetadata extends Map<string, Scope> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public getScopeOptions<T extends EntityTarget | UnionEntityTarget = any>(
+    public getScopeOptions<T extends EntityTarget | EntityUnionTarget = any>(
         name: string,
         ...args: any[]
     ): FindQueryOptions<InstanceType<T>> {
@@ -38,7 +38,7 @@ export default class ScopesMetadata extends Map<string, Scope> {
 
     // ------------------------------------------------------------------------
 
-    public apply<T extends EntityTarget | UnionEntityTarget = any>(
+    public apply<T extends EntityTarget | EntityUnionTarget = any>(
         options: FindQueryOptions<InstanceType<T>>,
         name: string,
         ...args: any[]
@@ -48,7 +48,7 @@ export default class ScopesMetadata extends Map<string, Scope> {
 
     // ------------------------------------------------------------------------
 
-    public setDefault<T extends EntityTarget | UnionEntityTarget = any>(
+    public setDefault<T extends EntityTarget | EntityUnionTarget = any>(
         findOptions: FindQueryOptions<InstanceType<T>>
     ): void {
         this.default = findOptions
@@ -69,7 +69,7 @@ export default class ScopesMetadata extends Map<string, Scope> {
 
     // Static Methods =========================================================
     // Publics ================================================================
-    public static find(target: EntityTarget | UnionEntityTarget): (
+    public static find(target: EntityTarget | EntityUnionTarget): (
         ScopesMetadata | undefined
     ) {
         return Reflect.getOwnMetadata('scopes', target)
@@ -77,13 +77,13 @@ export default class ScopesMetadata extends Map<string, Scope> {
 
     // ------------------------------------------------------------------------
 
-    public static build(target: EntityTarget | UnionEntityTarget) {
+    public static build(target: EntityTarget | EntityUnionTarget) {
         return new ScopesMetadata(target)
     }
 
     // ------------------------------------------------------------------------
 
-    public static findOrBuild(target: EntityTarget | UnionEntityTarget) {
+    public static findOrBuild(target: EntityTarget | EntityUnionTarget) {
         return this.find(target)
             ?? this.build(target)
     }

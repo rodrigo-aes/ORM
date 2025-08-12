@@ -19,11 +19,11 @@ import ConditionalSQLBuilder, {
 import UnionSQLBuilder from "../UnionSQLBuilder"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 import type { RelationOptions, RelationsOptions } from "./types"
 
 export default class JoinSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > {
     private metadata: EntityMetadata | EntityUnionMetadata
 

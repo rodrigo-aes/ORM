@@ -17,11 +17,11 @@ import { PropertySQLHelper } from "../../../Helpers"
 // Types
 import type {
     EntityTarget,
-    UnionEntityTarget
+    EntityUnionTarget
 } from "../../../../types/General"
 import type { CountQueryOption, CountCaseOptions } from "../types"
 
-export default class CountSQL<T extends EntityTarget | UnionEntityTarget> {
+export default class CountSQL<T extends EntityTarget | EntityUnionTarget> {
     private metadata: EntityMetadata | EntityUnionMetadata
 
     public alias: string

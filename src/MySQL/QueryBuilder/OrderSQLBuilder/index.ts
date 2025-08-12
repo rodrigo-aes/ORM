@@ -10,7 +10,7 @@ import { MetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 import type {
     OrderQueryOptions,
     OrderQueryOption,
@@ -18,7 +18,7 @@ import type {
 } from "./types"
 
 export default class OrderSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > {
     private metadata: EntityMetadata | EntityUnionMetadata
 

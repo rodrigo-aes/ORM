@@ -20,11 +20,11 @@ import {
 import { SQLStringHelper } from "../../../Helpers"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../../types/General"
 import type { ConditionalQueryOptions } from "../types"
 
 export default class OnSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > extends ConditionalSQLBuilder<T> {
     constructor(
         public relation: RelationMetadataType,

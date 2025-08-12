@@ -1,10 +1,10 @@
 import ConditionalSQLBuilder from "../ConditionalSQLBuilder"
 
 // Types
-import type { EntityTarget, UnionEntityTarget } from "../../../../types/General"
+import type { EntityTarget, EntityUnionTarget } from "../../../../types/General"
 
 export default class WhereSQLBuilder<
-    T extends EntityTarget | UnionEntityTarget
+    T extends EntityTarget | EntityUnionTarget
 > extends ConditionalSQLBuilder<T> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
