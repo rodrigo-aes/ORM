@@ -1,4 +1,5 @@
 import { MetadataHandler, type EntityMetadata } from "../Metadata"
+import type BaseEntity from "../BaseEntity"
 
 // SQL Builders
 import {
@@ -14,14 +15,15 @@ import { Old, New } from "./Symbols"
 import { SQLStringHelper, PropertySQLHelper } from "../Helpers"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget, Constructor } from "../../types/General"
 
 import type {
     TriggerTiming,
     TriggerEvent,
-    TriggerScope,
-    TriggerActionType,
+    TriggerForEachScope,
     TriggerAction,
+    TriggerActionOptions,
+    SetAction,
     InsertIntoTableAction,
     UpdateTableAction,
     DeleteFromAction,
@@ -33,14 +35,14 @@ import type {
     ConditionalQueryOptions
 } from "../QueryBuilder"
 
-export default abstract class Trigger<T extends EntityTarget> {
-    private metadata: EntityMetadata
+export default abstract class Trigger<T extends BaseEntity = any> {
+    protected metadata: EntityMetadata
 
     public abstract timing: TriggerTiming
     public abstract event: TriggerEvent
-    public abstract scope: TriggerScope
+    public abstract forEach: TriggerForEachScope
 
-    constructor(public target: T) {
+    constructor(public target: Constructor<T>) {
         this.metadata = MetadataHandler.loadMetadata(this.target) as (
             EntityMetadata
         )
@@ -63,7 +65,32 @@ export default abstract class Trigger<T extends EntityTarget> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public abstract action(): string | TriggerAction<T, TriggerActionType>[]
+    public abstract action(): (
+        string | TriggerAction<T>[]
+    )
+
+    // ------------------------------------------------------------------------
+
+    public async register(): Promise<void> {
+        if (!this.metadata.connection) throw new Error
+        console.log(this.SQL())
+        await this.metadata.connection.query(this.SQL())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async drop(): Promise<void> {
+        if (!this.metadata.connection) throw new Error
+        console.log(`DROP TRIGGER ${this.name}`)
+        await this.metadata.connection.query(`DROP TRIGGER ${this.name}`)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async alter(): Promise<void> {
+        await this.drop()
+        await this.register()
+    }
 
     // ------------------------------------------------------------------------
 
@@ -71,64 +98,75 @@ export default abstract class Trigger<T extends EntityTarget> {
         return SQLStringHelper.normalizeSQL(`
             CREATE TRIGGER ${this.name}
             ${this.timing} ${this.event} ON ${this.tableName}
-            FOR EACH ${this.scope}
-            BEGIN ${this.actionSQL()} END;
+            FOR EACH ${this.forEach}
+            ${this.actionBody()}
         `)
     }
 
+    // ------------------------------------------------------------------------
+
+    public actionBody(): string {
+        return SQLStringHelper.normalizeSQL(`BEGIN ${this.actionSQL()} END`)
+    }
+
     // Protecteds -------------------------------------------------------------
-    protected set(attributes: UpdateAttributes<InstanceType<T>>): (
-        ['SET', UpdateAttributes<InstanceType<T>>]
+    protected set(attributes: TriggerActionOptions<UpdateAttributes<T>>): (
+        SetAction<T>
     ) {
-        return ['SET', attributes]
+        return {
+            type: 'SET',
+            attributes
+        }
     }
 
     // ------------------------------------------------------------------------
 
     protected insertInto<T extends EntityTarget = any>(
         target: T,
-        attributes: CreationAttributesOptions<InstanceType<T>>
-    ): ['INSERT INTO', InsertIntoTableAction<T>] {
-        return [
-            'INSERT INTO',
-            {
-                target,
-                attributes
-            }
-        ]
+        attributes: TriggerActionOptions<
+            CreationAttributesOptions<InstanceType<T>>
+        >
+    ): InsertIntoTableAction<T> {
+        return {
+            type: 'INSERT INTO',
+            target,
+            attributes
+        }
     }
 
     // ------------------------------------------------------------------------
 
     protected updateTable<T extends EntityTarget = any>(
         target: T,
-        attributes: UpdateAttributes<InstanceType<T>>,
-        where?: ConditionalQueryOptions<InstanceType<T>>
-    ): ['UPDATE TABLE', UpdateTableAction<T>] {
+        attributes: TriggerActionOptions<
+            UpdateAttributes<InstanceType<T>>
+        >,
+        where?: TriggerActionOptions<
+            ConditionalQueryOptions<InstanceType<T>>
+        >
+    ): UpdateTableAction<T> {
 
-        return [
-            'UPDATE TABLE',
-            {
-                target,
-                attributes,
-                where
-            }
-        ]
+        return {
+            type: 'UPDATE TABLE',
+            target,
+            attributes,
+            where
+        }
     }
 
     // ------------------------------------------------------------------------
 
     protected deleteFrom<T extends EntityTarget = any>(
         target: T,
-        where: ConditionalQueryOptions<InstanceType<T>>
-    ): ['DELETE FROM', DeleteFromAction<T>] {
-        return [
-            'DELETE FROM',
-            {
-                target,
-                where
-            }
-        ]
+        where: TriggerActionOptions<
+            ConditionalQueryOptions<InstanceType<T>>
+        >
+    ): DeleteFromAction<T> {
+        return {
+            type: 'DELETE FROM',
+            target,
+            where
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -151,10 +189,10 @@ export default abstract class Trigger<T extends EntityTarget> {
         return action.map((a) => {
             if (typeof a === 'string') return a
 
-            const [type, config] = a
+            const { type, ...config } = a
             switch (type) {
                 case "SET": return this.setSQL(config as (
-                    UpdateAttributes<InstanceType<T>>
+                    SetAction<T>
                 ))
 
                 case "INSERT INTO": return this.insertIntoSQL(config as (
@@ -170,13 +208,13 @@ export default abstract class Trigger<T extends EntityTarget> {
                 ))
             }
         })
-            .join(' ')
+            .join('; ') + ';'
     }
 
     // ------------------------------------------------------------------------
 
-    private setSQL(config: UpdateAttributes<InstanceType<T>>): string {
-        return `SET ${this.setValuesSQL(config)}`
+    private setSQL({ attributes }: SetAction<T>): string {
+        return `SET ${this.setValuesSQL(attributes)}`
     }
 
     // ------------------------------------------------------------------------
@@ -218,7 +256,9 @@ export default abstract class Trigger<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private setValuesSQL(config: UpdateAttributes<InstanceType<T>>): string {
+    private setValuesSQL(config: TriggerActionOptions<UpdateAttributes<T>>): (
+        string
+    ) {
         return Object.entries(config).map(
             ([column, value]) => (
                 typeof value === 'object' &&

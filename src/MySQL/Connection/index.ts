@@ -15,7 +15,7 @@ export default class MySQLConnection {
     private pool!: Pool
     public entities: EntityTarget[] = []
 
-    private config: MySQLConnectionConfig
+    public config: MySQLConnectionConfig
 
     private constructor(config: MySQLConnectionConfig) {
         const { entities, ...rest } = config

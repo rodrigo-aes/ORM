@@ -13,6 +13,20 @@ import BaseEntityUnion from './BaseEntityUnion'
 // Symbols
 import { Case, Exists, Cross } from './QueryBuilder'
 
+// Trigger
+import {
+    Trigger,
+
+    type TriggerTiming,
+    type TriggerEvent,
+    type TriggerForEachScope,
+    type TriggerActionType,
+    type TriggerAction,
+    type InsertIntoTableAction,
+    type UpdateTableAction,
+    type DeleteFromAction,
+} from './Triggers'
+
 // Decorators
 import {
     Entity,
@@ -28,7 +42,9 @@ import {
     Unsigned,
 
     Id,
+    PolymorphicId,
     ForeignId,
+    PolymorphicForeignId,
     CreatedTimestamp,
     UpdatedTimestamp,
 
@@ -62,6 +78,11 @@ import {
     AfterDelete,
     BeforeBulkDelete,
     AfterBulkDelete,
+
+    Repository,
+    Scopes,
+    DefaultScope,
+    Triggers
 } from './Decorators'
 
 export {
@@ -72,6 +93,8 @@ export {
 
     BaseEntity,
     BaseEntityUnion,
+
+    Trigger,
 
     Entity,
     EntityUnion,
@@ -86,7 +109,9 @@ export {
     Unsigned,
 
     Id,
+    PolymorphicId,
     ForeignId,
+    PolymorphicForeignId,
     CreatedTimestamp,
     UpdatedTimestamp,
 
@@ -121,7 +146,21 @@ export {
     BeforeBulkDelete,
     AfterBulkDelete,
 
+    Repository,
+    Scopes,
+    DefaultScope,
+    Triggers,
+
     Case,
     Exists,
-    Cross
+    Cross,
+
+    type TriggerTiming,
+    type TriggerEvent,
+    type TriggerForEachScope,
+    type TriggerActionType,
+    type TriggerAction,
+    type InsertIntoTableAction,
+    type UpdateTableAction,
+    type DeleteFromAction,
 }

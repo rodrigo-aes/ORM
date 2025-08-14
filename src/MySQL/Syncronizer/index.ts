@@ -2,6 +2,7 @@ import { EntityMetadata, JoinTableMetadata } from "../Metadata"
 import { EntityTableBuilder, JoinTableBuilder } from "./TableBuilder"
 
 import DatabaseSchema, {
+    TriggersSchema,
     type TableSchema,
     type TableColumnAction
 } from "./DatabaseSchema"
@@ -15,6 +16,7 @@ import { defaultConfig } from "./static"
 // Types
 import type MySQLConnection from "../Connection"
 import type { SyncronizerConfig, SyncronizerTables } from "./types"
+import type { Trigger } from "../Triggers"
 
 export default class Syncronizer {
     private tables: SyncronizerTables
@@ -33,6 +35,8 @@ export default class Syncronizer {
     public async reset() {
         await this.dropTables()
         await this.createTables()
+
+        await new TriggersSchema(this.connection, this.loadTriggers()).reset()
     }
 
     // ------------------------------------------------------------------------
@@ -63,6 +67,8 @@ export default class Syncronizer {
                 await (table as TableSchema).drop(this.connection)
                 break
         }
+
+        await new TriggersSchema(this.connection, this.loadTriggers()).alter()
     }
 
     // Privates ---------------------------------------------------------------
@@ -88,11 +94,26 @@ export default class Syncronizer {
 
     // ------------------------------------------------------------------------
 
+    private loadTriggers(): Trigger[] {
+        return this.connection.entities.flatMap(
+            entity => {
+                const meta = EntityMetadata.findOrBuild(entity)
+
+                return [...meta.triggers].map(
+                    trigger => new trigger(entity)
+                )
+                    ?? []
+            }
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     private loadEntityTables() {
         return this.connection.entities.map(
-            target => new EntityTableBuilder(EntityMetadata.findOrBuild(
-                target
-            ))
+            target => new EntityTableBuilder(
+                EntityMetadata.findOrBuild(target)
+            )
         )
     }
 
@@ -148,7 +169,6 @@ export default class Syncronizer {
         await this.connection.query(`DROP TABLE IF EXISTS \`${tableName}\``)
         this.droppedTableLog(tableName)
     }
-
     // ------------------------------------------------------------------------
 
     private foreignKeysCheck(active: boolean) {

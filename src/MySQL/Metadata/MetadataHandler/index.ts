@@ -52,4 +52,20 @@ export default class MetadataHandler {
 
         throw new Error
     }
+
+    // ------------------------------------------------------------------------
+
+    public static getTargetParents<T extends EntityTarget | EntityUnionTarget>(
+        target: T
+    ): T[] {
+        const parents: T[] = []
+        let parent = Object.getPrototypeOf(target)
+
+        while (parent && parent !== Function.prototype) {
+            parents.push(parent)
+            parent = Object.getPrototypeOf(parent)
+        }
+
+        return parents
+    }
 }

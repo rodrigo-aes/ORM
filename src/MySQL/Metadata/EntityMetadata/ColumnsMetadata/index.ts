@@ -4,6 +4,7 @@ import ColumnMetadata, {
     type ColumnConfig,
     type ColumnPattern,
     type ForeignIdConfig,
+    type PolymorphicForeignIdConfig,
     type ForeignKeyReferencesInitMap,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
@@ -13,6 +14,9 @@ import ColumnMetadata, {
 import type DataType from "../DataType"
 import type { EntityTarget } from "../../../../types/General"
 import type { ColumnsMetadataJSON } from './types'
+
+// Handlers
+import MetadataHandler from '../../MetadataHandler'
 
 export default class ColumnsMetadata<
     T extends ColumnMetadata = ColumnMetadata
@@ -63,9 +67,14 @@ export default class ColumnsMetadata<
         pattern: ColumnPattern,
         ...rest: any[]
     ) {
-        this.push(ColumnMetadata.buildPattern(
-            this.target, name, pattern, ...rest
-        ) as T)
+        this.push(
+            ColumnMetadata.buildPattern(
+                this.target,
+                name,
+                pattern,
+                ...rest
+            ) as T
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -113,24 +122,11 @@ export default class ColumnsMetadata<
 
     // ------------------------------------------------------------------------
     protected mergeParentsColumns() {
-        const parents: EntityTarget[] = this.getTargetAbstracts()
+        const parents = MetadataHandler.getTargetParents(this.target)
 
         for (const parent of parents) this.push(
             ...((ColumnsMetadata.find(parent) ?? []) as T[])
         )
-    }
-
-    // Privates ---------------------------------------------------------------
-    private getTargetAbstracts(): EntityTarget[] {
-        const parents: EntityTarget[] = []
-        let parent = Object.getPrototypeOf(this.target)
-
-        while (parent && parent !== Function.prototype) {
-            parents.push(parent)
-            parent = Object.getPrototypeOf(parent)
-        }
-
-        return parents
     }
 
     // Static Methods =========================================================
@@ -162,6 +158,7 @@ export {
     type ColumnConfig,
     type ColumnPattern,
     type ForeignIdConfig,
+    type PolymorphicForeignIdConfig,
     type ForeignKeyReferencesInitMap,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,

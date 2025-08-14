@@ -318,17 +318,23 @@ export default abstract class BaseEntity {
     // ------------------------------------------------------------------------
 
     public static scope<T extends EntityTarget>(
-        this: T & BaseEntity,
+        this: T,
         name: string,
         ...args: any[]
     ): T {
-        const scope = this.getMetadata().scopes?.getScopeOptions(name, ...args)
+        const scope = (this as T & BaseEntity).getMetadata()
+            .scopes?.getScopeOptions(name, ...args)
+
         if (!scope) throw new Error
 
         const scoped = class extends (this as new (...args: any[]) => any) { }
 
         Object.assign(scoped, this)
-        Reflect.defineMetadata('entity-metadata', this.getMetadata(), scoped)
+        Reflect.defineMetadata(
+            'entity-metadata',
+            (this as T & BaseEntity).getMetadata(),
+            scoped
+        )
         Reflect.defineMetadata('current-scope', scope, scoped)
 
         return scoped as T

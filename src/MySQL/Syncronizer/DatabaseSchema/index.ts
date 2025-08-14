@@ -4,6 +4,8 @@ import TableSchema, {
     TableColumnAction,
 } from "./TableSchema"
 
+import TriggersSchema from "./TriggersSchema"
+
 // Statics 
 import { databaseSchemaQuery } from "./static"
 
@@ -85,6 +87,7 @@ export default class DatabaseSchema {
 export {
     TableSchema,
     ColumnSchema,
+    TriggersSchema,
 
     type AlterTable,
     type ColumnSchemaInitMap,

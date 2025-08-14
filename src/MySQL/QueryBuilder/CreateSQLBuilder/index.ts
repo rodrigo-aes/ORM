@@ -146,14 +146,13 @@ export default class CreateSQLBuilder<
             ? this.columnsValues.map(values => this.valueSetSQL(values)).join(
                 ', '
             )
-            : this.valueSetSQL(this.columnsNames)
+            : this.valueSetSQL(this.columnsValues)
     }
 
     // ------------------------------------------------------------------------
 
     private valueSetSQL(values: any[]): string {
-        return `(
-            ${values.map(value =>
+        return `(${values.map(value =>
             (
                 typeof value === 'object' &&
                 Object.getOwnPropertySymbols(value).some(
@@ -165,8 +164,7 @@ export default class CreateSQLBuilder<
                     ?? value![New as keyof typeof value]
                 )
                 : PropertySQLHelper.valueSQL(value)
-        ).join(', ')}
-        )`
+        ).join(', ')})`
     }
 
     // ------------------------------------------------------------------------

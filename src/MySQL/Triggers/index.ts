@@ -1,4 +1,5 @@
 import Trigger from "./Trigger"
+import PolymorphicId from "./PolymorphicId"
 
 // Symbols
 import { Old, New } from "./Symbols"
@@ -7,7 +8,7 @@ import { Old, New } from "./Symbols"
 import type {
     TriggerTiming,
     TriggerEvent,
-    TriggerScope,
+    TriggerForEachScope,
     TriggerActionType,
     TriggerAction,
     InsertIntoTableAction,
@@ -17,13 +18,14 @@ import type {
 
 export {
     Trigger,
+    PolymorphicId,
 
     Old,
     New,
 
     type TriggerTiming,
     type TriggerEvent,
-    type TriggerScope,
+    type TriggerForEachScope,
     type TriggerActionType,
     type TriggerAction,
     type InsertIntoTableAction,

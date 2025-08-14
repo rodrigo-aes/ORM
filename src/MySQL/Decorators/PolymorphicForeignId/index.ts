@@ -1,18 +1,21 @@
 import { ColumnsMetadata } from "../../Metadata"
 
 import type { EntityTarget } from "../../../types/General"
-import type { ForeignIdRelatedGetter, ForeignIdOptions } from "./types"
+import type {
+    PolymorphicForeignIdRelatedGetter,
+    PolymorphicForeignIdOptions
+} from "./types"
 
-export default function ForeignId(
-    referenced: ForeignIdRelatedGetter,
-    options?: ForeignIdOptions
+export default function PolymorphicForeignId(
+    referenced: PolymorphicForeignIdRelatedGetter,
+    options?: PolymorphicForeignIdOptions
 ) {
     return function <Entity extends object>(
         target: Entity,
         name: string
     ) {
         ColumnsMetadata.findOrBuild(target.constructor as EntityTarget)
-            .registerColumnPattern(name, 'foreign-id', {
+            .registerColumnPattern(name, 'polymorphic-foreign-id', {
                 referenced, ...options
             })
     }

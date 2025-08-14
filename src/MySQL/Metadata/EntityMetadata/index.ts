@@ -13,6 +13,7 @@ import ColumnsMetadata, {
     type ColumnConfig,
     type ColumnPattern,
     type ForeignIdConfig,
+    type PolymorphicForeignIdConfig,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
 
@@ -93,6 +94,8 @@ import ScopesMetadata, {
     type ScopeFunction
 } from './ScopesMetadata'
 
+import TriggersMetadata from './TriggersMetadata'
+
 import { EntityToJSONProcessMetadata } from '../ProcessMetadata'
 
 // Types
@@ -109,6 +112,9 @@ export default class EntityMetadata {
     public hooks?: HooksMetadata
     public scopes?: ScopesMetadata
     public repository!: Repository<any>
+    public triggers: TriggersMetadata = TriggersMetadata.findOrBuild(
+        this.target
+    )
 
     constructor(
         public target: EntityTarget,
@@ -121,6 +127,7 @@ export default class EntityMetadata {
         this.loadHooks()
         this.loadScopes()
         this.loadRepository()
+        console.log(this.triggers)
         this.register()
     }
 
@@ -339,6 +346,7 @@ export {
     HooksMetadata,
     ScopesMetadata,
     ScopeMetadataHandler,
+    TriggersMetadata,
 
     type JoinTableRelated,
 
@@ -392,6 +400,7 @@ export {
     type PolymorphicChildRelatedGetter,
 
     type ForeignIdConfig,
+    type PolymorphicForeignIdConfig,
 
     type Scope,
     type ScopeFunction,

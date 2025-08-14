@@ -11,13 +11,16 @@ import AutoIncrement from "./AutoIncrement"
 import Unsigned from "./Unsigned"
 
 import Id from "./Id"
+import PolymorphicId from "./PolymorphicId"
 import ForeignId from "./ForeignId"
+import PolymorphicForeignId from "./PolymorphicForeignId"
 import CreatedTimestamp from "./CreatedTimestamp"
 import UpdatedTimestamp from "./UpdatedTimestamp"
 
 import Repository from "./Repository"
 
 import Scopes, { DefaultScope } from "./Scopes"
+import Triggers from "./Triggers"
 
 import {
     HasOne,
@@ -68,7 +71,9 @@ export {
     Unsigned,
 
     Id,
+    PolymorphicId,
     ForeignId,
+    PolymorphicForeignId,
     CreatedTimestamp,
     UpdatedTimestamp,
 
@@ -106,4 +111,5 @@ export {
     Repository,
     Scopes,
     DefaultScope,
+    Triggers,
 }

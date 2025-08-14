@@ -1,6 +1,7 @@
-// Utils
+// Metadata
 import EntityMetadata from "../../"
 import DataType from "../../DataType"
+import TriggersMetadata from "../../TriggersMetadata"
 
 // Objects
 import ForeignKeyReferences, {
@@ -10,12 +11,17 @@ import ForeignKeyReferences, {
     type ForeignKeyReferencesJSON
 } from "./ForeignKeyReferences"
 
+// Triggers
+import { PolymorphicId } from "../../../../Triggers"
+
+// Types
 import type { EntityTarget } from "../../../../../types/General"
 import type {
     SQLColumnType,
     ColumnPattern,
     ColumnConfig,
     ForeignIdConfig,
+    PolymorphicForeignIdConfig,
     ColumnMetadataJSON
 } from "./types"
 
@@ -41,7 +47,7 @@ export default class ColumnMetadata {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get targetMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
+        return EntityMetadata.findOrBuild(this.target)
     }
 
     // Instance Methods =======================================================
@@ -91,8 +97,20 @@ export default class ColumnMetadata {
         switch (pattern) {
             case 'id': return this.buildIdColumn(target, name)
 
+            case 'polymorphicId': return this.buildPolymorphicIdColumn(
+                target, name
+            )
+
             case 'foreign-id': return this.buildForeignIdcolumn(
                 target, name, ...(rest as [ForeignIdConfig])
+            )
+
+            case 'polymorphic-foreign-id': return (
+                this.buildPolymorphicForeignId(
+                    target,
+                    name,
+                    ...(rest as [PolymorphicForeignIdConfig])
+                )
             )
 
             case "created-timestamp": return this.buildCreateDateColumn(
@@ -122,6 +140,24 @@ export default class ColumnMetadata {
 
     // ------------------------------------------------------------------------
 
+    public static buildPolymorphicIdColumn(
+        target: EntityTarget,
+        name: string
+    ) {
+        const column = new ColumnMetadata(target, name, DataType.VARCHAR())
+
+        Object.assign(column, {
+            primary: true,
+            nullable: false,
+        })
+
+        TriggersMetadata.findOrBuild(target).addTrigger(PolymorphicId)
+
+        return column
+    }
+
+    // ------------------------------------------------------------------------
+
     public static buildForeignIdcolumn(
         target: EntityTarget,
         name: string,
@@ -132,13 +168,27 @@ export default class ColumnMetadata {
         Object.assign(column, {
             isForeignKey: true,
             unsigned: true,
-            nullable: false,
         })
 
         column.defineForeignKey({
             constrained: true,
             ...config
         })
+
+        return column
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static buildPolymorphicForeignId(
+        target: EntityTarget,
+        name: string,
+        config: PolymorphicForeignIdConfig
+    ) {
+        const column = new ColumnMetadata(target, name, DataType.VARCHAR())
+
+        Object.assign(column, { isForeignKey: true })
+        column.defineForeignKey(config)
 
         return column
     }
@@ -181,6 +231,7 @@ export type {
     ForeignKeyReferencedGetter,
     ForeignKeyActionListener,
     ForeignIdConfig,
+    PolymorphicForeignIdConfig,
     ColumnMetadataJSON,
     ForeignKeyReferencesJSON
 }
