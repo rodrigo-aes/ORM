@@ -1,8 +1,8 @@
 import type { PolymorphicEntityTarget } from "../../../../types/General";
 
-class InternalUnionEntities extends Map<
+class InternalPolymorphicEntities extends Map<
     string,
     PolymorphicEntityTarget
 > { }
 
-export default new InternalUnionEntities
+export default new InternalPolymorphicEntities

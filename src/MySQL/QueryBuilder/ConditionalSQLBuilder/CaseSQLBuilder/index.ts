@@ -14,13 +14,15 @@ import { MetadataHandler } from "../../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type {
     CaseQueryOptions,
     CaseQueryTuple,
     WhenQueryOption,
     ElseQueryOption,
-
 } from "./types"
 
 export default class CaseSQLBuilder<

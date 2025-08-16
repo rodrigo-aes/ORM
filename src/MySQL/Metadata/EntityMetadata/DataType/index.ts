@@ -23,7 +23,6 @@ import BINARY from "./BINARY"
 import VARBINARY from "./VARBINARY"
 import BLOB, { type BlobLength } from './BLOB'
 import COMPUTED, {
-    type ComputedConfig,
     type ComputedType
 } from './COMPUTED'
 

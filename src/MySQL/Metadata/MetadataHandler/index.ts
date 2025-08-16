@@ -10,7 +10,10 @@ import TemMetadata from "../TempMetadata"
 
 // Types
 import type MySQLConnection from "../../Connection"
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../types/General"
 
 export default class MetadataHandler {
     public static registerEntitiesConnection(

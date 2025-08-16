@@ -1,5 +1,5 @@
-import InternalUnionEntities from "./InternalUnionEntities"
+import InternalPolymorphicEntities from "./InternalPolymorphicEntities"
 
 export {
-    InternalUnionEntities
+    InternalPolymorphicEntities
 }

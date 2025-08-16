@@ -16,7 +16,7 @@ import PolymorphicColumnsMetadata, {
 import PolymorphicRelationsMetadata from "./PolymorphicRelationsMetadata"
 
 // Handlers
-import { EntityUnionBuilder } from "../../Handlers"
+import { PolymorphicEntityBuilder } from "../../Handlers"
 import { EntityToJSONProcessMetadata } from "../ProcessMetadata"
 
 // Types
@@ -182,7 +182,7 @@ export default class PolymorphicEntityMetadata {
     // ------------------------------------------------------------------------
 
     private registerInternalEntity(): PolymorphicEntityTarget {
-        return EntityUnionBuilder.buildInternalEntityUnion(this)
+        return PolymorphicEntityBuilder.buildInternalEntityUnion(this)
     }
 
     // ------------------------------------------------------------------------

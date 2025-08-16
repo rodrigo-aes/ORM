@@ -12,7 +12,6 @@ import type {
     BelongsToThroughGetter,
     BelongsToThroughMetadataJSON
 } from "./types"
-import type { RelatedEntitiesMap } from "../types"
 
 export default class BelongsToThroughMetadata extends RelationMetadata {
     public related!: BelongsToThroughRelatedGetter

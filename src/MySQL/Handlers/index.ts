@@ -10,13 +10,13 @@ import MySQL2QueryExecutionHandler, {
 } from "./MySQL2QueryExecutionHandler"
 
 import EntityBuilder from "./EntityBuilder"
-import EntityUnionBuilder from "./EntityUnionBuilder"
+import PolymorphicEntityBuilder from "./PolymorphicEntityBuilder"
 import MySQL2RawDataHandler from "./MySQL2RawDataHandler"
 import ConditionalQueryJoinsHandler from "./ConditionalQueryJoinsHandler"
 
 export {
     EntityBuilder,
-    EntityUnionBuilder,
+    PolymorphicEntityBuilder,
     MySQL2QueryExecutionHandler,
     MySQL2RawDataHandler,
     ConditionalQueryJoinsHandler,

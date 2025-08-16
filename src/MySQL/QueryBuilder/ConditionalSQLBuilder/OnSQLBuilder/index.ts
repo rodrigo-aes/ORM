@@ -20,7 +20,10 @@ import {
 import { SQLStringHelper } from "../../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type { ConditionalQueryOptions } from "../types"
 
 export default class OnSQLBuilder<

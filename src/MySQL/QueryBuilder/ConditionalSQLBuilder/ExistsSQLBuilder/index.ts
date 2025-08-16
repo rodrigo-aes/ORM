@@ -14,7 +14,7 @@ import {
     type RelationMetadataType
 } from "../../../Metadata"
 
-import { InternalUnionEntities } from "../../../BasePolymorphicEntity"
+import { InternalPolymorphicEntities } from "../../../BasePolymorphicEntity"
 
 // Helpers
 import { SQLStringHelper } from "../../../Helpers"
@@ -25,7 +25,6 @@ import type {
     PolymorphicEntityTarget
 } from "../../../../types/General"
 import type { ConditionalQueryOptions } from "../types"
-import type { RelationsOptions } from "../../JoinSQLBuilder"
 import type {
     ExistsQueryOptions,
     CrossExistsQueryOptions,
@@ -188,7 +187,7 @@ export default class ExistsSQLBuilder<
         this.unions.push(
             new UnionSQLBuilder(
                 metadata.tableName,
-                metadata.target ?? InternalUnionEntities.get(
+                metadata.target ?? InternalPolymorphicEntities.get(
                     metadata.targetName
                 )!
             )

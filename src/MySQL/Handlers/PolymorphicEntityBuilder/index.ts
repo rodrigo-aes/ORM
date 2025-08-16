@@ -1,8 +1,11 @@
-import { PolymorphicEntityMetadata } from "../../Metadata"
-import EntityUnion, { InternalUnionEntities } from "../../BasePolymorphicEntity"
+import BasePolymorphicEntity, {
+    InternalPolymorphicEntities
+} from "../../BasePolymorphicEntity"
+
+import type { PolymorphicEntityMetadata } from "../../Metadata"
 import type { PolymorphicEntityTarget } from "../../../types/General"
 
-export default class EntityUnionBuilder {
+export default class PolymorphicEntityBuilder {
     public static readonly entityNameRegExp = /^[A-Z][A-Za-z0-9]*$/
 
     // Static Methods =========================================================
@@ -22,14 +25,16 @@ export default class EntityUnionBuilder {
                     }
                 }
             `
-        )(EntityUnion)
+        )(BasePolymorphicEntity)
 
-        InternalUnionEntities.set(entity.name, entity)
+        InternalPolymorphicEntities.set(entity.name, entity)
         return entity
     }
 
     // Privates ---------------------------------------------------------------
-    private static fillDinamicColumns(metadata: PolymorphicEntityMetadata): string {
+    private static fillDinamicColumns(metadata: PolymorphicEntityMetadata): (
+        string
+    ) {
         return [...metadata.columns].map(
             col => `this[${JSON.stringify(col.name)}] = null`
         )

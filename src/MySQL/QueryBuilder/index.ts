@@ -22,6 +22,7 @@ import UpdateOrCreateSQLBuilder, {
 } from "./UpdateOrCreateSQLBuilder"
 
 import DeleteSQLBuilder from "./DeleteSQLBuilder"
+import JoinSQLBuilder from "./JoinSQLBuilder"
 
 import {
     HasOneHandlerSQLBuilder,
@@ -73,6 +74,8 @@ export {
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
     DeleteSQLBuilder,
+
+    JoinSQLBuilder,
 
     HasOneHandlerSQLBuilder,
     HasManyHandlerSQLBuilder,

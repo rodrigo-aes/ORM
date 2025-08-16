@@ -7,7 +7,7 @@ import {
 } from "../../Metadata"
 
 import { MetadataHandler } from "../../Metadata"
-import { InternalUnionEntities } from "../../BasePolymorphicEntity"
+import { InternalPolymorphicEntities } from "../../BasePolymorphicEntity"
 
 // Query Builders
 import SelectSQLBuilder, { type SelectOptions } from "../SelectSQLBuilder"
@@ -88,7 +88,7 @@ export default class JoinSQLBuilder<
         if (this.relation instanceof PolymorphicBelongsToMetadata) {
             return new UnionSQLBuilder(
                 this.relation.unionName,
-                InternalUnionEntities.get(this.relation.unionTargetName)!
+                InternalPolymorphicEntities.get(this.relation.unionTargetName)!
             )
         }
     }

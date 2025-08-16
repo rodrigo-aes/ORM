@@ -1,5 +1,5 @@
 import { PolymorphicEntityMetadata } from "../Metadata"
-import { InternalUnionEntities } from "./Components"
+import { InternalPolymorphicEntities } from "./Components"
 import { ColumnsSnapshots } from "../BaseEntity"
 
 // Decorators
@@ -100,5 +100,5 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 }
 
 export {
-    InternalUnionEntities
+    InternalPolymorphicEntities
 }

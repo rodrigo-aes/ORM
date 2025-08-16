@@ -1,5 +1,3 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
-
 // Objects
 import BaseEntity, { Collection } from "../../BaseEntity"
 
@@ -7,11 +5,12 @@ import BaseEntity, { Collection } from "../../BaseEntity"
 import { MetadataHandler } from "../../Metadata"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type {
-    CreationAttributes,
-    CreationAttributesOptions
-} from "../../QueryBuilder"
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../types/General"
+import type { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
+import type { CreationAttributesOptions } from "../../QueryBuilder"
 
 export default class EntityBuilder<
     T extends EntityTarget | PolymorphicEntityTarget

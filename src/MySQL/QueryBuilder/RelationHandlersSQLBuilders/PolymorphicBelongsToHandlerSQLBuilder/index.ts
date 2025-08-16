@@ -2,7 +2,7 @@ import OneRelationHandlerSQLBuilder from "../OneRelationHandlerSQLBuilder"
 
 // SQL Builders
 import UnionSQLBuilder from "../../UnionSQLBuilder"
-import { InternalUnionEntities } from "../../../BasePolymorphicEntity"
+import { InternalPolymorphicEntities } from "../../../BasePolymorphicEntity"
 
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
@@ -33,7 +33,7 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     constructor(
         protected metadata: PolymorphicBelongsToMetadata,
         protected target: Target,
-        protected related: Related = InternalUnionEntities.get(
+        protected related: Related = InternalPolymorphicEntities.get(
             metadata.unionTargetName
         ) as Related
     ) {

@@ -1,7 +1,6 @@
 import BaseEntity from "../BaseEntity"
 import BasePolymorphicEntity from "../BasePolymorphicEntity"
 
-
 // SQL Builders
 import {
     FindByPkSQLBuilder,
