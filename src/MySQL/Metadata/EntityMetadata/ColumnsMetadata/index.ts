@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 
 import ColumnMetadata, {
+    type SQLColumnType,
     type ColumnConfig,
     type ColumnPattern,
     type ForeignIdConfig,
@@ -11,6 +12,7 @@ import ColumnMetadata, {
     type ColumnMetadataJSON,
     type ForeignKeyReferencesJSON
 } from "./ColumnMetadata"
+
 import type DataType from "../DataType"
 import type { EntityTarget } from "../../../../types/General"
 import type { ColumnsMetadataJSON } from './types'
@@ -155,6 +157,7 @@ export default class ColumnsMetadata<
 export {
     ColumnMetadata,
 
+    type SQLColumnType,
     type ColumnConfig,
     type ColumnPattern,
     type ForeignIdConfig,

@@ -4,7 +4,8 @@ import CreateQueryBuilder from "../CreateQueryBuilder"
 import { MySQL2QueryExecutionHandler } from "../../../../Handlers"
 
 // Types
-import type { EntityTarget } from "../../../../../types/General"
+import type { EntityTarget, AsEntityTarget } from "../../../../../types/General"
+import type CreateSQLBuilder from "../../../CreateSQLBuilder"
 
 export default class BulkInsertQueryBuilder<
     T extends EntityTarget
@@ -23,7 +24,7 @@ export default class BulkInsertQueryBuilder<
 
         return new MySQL2QueryExecutionHandler(
             this.target,
-            this.sqlBuilder,
+            this.sqlBuilder as CreateSQLBuilder<AsEntityTarget<T>>,
             'entity'
         )
             .exec() as Promise<InstanceType<T>[]>

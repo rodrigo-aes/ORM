@@ -5,7 +5,7 @@ import UpdateOrCreateSQLBuilder from "../../UpdateOrCreateSQLBuilder"
 import { MySQL2QueryExecutionHandler } from "../../../Handlers"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget, AsEntityTarget } from "../../../../types/General"
 import type { EntityPropertiesKeys } from "../../types"
 import type {
     UpdateOrCreateAttibutes
@@ -51,7 +51,7 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
     public exec(): Promise<InstanceType<T>> {
         return new MySQL2QueryExecutionHandler(
             this.target,
-            this.sqlBuilder,
+            this.sqlBuilder as UpdateOrCreateSQLBuilder<AsEntityTarget<T>>,
             'entity'
         )
             .exec()

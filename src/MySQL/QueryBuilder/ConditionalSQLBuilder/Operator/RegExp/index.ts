@@ -1,7 +1,7 @@
 import Operator from "../Operator"
-import { Regex } from "../Symbols"
+import { RegExp } from "../Symbols"
 
-export default class RegExpOperator extends Operator<typeof Regex> {
+export default class RegExpOperator extends Operator<typeof RegExp> {
     public SQL(): string {
         return `REGEXP ${this.handleRegExp()}`
     }

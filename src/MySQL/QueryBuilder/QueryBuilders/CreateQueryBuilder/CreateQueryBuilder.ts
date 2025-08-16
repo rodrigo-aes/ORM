@@ -2,6 +2,7 @@ import { EntityMetadata } from "../../../Metadata"
 
 // SQL Builders
 import CreateSQLBuilder, {
+    type CreationAttributesOptions,
     type CreationAttributes,
     type CreationAttibutesKey
 } from "../../CreateSQLBuilder"
@@ -36,7 +37,7 @@ export default abstract class CreateQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public toQueryOptions(): CreationAttributes<InstanceType<T>> {
+    public toQueryOptions(): CreationAttributesOptions<InstanceType<T>> {
         return this.sqlBuilder.mapAttributes()
     }
 

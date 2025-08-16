@@ -1,5 +1,5 @@
 import DataType from "./DataType"
-import type { SQLColumnType } from "../ColumnMetadata"
+import type { SQLColumnType } from "../ColumnsMetadata"
 
 export type BlobLength = 'TINY' | 'MEDIUM' | 'LONG'
 
