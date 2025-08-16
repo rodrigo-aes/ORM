@@ -7,13 +7,17 @@ export default class JSONReference extends DataType {
     }
 
     public override buildSQL(): string {
-        const { type } = this.config
-        return `${this.dataType.buildSQL()} GENERATED ALWAYS ${this.as()} ${type}`
+        return `
+            ${this.dataType.buildSQL()} GENERATED ALWAYS 
+            ${this.as()} 
+            ${this.config.type}
+        `
     }
 
     private as() {
-        const { json, path } = this.config
-        return `AS (JSON_UNQUOTE(JSON_EXTRACT(${json}, '$.${path}')))`
+        return `AS (JSON_UNQUOTE(
+            JSON_EXTRACT(${this.config.json}, '$.${this.config.path}')
+        ))`
     }
 }
 

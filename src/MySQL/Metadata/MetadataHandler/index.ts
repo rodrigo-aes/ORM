@@ -3,7 +3,10 @@ import EntityUnionMetadata from "../EntityUnionMetadata"
 import { JoinTableMetadata } from "../EntityMetadata"
 
 import BaseEntity from "../../BaseEntity"
-import EntityUnion from "../../BaseEntityUnion"
+import BaseEntityUnion from "../../BaseEntityUnion"
+
+// Components
+import TemMetadata from "../TempMetadata"
 
 // Types
 import type MySQLConnection from "../../Connection"
@@ -35,19 +38,19 @@ export default class MetadataHandler {
 
     // ------------------------------------------------------------------------
 
-    public static loadMetadata(
-        target: EntityTarget | EntityUnionTarget
-    ): (
-            EntityMetadata | EntityUnionMetadata
-        ) {
+    public static loadMetadata(target: EntityTarget | EntityUnionTarget): (
+        EntityMetadata | EntityUnionMetadata
+    ) {
         switch (true) {
-            case (target as any).prototype instanceof EntityUnion: return (
-                EntityUnionMetadata.find(target as EntityUnionTarget)!
-            )
-
             case (target as any).prototype instanceof BaseEntity: return (
-                EntityMetadata.find(target as EntityTarget)!
-            )
+                EntityMetadata.find(target as EntityTarget)
+                ?? TemMetadata.getMetadata(target)
+            )!
+
+            case (target as any).prototype instanceof BaseEntityUnion: return (
+                EntityUnionMetadata.find(target as EntityUnionTarget)
+                ?? TemMetadata.getMetadata(target)
+            )!
         }
 
         throw new Error

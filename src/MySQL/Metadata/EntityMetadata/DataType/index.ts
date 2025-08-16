@@ -22,6 +22,10 @@ import BIT, { type BitLength } from './BIT'
 import BINARY from "./BINARY"
 import VARBINARY from "./VARBINARY"
 import BLOB, { type BlobLength } from './BLOB'
+import COMPUTED, {
+    type ComputedConfig,
+    type ComputedType
+} from './COMPUTED'
 
 import type { DataTypeMetadataJSON } from './types'
 
@@ -154,8 +158,22 @@ export default abstract class DataType extends AbstractDataType {
     public static BLOB(length?: BlobLength) {
         return new BLOB(length)
     }
+
+    // ------------------------------------------------------------------------
+
+    public static COMPUTED(
+        dataType: DataType,
+        as: string,
+        type: ComputedType = 'STORED'
+    ) {
+        return new COMPUTED(dataType, {
+            as,
+            type
+        })
+    }
 }
 
 export {
-    type DataTypeMetadataJSON
+    type DataTypeMetadataJSON,
+    type ComputedType
 }

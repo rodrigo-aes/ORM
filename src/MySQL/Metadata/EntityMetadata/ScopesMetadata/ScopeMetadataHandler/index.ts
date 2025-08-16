@@ -1,5 +1,6 @@
 // Handlers
 import MetadataHandler from "../../../MetadataHandler"
+import TempMetadata from "../../../TempMetadata"
 
 // Types
 import type {
@@ -35,7 +36,7 @@ export default class ScopeMetadataHandler {
         options: Options
     ): Options {
         const current: FindQueryOptions<InstanceType<T>> | undefined = (
-            Reflect.getOwnMetadata('current-scope', target)
+            TempMetadata.getScope(target)
             ?? MetadataHandler.loadMetadata(target).scopes?.default
         )
 

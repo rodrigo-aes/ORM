@@ -1,10 +1,16 @@
 import 'reflect-metadata'
 
+import EntityMetadata from '../../EntityMetadata'
 import UnionColumnMetadata from './UnionColumnMetadata'
 
 // Types
 import type { EntityUnionTarget } from '../../../../types/General'
 import type { ColumnMetadata, ColumnsMetadataJSON } from '../../EntityMetadata'
+import type {
+    CombinedColumns,
+    CombinedColumnOptions,
+    MergeSourceColumnsConfig
+} from './types'
 
 export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
     constructor(
@@ -50,20 +56,33 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
         return this.find((col) => col.name === name)
     }
 
+    // ------------------------------------------------------------------------
+
+    public combine(config: CombinedColumns): void {
+        for (const [name, options] of Object.entries(config)) (
+            this.mergeColumns(this.extractCombinedColumns(options), {
+                internalName: name,
+                shouldVerifyDataType: false
+            })
+        )
+    }
+
     // Privates ---------------------------------------------------------------
     private mergePrimaryKeys(): void {
-        this.push(
-            this.mergeColumns(
-                this.sources.filter(({ primary }) => primary),
-                'primaryKey'
-            )
-        )
+        this.push(this.mergeColumns(
+            this.sources.filter(({ primary }) => primary),
+            {
+                internalName: 'primaryKey',
+                shouldVerifyDataType: false
+            }
+        ))
     }
 
     // ------------------------------------------------------------------------
 
     private buildEntityTypeColumn(): void {
         const entityTypes = new Set(this.sources.map(({ target }) => target))
+
         this.push(UnionColumnMetadata.buildEntityTypeColumn(
             this.target,
             ...entityTypes
@@ -75,41 +94,63 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
     private mergeSources(): void {
         const mapped = new Set<string>()
 
-        for (const source of this.sources) {
-            if (source.primary) continue
-            if (mapped.has(source.name)) continue
+        for (const { name, primary } of this.sources) {
+            if (mapped.has(name) || primary) continue
 
-            const toMerge = this.sources.filter(
-                ({ name }) => name === source.name
-            )
+            this.push(this.mergeColumns(
+                this.sources.filter(source => source.name === name)
+            ))
 
-            this.push(this.mergeColumns(toMerge))
-
-            mapped.add(source.name)
+            mapped.add(name)
         }
     }
 
     // ------------------------------------------------------------------------
 
-    private mergeColumns(columns: ColumnMetadata[], internalName?: string): (
-        UnionColumnMetadata
-    ) {
+    private mergeColumns(
+        columns: ColumnMetadata[],
+        {
+            internalName,
+            shouldVerifyDataType = true,
+            shouldAssignCommonProperties = true
+        }: MergeSourceColumnsConfig = {}
+    ): UnionColumnMetadata {
         const shouldMerge = columns.length > 1
 
-        if (shouldMerge) this.verifyDataType(columns)
+        if (shouldVerifyDataType && shouldMerge) this.verifyDataType(columns)
 
         const [{ name, dataType }] = columns
 
         const unionColumn = new UnionColumnMetadata(
             this.target,
             internalName ?? name,
-            dataType
+            dataType,
+            columns
         )
 
-        if (shouldMerge) this.assignCommonProperties(unionColumn, columns)
-        else Object.assign(unionColumn, columns[0])
+        if (shouldAssignCommonProperties) {
+            if (shouldMerge) this.assignCommonProperties(unionColumn, columns)
+            else Object.assign(unionColumn, columns[0])
+        }
+
 
         return unionColumn
+    }
+
+    // ------------------------------------------------------------------------
+
+    private extractCombinedColumns(options: CombinedColumnOptions): (
+        ColumnMetadata[]
+    ) {
+        return options.map(({ entity, column }) => {
+            const metadata = EntityMetadata
+                .find(entity)?.columns
+                .findColumn(column)
+
+            if (metadata) return metadata
+
+            throw new Error
+        })
     }
 
     // ------------------------------------------------------------------------
@@ -152,5 +193,8 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
 }
 
 export {
-    UnionColumnMetadata
+    UnionColumnMetadata,
+
+    type CombinedColumns,
+    type CombinedColumnOptions
 }

@@ -4,7 +4,9 @@ import type MySQLConnection from '../../Connection'
 
 // Objects
 // Data Type
-import DataType from './DataType'
+import DataType, {
+    type ComputedType
+} from './DataType'
 
 // Columns Metadata
 import ColumnsMetadata, {
@@ -94,7 +96,14 @@ import ScopesMetadata, {
     type ScopeFunction
 } from './ScopesMetadata'
 
+import ComputedPropertiesMetadata, {
+    type ComputedPropertyFunction
+} from './ComputedPropertiesMetadata'
+
 import TriggersMetadata from './TriggersMetadata'
+import CollectionsMetadata, {
+    CollectionsMetadataHandler
+} from './CollectionsMetadata'
 
 import { EntityToJSONProcessMetadata } from '../ProcessMetadata'
 
@@ -106,13 +115,19 @@ export default class EntityMetadata {
     public connection?: MySQLConnection
 
     public tableName!: string
-    public columns!: ColumnsMetadata
-    public relations?: RelationsMetadata
+    public columns: ColumnsMetadata = ColumnsMetadata.findOrBuild(this.target)
+    public relations?: RelationsMetadata = RelationsMetadata.find(this.target)
     public joinTables?: JoinTableMetadata[]
-    public hooks?: HooksMetadata
-    public scopes?: ScopesMetadata
+    public hooks?: HooksMetadata = HooksMetadata.find(this.target)
+    public scopes?: ScopesMetadata = ScopesMetadata.find(this.target)
     public repository!: Repository<any>
+    public computedProperties?: ComputedPropertiesMetadata = (
+        ComputedPropertiesMetadata.find(this.target)
+    )
     public triggers: TriggersMetadata = TriggersMetadata.findOrBuild(
+        this.target
+    )
+    public collections?: CollectionsMetadata = CollectionsMetadata.find(
         this.target
     )
 
@@ -121,13 +136,8 @@ export default class EntityMetadata {
         initMap?: EntityMetadataInitMap
     ) {
         this.fill(initMap)
-        this.loadColumns()
-        this.loadRelations()
         this.loadJoinTables()
-        this.loadHooks()
-        this.loadScopes()
         this.loadRepository()
-        console.log(this.triggers)
         this.register()
     }
 
@@ -234,34 +244,9 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    protected loadColumns() {
-        this.columns = ColumnsMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadRelations() {
-        this.relations = RelationsMetadata.find(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private loadJoinTables() {
         this.joinTables = Reflect.getOwnMetadata('join-tables', this.target)
     }
-
-    // ------------------------------------------------------------------------
-
-    private loadHooks() {
-        this.hooks = HooksMetadata.find(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadScopes() {
-        this.scopes = ScopesMetadata.find(this.target)
-    }
-
 
     // ------------------------------------------------------------------------
 
@@ -347,6 +332,9 @@ export {
     ScopesMetadata,
     ScopeMetadataHandler,
     TriggersMetadata,
+    ComputedPropertiesMetadata,
+    CollectionsMetadata,
+    CollectionsMetadataHandler,
 
     type JoinTableRelated,
 
@@ -407,5 +395,8 @@ export {
 
     type ColumnsMetadataJSON,
     type ColumnMetadataJSON,
-    type ForeignKeyReferencesJSON
+    type ForeignKeyReferencesJSON,
+
+    type ComputedType,
+    type ComputedPropertyFunction
 }

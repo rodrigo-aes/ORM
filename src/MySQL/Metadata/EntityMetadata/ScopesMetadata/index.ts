@@ -84,8 +84,7 @@ export default class ScopesMetadata extends Map<string, Scope> {
     // ------------------------------------------------------------------------
 
     public static findOrBuild(target: EntityTarget | EntityUnionTarget) {
-        return this.find(target)
-            ?? this.build(target)
+        return this.find(target) ?? this.build(target)
     }
 }
 

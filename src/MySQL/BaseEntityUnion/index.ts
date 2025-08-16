@@ -1,26 +1,34 @@
 import { EntityUnionMetadata } from "../Metadata"
 import { InternalUnionEntities } from "./Components"
-
 import { ColumnsSnapshots } from "../BaseEntity"
+
+// Decorators
+import {
+    ExcludeColumns,
+    Combine
+} from "../Decorators"
 
 // Handlers
 import { EntityBuilder } from "../Handlers"
 
-import type { EntityUnionTarget, EntityTarget } from "../../types/General"
-import type { EntityName, SourceEntity } from "./types"
+// Types
+import type { EntityUnionTarget } from "../../types/General"
+import type { SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
 import type { EntityProperties } from "../QueryBuilder"
 
-export default abstract class BaseEntityUnion<Targets extends EntityTarget[]> {
+export default abstract class BaseEntityUnion<Targets extends object[]> {
     protected hidden: string[] = []
 
-    public entities: UnionEntitiesMap
+    public entities: UnionEntitiesMap = this.getMetadata().entities
 
     public primaryKey: any
-    public entityType!: EntityName<Targets>
+    public entityType!: string
 
-    constructor() {
-        this.entities = this.getMetadata().entities
+    constructor(properties?: any) {
+        if (properties) Object.assign(this, properties)
+        this.getMetadata().computedProperties?.assign(this)
+
         ColumnsSnapshots.set(this, this.toJSON())
     }
 
@@ -76,6 +84,18 @@ export default abstract class BaseEntityUnion<Targets extends EntityTarget[]> {
             .build() as (
                 SourceEntity<Targets>
             )
+    }
+
+    // Static Getters =========================================================
+    // Decorators -------------------------------------------------------------
+    public static get Combine() {
+        return Combine
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static get Exclude() {
+        return ExcludeColumns
     }
 }
 

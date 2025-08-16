@@ -1,11 +1,16 @@
 import EntityMetadata, {
     HooksMetadata,
     ScopesMetadata,
+    ComputedPropertiesMetadata,
+    CollectionsMetadata,
     type PolymorphicParentRelatedGetter,
 } from "../EntityMetadata"
 
 import UnionColumnsMetadata, {
-    UnionColumnMetadata
+    UnionColumnMetadata,
+
+    type CombinedColumns,
+    type CombinedColumnOptions
 } from "./UnionColumnsMetadata"
 
 import UnionRelationsMetadata from "./UnionRelationsMetadata"
@@ -34,6 +39,10 @@ export default class EntityUnionMetadata {
 
     public hooks?: HooksMetadata
     public scopes?: ScopesMetadata
+    public exclude?: string[] = []
+    public combined?: CombinedColumns
+    public computedProperties?: ComputedPropertiesMetadata
+    public collections?: CollectionsMetadata
 
     constructor(
         public tableName: string,
@@ -43,11 +52,14 @@ export default class EntityUnionMetadata {
         this.loadEntities()
         this.loadSourcesMetadata()
         this.loadColumns()
+        this.mergeCombined()
         this.loadRelations()
 
         if (target) {
             this.loadHooks()
             this.loadScopes()
+            this.loadComputedProperties()
+            this.loadCollections()
         }
 
         this.register()
@@ -143,6 +155,19 @@ export default class EntityUnionMetadata {
             )
     }
 
+    // ------------------------------------------------------------------------
+
+    public combineColumn(name: string, options: CombinedColumnOptions): void {
+        if (!this.combined) this.combined = {}
+        this.combined[name] = options
+    }
+
+    // ------------------------------------------------------------------------
+
+    public excludeColumns(...columnNames: string[]): void {
+        this.exclude = columnNames
+    }
+
     // Privates ---------------------------------------------------------------
     private register(): void {
         if (!this.target) this.target = this.registerInternalEntity()
@@ -201,10 +226,20 @@ export default class EntityUnionMetadata {
 
         this._columns = new UnionColumnsMetadata(
             this.target,
-            metas.flatMap(meta => [...meta.columns])
+            metas.flatMap(meta => [
+                ...[...meta.columns].filter(
+                    ({ name }) => !this.exclude?.includes(name)
+                )
+            ])
         )
 
         return this._columns
+    }
+
+    // ------------------------------------------------------------------------
+
+    private mergeCombined(): void {
+        if (this.combined) this._columns!.combine(this.combined)
     }
 
     // ------------------------------------------------------------------------
@@ -231,6 +266,18 @@ export default class EntityUnionMetadata {
 
     private loadScopes() {
         this.scopes = ScopesMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private loadComputedProperties() {
+        this.computedProperties = ComputedPropertiesMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private loadCollections() {
+        this.collections = CollectionsMetadata.find(this.target!)
     }
 
     // ------------------------------------------------------------------------
@@ -288,5 +335,7 @@ export default class EntityUnionMetadata {
 export {
     UnionColumnsMetadata,
     UnionColumnMetadata,
-    type UnionEntitiesMap
+
+    type UnionEntitiesMap,
+    type CombinedColumnOptions
 }

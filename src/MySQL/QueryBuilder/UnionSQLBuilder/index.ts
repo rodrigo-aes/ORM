@@ -89,16 +89,12 @@ export default class UnionSQLBuilder {
     // ------------------------------------------------------------------------
 
     private restPropertiesSQL(entity: EntityMetadata): string[] {
-        return this.restColumns.map(
-            column => {
-                const entityColumn = entity.columns.find(
-                    ({ name }) => name === column.name
-                )
+        return this.restColumns.map(column => {
+            const sourceColumn = column.targetSource(entity.target)?.name
 
-                return !!entityColumn
-                    ? `${entityColumn.name} AS ${column.name}`
-                    : `NULL AS ${column.name}`
-            }
-        )
+            return sourceColumn
+                ? `${sourceColumn} AS ${column.name}`
+                : `NULL AS ${column.name}`
+        })
     }
 }

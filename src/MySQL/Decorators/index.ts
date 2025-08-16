@@ -1,7 +1,13 @@
 import Entity from "./Entity"
-import EntityUnion from "./EntityUnion"
+import EntityUnion, {
+    ExcludeColumns,
+    Combine,
+
+    type CombinedColumnOptions
+} from "./EntityUnion"
 
 import Column from "./Column"
+import ComputedColumn from "./ComputedColumn"
 import Primary from "./Primary"
 import ForeignKey from "./ForeignKey"
 import Unique from "./Unique"
@@ -19,8 +25,10 @@ import UpdatedTimestamp from "./UpdatedTimestamp"
 
 import Repository from "./Repository"
 
+import ComputedProperty from "./ComputedProperty"
 import Scopes, { DefaultScope } from "./Scopes"
 import Triggers from "./Triggers"
+import Collections, { DefaultCollection } from "./Collections"
 
 import {
     HasOne,
@@ -60,8 +68,11 @@ import {
 export {
     Entity,
     EntityUnion,
+    ExcludeColumns,
+    Combine,
 
     Column,
+    ComputedColumn,
     Primary,
     ForeignKey,
     Unique,
@@ -108,8 +119,13 @@ export {
     BeforeBulkDelete,
     AfterBulkDelete,
 
+    ComputedProperty,
     Repository,
     Scopes,
     DefaultScope,
     Triggers,
+    Collections,
+    DefaultCollection,
+
+    type CombinedColumnOptions
 }

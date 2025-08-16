@@ -13,6 +13,9 @@ import {
     type RelationMetadataType
 } from "../Metadata"
 
+// Handlers
+import { MetadataHandler, TempMetadata } from "../Metadata"
+
 // Query Builder
 import { QueryBuilder } from "../QueryBuilder"
 
@@ -52,14 +55,19 @@ import type { EntityProperties } from "../QueryBuilder"
 export default abstract class BaseEntity {
     protected hidden: string[] = []
 
-    constructor() {
+    constructor(properties?: any) {
+        if (properties) Object.assign(this, properties)
+        this.getMetadata().computedProperties?.assign(this)
+
         ColumnsSnapshots.set(this, this.toJSON())
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public getMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.constructor as EntityTarget)
+        return MetadataHandler.loadMetadata(
+            this.constructor as EntityTarget
+        ) as EntityMetadata
     }
 
     // ------------------------------------------------------------------------
@@ -295,7 +303,7 @@ export default abstract class BaseEntity {
     public static getMetadata<T extends EntityTarget>(this: T): (
         EntityMetadata
     ) {
-        return EntityMetadata.findOrBuild(this)
+        return MetadataHandler.loadMetadata(this) as EntityMetadata
     }
 
     // ------------------------------------------------------------------------
@@ -322,20 +330,43 @@ export default abstract class BaseEntity {
         name: string,
         ...args: any[]
     ): T {
-        const scope = (this as T & BaseEntity).getMetadata()
+        const scope = (this as T & BaseEntity)
+            .getMetadata()
             .scopes?.getScopeOptions(name, ...args)
 
         if (!scope) throw new Error
 
         const scoped = class extends (this as new (...args: any[]) => any) { }
-
         Object.assign(scoped, this)
-        Reflect.defineMetadata(
-            'entity-metadata',
-            (this as T & BaseEntity).getMetadata(),
-            scoped
-        )
-        Reflect.defineMetadata('current-scope', scope, scoped)
+
+        TempMetadata
+            .reply(scoped as EntityTarget, this)
+            .setMetadata(scoped as EntityTarget, (this as any).getMetadata())
+            .setScope(scoped as EntityTarget, scope)
+
+        return scoped as T
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static collection<T extends EntityTarget>(
+        this: T,
+        collection: string | typeof Collection
+    ): T {
+        const coll: typeof Collection = typeof collection === 'object'
+            ? collection
+            : (this as T & BaseEntity).getMetadata()
+                .collections?.search(collection as string)
+
+        if (!coll) throw new Error
+
+        const scoped = class extends (this as new (...args: any[]) => any) { }
+        Object.assign(scoped, this)
+
+        TempMetadata
+            .reply(scoped as EntityTarget, this)
+            .setMetadata(scoped as EntityTarget, (this as any).getMetadata())
+            .setCollection(scoped as EntityTarget, coll)
 
         return scoped as T
     }

@@ -8,7 +8,7 @@ import BaseEntity, { Collection } from "../../BaseEntity"
 import BaseEntityUnion from "../../BaseEntityUnion"
 
 // Handlers
-import { MetadataHandler } from "../../Metadata"
+import { MetadataHandler, CollectionsMetadataHandler } from "../../Metadata"
 
 // Types
 import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
@@ -79,12 +79,10 @@ export default class MySQL2RawDataHandler<
             this.mySQL2RawData,
             this.metadata,
             'entity'
-        ) as (
-                InstanceType<T>[]
-            )
+        ) as InstanceType<T>[]
 
         this._entity = this.fillMethod === 'Many'
-            ? new Collection(...reduced)
+            ? CollectionsMetadataHandler.build(this.target, reduced)
             : reduced[0]
 
         return this._entity as (
@@ -136,12 +134,12 @@ export default class MySQL2RawDataHandler<
 
                 case "entity": reduced.push(
                     relation && relation.type === 'PolymorphicBelongsTo'
-                        ? (new metadata.target!() as BaseEntityUnion<any>)
-                            .fill(reducedData as any)
+                        ? (new metadata.target!(reducedData) as (
+                            BaseEntityUnion<any>
+                        ))
                             .toSourceEntity()
 
-                        : (new metadata.target!() as BaseEntity)
-                            .fill(reducedData as any)
+                        : (new metadata.target!(reducedData) as BaseEntity)
                 )
                     break
             }

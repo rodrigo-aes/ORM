@@ -11,6 +11,9 @@ import EntityMetadata, {
     ScopesMetadata,
     ScopeMetadataHandler,
     TriggersMetadata,
+    CollectionsMetadata,
+    CollectionsMetadataHandler,
+    ComputedPropertiesMetadata,
 
     type JoinTableRelated,
 
@@ -67,16 +70,21 @@ import EntityMetadata, {
 
     type Scope,
     type ScopeFunction,
+
+    type ComputedType,
+    type ComputedPropertyFunction
 } from "./EntityMetadata"
 
 import EntityUnionMetadata, {
     UnionColumnsMetadata,
     UnionColumnMetadata,
 
-    type UnionEntitiesMap
+    type UnionEntitiesMap,
+    type CombinedColumnOptions
 } from "./EntityUnionMetadata"
 
 import MetadataHandler from "./MetadataHandler"
+import TempMetadata from "./TempMetadata"
 
 export {
     EntityMetadata,
@@ -94,9 +102,13 @@ export {
     HooksMetadata,
     ScopesMetadata,
     TriggersMetadata,
+    CollectionsMetadata,
+    ComputedPropertiesMetadata,
 
+    TempMetadata,
     MetadataHandler,
     ScopeMetadataHandler,
+    CollectionsMetadataHandler,
 
     type JoinTableRelated,
 
@@ -154,5 +166,9 @@ export {
     type Scope,
     type ScopeFunction,
 
-    type UnionEntitiesMap
+    type UnionEntitiesMap,
+    type CombinedColumnOptions,
+
+    type ComputedType,
+    type ComputedPropertyFunction
 }

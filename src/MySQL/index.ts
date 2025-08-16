@@ -33,6 +33,7 @@ import {
     EntityUnion,
 
     Column,
+    ComputedColumn,
     Primary,
     ForeignKey,
     Unique,
@@ -80,9 +81,12 @@ import {
     AfterBulkDelete,
 
     Repository,
+    ComputedProperty,
     Scopes,
     DefaultScope,
-    Triggers
+    Triggers,
+    Collections,
+    DefaultCollection,
 } from './Decorators'
 
 export {
@@ -100,6 +104,7 @@ export {
     EntityUnion,
 
     Column,
+    ComputedColumn,
     Primary,
     ForeignKey,
     Unique,
@@ -147,9 +152,12 @@ export {
     AfterBulkDelete,
 
     Repository,
+    ComputedProperty,
     Scopes,
     DefaultScope,
     Triggers,
+    Collections,
+    DefaultCollection,
 
     Case,
     Exists,

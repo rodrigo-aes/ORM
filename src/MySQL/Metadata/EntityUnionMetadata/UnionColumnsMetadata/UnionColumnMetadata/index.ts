@@ -7,7 +7,8 @@ import type {
     EntityTarget,
     EntityUnionTarget
 } from "../../../../../types/General"
-import type { ColumnMetadataJSON } from "../../../EntityMetadata"
+
+import type { ColumnMetadata, ColumnMetadataJSON } from "../../../EntityMetadata"
 
 export default class UnionColumnMetadata {
     public length?: number
@@ -23,15 +24,22 @@ export default class UnionColumnMetadata {
     constructor(
         public target: EntityUnionTarget | null,
         public name: string,
-        public dataType: DataType
+        public dataType: DataType,
+        public sources?: ColumnMetadata[]
     ) { }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public targetSource(target: EntityTarget): ColumnMetadata | undefined {
+        return this.sources?.find(source => source.target === target)
+    }
+
+    // ------------------------------------------------------------------------
+
     public toJSON(): ColumnMetadataJSON {
         return Object.fromEntries([
             ...Object.entries({
-                dataType: this.dataType.toJSON(),
+                dataType: this.dataType?.toJSON(),
                 references: this.references?.toJSON()
             }),
             ...Object.entries(this).filter(
