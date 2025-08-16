@@ -10,7 +10,7 @@ import { MetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type {
     CountQueryOption,
     CountQueryOptions,
@@ -20,7 +20,7 @@ import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 
 
 export default class CountSQLBuilder<
-    T extends EntityTarget | EntityUnionTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
 

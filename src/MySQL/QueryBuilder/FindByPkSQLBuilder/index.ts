@@ -10,10 +10,10 @@ import { MetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 
 export default class FindByPkSQLBuilder<
-    T extends EntityTarget | EntityUnionTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
 

@@ -1,7 +1,7 @@
 // Types
 import type {
     EntityTarget,
-    EntityUnionTarget,
+    PolymorphicEntityTarget,
     CollectionTarget
 } from "../../../../types/General"
 
@@ -9,7 +9,7 @@ import { Collection } from "../../../BaseEntity"
 import type { ComputedPropertyFunction } from "./types"
 
 export default class ComputedPropertiesMetadata<
-    T extends EntityTarget | EntityUnionTarget = any,
+    T extends EntityTarget | PolymorphicEntityTarget = any,
     Target extends T | CollectionTarget = any
 > extends Map<
     keyof InstanceType<Target>, ComputedPropertyFunction<T>
@@ -60,7 +60,7 @@ export default class ComputedPropertiesMetadata<
     // Static Methods =========================================================
     // Publics ================================================================
     public static find(
-        target: EntityTarget | EntityUnionTarget | CollectionTarget
+        target: EntityTarget | PolymorphicEntityTarget | CollectionTarget
     ): ComputedPropertiesMetadata | undefined {
         return Reflect.getOwnMetadata('computed-properties', target)
     }
@@ -68,7 +68,7 @@ export default class ComputedPropertiesMetadata<
     // ------------------------------------------------------------------------
 
     public static build(
-        target: EntityTarget | EntityUnionTarget | CollectionTarget
+        target: EntityTarget | PolymorphicEntityTarget | CollectionTarget
     ) {
         return new ComputedPropertiesMetadata(target)
     }
@@ -76,7 +76,7 @@ export default class ComputedPropertiesMetadata<
     // ------------------------------------------------------------------------
 
     public static findOrBuild(
-        target: EntityTarget | EntityUnionTarget | CollectionTarget
+        target: EntityTarget | PolymorphicEntityTarget | CollectionTarget
     ) {
         return this.find(target) ?? this.build(target)
     }

@@ -1,11 +1,11 @@
-import type { EntityTarget, EntityUnionTarget } from "../../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../../types/General"
 import type { OperatorType, Primitive } from "./types"
 
 export default abstract class Operator<T extends keyof OperatorType> {
     public alias: string
 
     constructor(
-        public target: EntityTarget | EntityUnionTarget,
+        public target: EntityTarget | PolymorphicEntityTarget,
         public value: OperatorType[T],
         public columnName: string,
         alias?: string

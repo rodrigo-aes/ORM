@@ -1,8 +1,8 @@
-import type { EntityUnionTarget } from "../../../../types/General";
+import type { PolymorphicEntityTarget } from "../../../../types/General";
 
 class InternalUnionEntities extends Map<
     string,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 > { }
 
 export default new InternalUnionEntities

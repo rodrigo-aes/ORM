@@ -1,7 +1,7 @@
 import PolymorphicEntityMetadata from "../../.."
 import EntityMetadata from "../../../../EntityMetadata"
 
-import type { EntityUnionTarget } from "../../../../../../types/General"
+import type { PolymorphicEntityTarget } from "../../../../../../types/General"
 
 import type {
     ForeignKeyActionListener,
@@ -34,7 +34,7 @@ export default class PolymorphicForeignKeyReferences {
     public referenced!: ForeignKeyReferencedGetter
 
     constructor(
-        public target: EntityUnionTarget,
+        public target: PolymorphicEntityTarget,
         private columnName: string,
         initMap: ForeignKeyReferencesInitMap
     ) {

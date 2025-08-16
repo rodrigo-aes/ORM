@@ -5,7 +5,7 @@ import PolymorphicForeignKeyReferences from "./PolymorphicForeignKeyReferences"
 // Types
 import type {
     EntityTarget,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 } from "../../../../../types/General"
 
 import type { ColumnMetadata, ColumnMetadataJSON } from "../../../EntityMetadata"
@@ -22,7 +22,7 @@ export default class PolymorphicColumnMetadata {
     public references?: PolymorphicForeignKeyReferences
 
     constructor(
-        public target: EntityUnionTarget | null,
+        public target: PolymorphicEntityTarget | null,
         public name: string,
         public dataType: DataType,
         public sources?: ColumnMetadata[]
@@ -62,7 +62,7 @@ export default class PolymorphicColumnMetadata {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static buildEntityTypeColumn(
-        target: EntityUnionTarget | null,
+        target: PolymorphicEntityTarget | null,
         ...types: EntityTarget[]
     ): PolymorphicColumnMetadata {
         return new PolymorphicColumnMetadata(

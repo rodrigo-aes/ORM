@@ -3,11 +3,11 @@ import CollectionsMetadata from ".."
 import TempMetadata from "../../../TempMetadata"
 import type {
     EntityTarget,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 } from "../../../../../types/General"
 
 export default class CollectionsMetadataHandler {
-    public static loadCollection(target: EntityTarget | EntityUnionTarget): (
+    public static loadCollection(target: EntityTarget | PolymorphicEntityTarget): (
         typeof Collection
     ) {
         return TempMetadata.getCollection(target)
@@ -17,7 +17,7 @@ export default class CollectionsMetadataHandler {
 
     // ------------------------------------------------------------------------
 
-    public static build<T extends EntityTarget | EntityUnionTarget>(
+    public static build<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T,
         entities: InstanceType<T>[]
     ): Collection<InstanceType<T>> {

@@ -10,7 +10,7 @@ import TemMetadata from "../TempMetadata"
 
 // Types
 import type MySQLConnection from "../../Connection"
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 
 export default class MetadataHandler {
     public static registerEntitiesConnection(
@@ -38,7 +38,7 @@ export default class MetadataHandler {
 
     // ------------------------------------------------------------------------
 
-    public static loadMetadata(target: EntityTarget | EntityUnionTarget): (
+    public static loadMetadata(target: EntityTarget | PolymorphicEntityTarget): (
         EntityMetadata | PolymorphicEntityMetadata
     ) {
         switch (true) {
@@ -48,7 +48,7 @@ export default class MetadataHandler {
             )!
 
             case (target as any).prototype instanceof BasePolymorphicEntity: return (
-                PolymorphicEntityMetadata.find(target as EntityUnionTarget)
+                PolymorphicEntityMetadata.find(target as PolymorphicEntityTarget)
                 ?? TemMetadata.getMetadata(target)
             )!
         }
@@ -58,7 +58,7 @@ export default class MetadataHandler {
 
     // ------------------------------------------------------------------------
 
-    public static getTargetParents<T extends EntityTarget | EntityUnionTarget>(
+    public static getTargetParents<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T
     ): T[] {
         const parents: T[] = []

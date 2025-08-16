@@ -7,14 +7,14 @@ import {
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { OneRelationMetadataType } from "../../Metadata"
 import type { OneRelationHandlerSQLBuilder } from "../../QueryBuilder"
 import type { UpdateAttributes } from "../../QueryBuilder"
 
 export default abstract class OneRelation<
     Target extends object,
-    Related extends EntityTarget | EntityUnionTarget
+    Related extends EntityTarget | PolymorphicEntityTarget
 > {
     constructor(
         protected metadata: OneRelationMetadataType,

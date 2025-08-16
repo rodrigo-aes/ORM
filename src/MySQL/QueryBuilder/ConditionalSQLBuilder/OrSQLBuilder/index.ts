@@ -7,12 +7,12 @@ import AndSQLBuilder from "../AndSQLBuilder"
 import { MetadataHandler } from "../../../Metadata"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../../types/General"
 import type { OrQueryOptions } from "./types"
 import type UnionSQLBuilder from "../../UnionSQLBuilder"
 
 export default class OrSQLBuilder<
-    T extends EntityTarget | EntityUnionTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
 

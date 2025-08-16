@@ -1,4 +1,4 @@
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { ResultSetHeader } from "mysql2"
 import type { AsEntityTarget } from "../../../types/General"
 
@@ -14,7 +14,7 @@ import type {
 
 import type { Collection } from "../../BaseEntity"
 
-export type SQLBuilder<T extends EntityTarget | EntityUnionTarget> = (
+export type SQLBuilder<T extends EntityTarget | PolymorphicEntityTarget> = (
     FindByPkSQLBuilder<T> |
     FindSQLBuilder<T> |
     FindOneSQLBuilder<T> |
@@ -33,7 +33,7 @@ export type ExecOptions = {
 }
 
 export type UnionExecResult<
-    T extends EntityTarget | EntityUnionTarget,
+    T extends EntityTarget | PolymorphicEntityTarget,
     Builder extends SQLBuilder<T>,
     MapTo extends ResultMapOption
 > = (
@@ -49,7 +49,7 @@ export type UnionExecResult<
     )
 
 export type ExecResult<
-    T extends EntityTarget | EntityUnionTarget,
+    T extends EntityTarget | PolymorphicEntityTarget,
     Builder extends SQLBuilder<T>,
     MapTo extends ResultMapOption
 > = T extends EntityTarget
@@ -75,7 +75,7 @@ export type ExecResult<
     : UnionExecResult<T, Builder, MapTo>
 
 export type FindOneResult<
-    T extends EntityTarget | EntityUnionTarget,
+    T extends EntityTarget | PolymorphicEntityTarget,
     MapTo extends ResultMapOption
 > = (
         MapTo extends 'entity'
@@ -88,7 +88,7 @@ export type FindOneResult<
     )
 
 export type FindResult<
-    T extends EntityTarget | EntityUnionTarget,
+    T extends EntityTarget | PolymorphicEntityTarget,
     MapTo extends ResultMapOption
 > = (
         MapTo extends 'entity'
@@ -104,7 +104,7 @@ export type CreateResult<T extends EntityTarget> = (
     InstanceType<T> | Collection<InstanceType<T>>
 )
 
-export type UpdateResult<T extends EntityTarget | EntityUnionTarget> = (
+export type UpdateResult<T extends EntityTarget | PolymorphicEntityTarget> = (
     InstanceType<T> | ResultSetHeader
 )
 

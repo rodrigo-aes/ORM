@@ -1,5 +1,5 @@
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { TempMetadataValue } from "./types"
 import type { FindQueryOptions } from "../../Repository"
 import type { Collection } from "../../BaseEntity"
@@ -7,14 +7,14 @@ import type EntityMetadata from "../EntityMetadata"
 import type PolymorphicEntityMetadata from "../PolymorphicEntityMetadata"
 
 class TempMetadata extends WeakMap<
-    EntityTarget | EntityUnionTarget,
+    EntityTarget | PolymorphicEntityTarget,
     TempMetadataValue
 > {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public reply(
-        target: EntityTarget | EntityUnionTarget,
-        source: EntityTarget | EntityUnionTarget
+        target: EntityTarget | PolymorphicEntityTarget,
+        source: EntityTarget | PolymorphicEntityTarget
     ): this {
         this.set(target, this.get(source) ?? {})
         return this
@@ -22,7 +22,7 @@ class TempMetadata extends WeakMap<
 
     // ------------------------------------------------------------------------
 
-    public getMetadata<T extends EntityTarget | EntityUnionTarget>(
+    public getMetadata<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T
     ): EntityMetadata | PolymorphicEntityMetadata | undefined {
         return this.get(target)?.metadata
@@ -30,7 +30,7 @@ class TempMetadata extends WeakMap<
 
     // ------------------------------------------------------------------------
 
-    public getScope(target: EntityTarget | EntityUnionTarget): (
+    public getScope(target: EntityTarget | PolymorphicEntityTarget): (
         FindQueryOptions<any> | undefined
     ) {
         return this.get(target)?.scope
@@ -38,7 +38,7 @@ class TempMetadata extends WeakMap<
 
     // ------------------------------------------------------------------------
 
-    public getCollection(target: EntityTarget | EntityUnionTarget): (
+    public getCollection(target: EntityTarget | PolymorphicEntityTarget): (
         typeof Collection | undefined
     ) {
         return this.get(target)?.collection
@@ -47,7 +47,7 @@ class TempMetadata extends WeakMap<
     // ------------------------------------------------------------------------
 
     public setMetadata(
-        target: EntityTarget | EntityUnionTarget,
+        target: EntityTarget | PolymorphicEntityTarget,
         metadata: EntityMetadata | PolymorphicEntityMetadata
     ): this {
         this.set(target, {
@@ -61,7 +61,7 @@ class TempMetadata extends WeakMap<
     // ------------------------------------------------------------------------
 
     public setScope(
-        target: EntityTarget | EntityUnionTarget,
+        target: EntityTarget | PolymorphicEntityTarget,
         scope: FindQueryOptions<any>
     ): this {
         this.set(target, {
@@ -75,7 +75,7 @@ class TempMetadata extends WeakMap<
     // ------------------------------------------------------------------------
 
     public setCollection(
-        target: EntityTarget | EntityUnionTarget,
+        target: EntityTarget | PolymorphicEntityTarget,
         collection: typeof Collection
     ): this {
         this.set(target, {

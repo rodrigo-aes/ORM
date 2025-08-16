@@ -7,11 +7,11 @@ import JoinSQLBuilder from "../../QueryBuilder/JoinSQLBuilder"
 import { MetadataHandler } from "../../Metadata"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { ConditionalQueryOptions } from "../../QueryBuilder/ConditionalSQLBuilder"
 
 export default class ConditionalQueryJoinsHandler<
-    T extends EntityTarget | EntityUnionTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
 

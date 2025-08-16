@@ -6,19 +6,19 @@ import {
 // Types
 import type {
     EntityTarget,
-    EntityUnionTarget,
+    PolymorphicEntityTarget,
     CollectionTarget
 } from "../../../types/General"
 
 export default function ComputedProperty(fn: ComputedPropertyFunction) {
     return function <Target extends InstanceType<
-        EntityTarget | EntityUnionTarget | CollectionTarget
+        EntityTarget | PolymorphicEntityTarget | CollectionTarget
     >>(
         target: Target,
         name: string
     ) {
         ComputedPropertiesMetadata.findOrBuild(target.constructor as (
-            EntityTarget | EntityUnionTarget | CollectionTarget
+            EntityTarget | PolymorphicEntityTarget | CollectionTarget
         ))
             .set(name, fn)
     }

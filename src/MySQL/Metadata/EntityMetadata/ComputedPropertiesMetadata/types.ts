@@ -1,8 +1,8 @@
 import type {
     EntityTarget,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 } from "../../../../types/General"
 
 export type ComputedPropertyFunction<
-    T extends EntityTarget | EntityUnionTarget = any
+    T extends EntityTarget | PolymorphicEntityTarget = any
 > = (value: any, entity: InstanceType<T>) => any | Promise<any>

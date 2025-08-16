@@ -1,12 +1,12 @@
 import type {
     EntityTarget,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 } from '../../../../types/General'
 import type { Exists, Cross } from './Symbol'
 import type { ConditionalQueryOptions } from '../types'
 
 export type CrossExistsOption<
-    T extends EntityTarget | EntityUnionTarget = any
+    T extends EntityTarget | PolymorphicEntityTarget = any
 > = {
     target: T
     where?: ConditionalQueryOptions<InstanceType<T>>

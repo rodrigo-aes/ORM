@@ -1,12 +1,12 @@
 import type {
     EntityTarget,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 } from "../../../../../types/General"
 import type { HookType, HookFunction } from "./types"
 
 export default abstract class HookMetadata {
     constructor(
-        public target: EntityTarget | EntityUnionTarget,
+        public target: EntityTarget | PolymorphicEntityTarget,
         public propertName: string
     ) { }
 

@@ -12,7 +12,7 @@ import {
 } from "./ExistsSQLBuilder"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type {
     ConditionalQueryOptions,
     AndQueryOptions,
@@ -27,7 +27,7 @@ export default class ConditionalSQLBuilder {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static where<T extends EntityTarget | EntityUnionTarget>(
+    public static where<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T,
         options: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
@@ -37,7 +37,7 @@ export default class ConditionalSQLBuilder {
 
     // ------------------------------------------------------------------------
 
-    public static on<T extends EntityTarget | EntityUnionTarget>(
+    public static on<T extends EntityTarget | PolymorphicEntityTarget>(
         relation: RelationMetadataType,
         parentAlias: string,
         alias: string,
@@ -55,7 +55,7 @@ export default class ConditionalSQLBuilder {
 
     // ------------------------------------------------------------------------
 
-    public static case<T extends EntityTarget | EntityUnionTarget>(
+    public static case<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T,
         options: CaseQueryOptions<InstanceType<T>>,
         as?: string,

@@ -32,7 +32,7 @@ import type { ResultSetHeader } from "mysql2"
 import type MySQLConnection from "../../Connection"
 import type {
     EntityTarget,
-    EntityUnionTarget,
+    PolymorphicEntityTarget,
     AsEntityTarget
 } from "../../../types/General"
 import type {
@@ -48,7 +48,7 @@ import type {
 } from "./types"
 
 export default class MySQL2QueryExecutionHandler<
-    T extends EntityTarget | EntityUnionTarget,
+    T extends EntityTarget | PolymorphicEntityTarget,
     Builder extends SQLBuilder<T>,
     MapTo extends ResultMapOption
 > {
@@ -437,7 +437,7 @@ export default class MySQL2QueryExecutionHandler<
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static relation<T extends EntityTarget | EntityUnionTarget>(
+    public static relation<T extends EntityTarget | PolymorphicEntityTarget>(
         related: T
     ): RelationQueryExecutionHandler<T> {
         return new RelationQueryExecutionHandler(related)

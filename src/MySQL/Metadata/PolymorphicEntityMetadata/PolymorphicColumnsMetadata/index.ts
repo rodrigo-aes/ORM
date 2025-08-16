@@ -4,7 +4,7 @@ import EntityMetadata from '../../EntityMetadata'
 import PolymorphicColumnMetadata from './PolymorphicColumnMetadata'
 
 // Types
-import type { EntityUnionTarget } from '../../../../types/General'
+import type { PolymorphicEntityTarget } from '../../../../types/General'
 import type { ColumnMetadata, ColumnsMetadataJSON } from '../../EntityMetadata'
 import type {
     CombinedColumns,
@@ -16,7 +16,7 @@ export default class PolymorphicColumnsMetadata extends Array<
     PolymorphicColumnMetadata
 > {
     constructor(
-        public target: EntityUnionTarget | null,
+        public target: PolymorphicEntityTarget | null,
         public sources: ColumnMetadata[]
     ) {
         super()

@@ -1,6 +1,6 @@
 import { PolymorphicEntityMetadata } from "../../Metadata"
 import EntityUnion, { InternalUnionEntities } from "../../BasePolymorphicEntity"
-import type { EntityUnionTarget } from "../../../types/General"
+import type { PolymorphicEntityTarget } from "../../../types/General"
 
 export default class EntityUnionBuilder {
     public static readonly entityNameRegExp = /^[A-Z][A-Za-z0-9]*$/
@@ -9,7 +9,7 @@ export default class EntityUnionBuilder {
     // Publics ----------------------------------------------------------------
     public static buildInternalEntityUnion(
         metadata: PolymorphicEntityMetadata
-    ): EntityUnionTarget {
+    ): PolymorphicEntityTarget {
         if (!this.entityNameRegExp.test(metadata.targetName)) throw new Error
 
         const entity = new Function(

@@ -21,7 +21,7 @@ import { EntityToJSONProcessMetadata } from "../ProcessMetadata"
 
 // Types
 import type MySQLConnection from "../../Connection"
-import type { EntityUnionTarget, EntityTarget } from "../../../types/General"
+import type { PolymorphicEntityTarget, EntityTarget } from "../../../types/General"
 import type {
     UnionEntitiesMap,
     SourcesMetadata,
@@ -46,7 +46,7 @@ export default class PolymorphicEntityMetadata {
 
     constructor(
         public tableName: string,
-        public target: EntityUnionTarget | null,
+        public target: PolymorphicEntityTarget | null,
         public sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
         this.loadEntities()
@@ -181,7 +181,7 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    private registerInternalEntity(): EntityUnionTarget {
+    private registerInternalEntity(): PolymorphicEntityTarget {
         return EntityUnionBuilder.buildInternalEntityUnion(this)
     }
 
@@ -282,7 +282,7 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    private buildJSON<T extends EntityUnionTarget = any>(): (
+    private buildJSON<T extends PolymorphicEntityTarget = any>(): (
         PolymorphicEntityMetadataJSON | undefined
     ) {
         return EntityToJSONProcessMetadata.shouldAdd(this.name)
@@ -301,7 +301,7 @@ export default class PolymorphicEntityMetadata {
     // Publics ----------------------------------------------------------------
     public static build(
         name: string,
-        target: EntityUnionTarget | null,
+        target: PolymorphicEntityTarget | null,
         sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
         return new PolymorphicEntityMetadata(
@@ -313,7 +313,7 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    public static find(target: EntityUnionTarget | null): (
+    public static find(target: PolymorphicEntityTarget | null): (
         PolymorphicEntityMetadata | undefined
     ) {
         if (target) return Reflect.getOwnMetadata('union-metadata', target)
@@ -323,7 +323,7 @@ export default class PolymorphicEntityMetadata {
 
     public static findOrBuild(
         name: string,
-        target: EntityUnionTarget | null,
+        target: PolymorphicEntityTarget | null,
         sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ): PolymorphicEntityMetadata {
         return this.find(target) ?? this.build(

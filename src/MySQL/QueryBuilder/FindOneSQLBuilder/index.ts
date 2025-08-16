@@ -18,13 +18,13 @@ import { MetadataHandler, ScopeMetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { FindOneQueryOptions } from "./types"
 import type { EntityRelationsKeys } from "../types"
 import type { RelationOptions, RelationsOptions } from "../JoinSQLBuilder/types"
 
 export default class FindOneSQLBuilder<
-    T extends EntityTarget | EntityUnionTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     private metadata: EntityMetadata | PolymorphicEntityMetadata
 

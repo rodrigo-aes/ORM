@@ -4,11 +4,11 @@ import CollectionsMetadataHandler from "./CollectionsMetadataHandler"
 // Types
 import type {
     EntityTarget,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 } from "../../../../types/General"
 
 export default class CollectionsMetadata<
-    T extends EntityTarget | EntityUnionTarget = any,
+    T extends EntityTarget | PolymorphicEntityTarget = any,
     CollectionType extends typeof Collection<InstanceType<T>> = any
 > extends Array<CollectionType> {
     public default: typeof Collection = Collection
@@ -44,7 +44,7 @@ export default class CollectionsMetadata<
 
     // Static Methods =========================================================
     // Publics ================================================================
-    public static find<T extends EntityTarget | EntityUnionTarget>(
+    public static find<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T
     ): CollectionsMetadata<T> | undefined {
         return Reflect.getOwnMetadata('collections', target)
@@ -52,7 +52,7 @@ export default class CollectionsMetadata<
 
     // ------------------------------------------------------------------------
 
-    public static build<T extends EntityTarget | EntityUnionTarget>(
+    public static build<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T
     ): CollectionsMetadata<T> {
         return new CollectionsMetadata(target)
@@ -60,7 +60,7 @@ export default class CollectionsMetadata<
 
     // ------------------------------------------------------------------------
 
-    public static findOrBuild<T extends EntityTarget | EntityUnionTarget>(
+    public static findOrBuild<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T
     ): CollectionsMetadata<T> {
         return this.find(target) ?? this.build(target)

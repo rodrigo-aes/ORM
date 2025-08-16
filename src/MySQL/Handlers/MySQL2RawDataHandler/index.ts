@@ -11,7 +11,7 @@ import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 import { MetadataHandler, CollectionsMetadataHandler } from "../../Metadata"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type {
     MySQL2RawData,
     MappedDataType,
@@ -21,7 +21,7 @@ import type {
 import type { RelationMetadataType } from "../../Metadata"
 
 export default class MySQL2RawDataHandler<
-    T extends EntityTarget | EntityUnionTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     private metadata: EntityMetadata | PolymorphicEntityMetadata
     private mySQL2RawData!: MySQL2RawData[]

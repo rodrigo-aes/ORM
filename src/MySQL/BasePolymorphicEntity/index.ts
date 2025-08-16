@@ -12,7 +12,7 @@ import {
 import { EntityBuilder } from "../Handlers"
 
 // Types
-import type { EntityUnionTarget } from "../../types/General"
+import type { PolymorphicEntityTarget } from "../../types/General"
 import type { SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
 import type { EntityProperties } from "../QueryBuilder"
@@ -35,7 +35,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public getMetadata(): PolymorphicEntityMetadata {
-        return PolymorphicEntityMetadata.find(this.constructor as EntityUnionTarget)!
+        return PolymorphicEntityMetadata.find(this.constructor as PolymorphicEntityTarget)!
     }
 
     // ------------------------------------------------------------------------

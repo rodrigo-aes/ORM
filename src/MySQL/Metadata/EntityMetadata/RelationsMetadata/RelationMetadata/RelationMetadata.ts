@@ -1,5 +1,5 @@
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../../../types/General"
 import type { RelationOptions, RelationMetadataName } from "./types"
 
 export default abstract class RelationMetadata {
@@ -9,7 +9,7 @@ export default abstract class RelationMetadata {
         if (options) Object.assign(this, options)
     }
 
-    public abstract get relatedTarget(): EntityTarget | EntityUnionTarget
+    public abstract get relatedTarget(): EntityTarget | PolymorphicEntityTarget
 
     public abstract toJSON(): any
 

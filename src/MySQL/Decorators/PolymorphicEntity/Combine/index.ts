@@ -4,7 +4,7 @@ import {
 } from "../../../Metadata"
 
 // Types
-import type { EntityUnionTarget } from "../../../../types/General"
+import type { PolymorphicEntityTarget } from "../../../../types/General"
 
 export default function Combine(options: CombinedColumnOptions) {
     return function <Entity extends object>(
@@ -12,7 +12,7 @@ export default function Combine(options: CombinedColumnOptions) {
         name: string
     ) {
         const meta = PolymorphicEntityMetadata.find(target.constructor as (
-            EntityUnionTarget
+            PolymorphicEntityTarget
         ))
         if (!meta) throw new Error
 

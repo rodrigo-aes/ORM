@@ -13,7 +13,7 @@ import {
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { ManyRelationMetadatatype } from "../../Metadata"
 import type { ManyRelationHandlerSQLBuilder } from "../../QueryBuilder"
 import type {
@@ -23,7 +23,7 @@ import type {
 
 export default abstract class ManyRelation<
     Target extends object,
-    Related extends EntityTarget | EntityUnionTarget
+    Related extends EntityTarget | PolymorphicEntityTarget
 > extends Array<InstanceType<Related>> {
     private _relatedMetadata?: EntityMetadata | PolymorphicEntityMetadata
 

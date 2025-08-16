@@ -13,7 +13,7 @@ import { MetadataHandler } from "../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type {
     SelectOptions,
     SelectPropertyKey,
@@ -22,7 +22,7 @@ import type {
 } from "./types"
 
 export default class SelectSQLBuilder<
-    T extends EntityTarget | EntityUnionTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     private metadata: EntityMetadata | PolymorphicEntityMetadata
 

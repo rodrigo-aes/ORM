@@ -7,7 +7,7 @@ import type {
 
 import type {
     EntityTarget,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 } from "../../../../types/General"
 
 import { CreationAttributes } from "../../CreateSQLBuilder"
@@ -16,7 +16,7 @@ import { EntityProperties } from "../../types"
 
 export default class BelongsToHandlerSQLBuilder<
     Target extends object,
-    Related extends EntityTarget | EntityUnionTarget
+    Related extends EntityTarget | PolymorphicEntityTarget
 > extends OneRelationHandlerSQLBuilder<
     BelongsToMetadata,
     Target,

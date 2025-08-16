@@ -4,11 +4,11 @@ import { CollectionsMetadata } from "../../Metadata"
 import DefaultCollection from "./DefaultCollection"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { Collection } from "../../BaseEntity"
 
 export default function Collections(...collections: (typeof Collection)[]) {
-    return function (target: EntityTarget | EntityUnionTarget) {
+    return function (target: EntityTarget | PolymorphicEntityTarget) {
         CollectionsMetadata.findOrBuild(target).addCollections(
             ...collections
         )

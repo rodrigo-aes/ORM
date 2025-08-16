@@ -17,7 +17,7 @@ import type { ResultSetHeader } from "mysql2"
 import type MySQLConnection from "../../../Connection"
 import type {
     EntityTarget,
-    EntityUnionTarget
+    PolymorphicEntityTarget
 } from "../../../../types/General"
 
 import type { Collection } from "../../../BaseEntity"
@@ -30,7 +30,7 @@ import type {
 import type { DeleteResult } from "../types"
 
 export default class RelationQueryExecutionHandler<
-    T extends EntityTarget | EntityUnionTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
 

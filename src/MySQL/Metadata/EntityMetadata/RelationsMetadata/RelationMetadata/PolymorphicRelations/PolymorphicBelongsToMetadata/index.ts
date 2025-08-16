@@ -5,7 +5,7 @@ import RelationMetadata from "../../RelationMetadata"
 import { InternalUnionEntities } from "../../../../../../BasePolymorphicEntity"
 
 // Types
-import type { EntityTarget, EntityUnionTarget } from "../../../../../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../../../../../types/General"
 import type { ColumnMetadata } from "../../../.."
 import type { RelatedEntitiesMap } from "../../types"
 import type {
@@ -58,9 +58,9 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get relatedTarget(): EntityUnionTarget {
+    public get relatedTarget(): PolymorphicEntityTarget {
         return InternalUnionEntities.get(this.unionTargetName) as (
-            EntityUnionTarget
+            PolymorphicEntityTarget
         )
     }
 
