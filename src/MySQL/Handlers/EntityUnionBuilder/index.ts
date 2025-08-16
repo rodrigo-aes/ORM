@@ -1,5 +1,5 @@
 import { EntityUnionMetadata } from "../../Metadata"
-import EntityUnion, { InternalUnionEntities } from "../../BaseEntityUnion"
+import EntityUnion, { InternalUnionEntities } from "../../PolymorphicEntity"
 import type { EntityUnionTarget } from "../../../types/General"
 
 export default class EntityUnionBuilder {
@@ -13,9 +13,9 @@ export default class EntityUnionBuilder {
         if (!this.entityNameRegExp.test(metadata.targetName)) throw new Error
 
         const entity = new Function(
-            'UnionEntity',
+            'PolymorphicEntity',
             `
-                return class ${metadata.targetName} extends UnionEntity {
+                return class ${metadata.targetName} extends PolymorphicEntity {
                     constructor () {
                         super()
                         ${this.fillDinamicColumns(metadata)}

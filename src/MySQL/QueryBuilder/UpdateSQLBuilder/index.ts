@@ -5,7 +5,7 @@ import {
 } from "../../Metadata"
 
 import BaseEntity, { ColumnsSnapshots } from "../../BaseEntity"
-import BaseEntityUnion from "../../BaseEntityUnion"
+import PolymorphicEntity from "../../PolymorphicEntity"
 
 // SQL Builders
 import ConditionalSQLBuilder from "../ConditionalSQLBuilder"
@@ -37,7 +37,7 @@ export default class UpdateSQLBuilder<
         public attributes: (
             UpdateAttributes<InstanceType<T>> |
             BaseEntity |
-            BaseEntityUnion<any>
+            PolymorphicEntity<any>
         ),
         public conditional?: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
@@ -53,7 +53,7 @@ export default class UpdateSQLBuilder<
             )
         )
 
-        if (this.attributes instanceof BaseEntityUnion) this.attributes = (
+        if (this.attributes instanceof PolymorphicEntity) this.attributes = (
             this.attributes.toSourceEntity()
         )
     }
@@ -145,7 +145,7 @@ export default class UpdateSQLBuilder<
     private onlyChangedAttributes(): any {
         return (
             this.attributes instanceof BaseEntity ||
-            this.attributes instanceof BaseEntityUnion
+            this.attributes instanceof PolymorphicEntity
         )
             ? ColumnsSnapshots.changed(this.attributes)
             : this.attributes

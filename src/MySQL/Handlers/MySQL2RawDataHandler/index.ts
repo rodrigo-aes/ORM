@@ -5,7 +5,7 @@ import { RelationMetadata } from "../../Metadata"
 
 // Base Entity
 import BaseEntity, { Collection } from "../../BaseEntity"
-import BaseEntityUnion from "../../BaseEntityUnion"
+import PolymorphicEntity from "../../PolymorphicEntity"
 
 // Handlers
 import { MetadataHandler, CollectionsMetadataHandler } from "../../Metadata"
@@ -135,7 +135,7 @@ export default class MySQL2RawDataHandler<
                 case "entity": reduced.push(
                     relation && relation.type === 'PolymorphicBelongsTo'
                         ? (new metadata.target!(reducedData) as (
-                            BaseEntityUnion<any>
+                            PolymorphicEntity<any>
                         ))
                             .toSourceEntity()
 

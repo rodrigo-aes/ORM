@@ -1,5 +1,5 @@
 import BaseEntity, { ColumnsSnapshots } from "../../../BaseEntity"
-import BaseEntityUnion from "../../../BaseEntityUnion"
+import PolymorphicEntity from "../../../PolymorphicEntity"
 
 // Handlers 
 import { MetadataHandler } from "../../../Metadata"
@@ -198,7 +198,7 @@ export default abstract class RelationHandlerSQLBuilder<
     ): any {
         return (
             attributes instanceof BaseEntity ||
-            attributes instanceof BaseEntityUnion
+            attributes instanceof PolymorphicEntity
         )
             ? ColumnsSnapshots.changed(attributes)
             : attributes

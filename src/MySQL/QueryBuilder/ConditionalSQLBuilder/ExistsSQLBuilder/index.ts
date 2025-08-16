@@ -14,7 +14,7 @@ import {
     type RelationMetadataType
 } from "../../../Metadata"
 
-import { InternalUnionEntities } from "../../../BaseEntityUnion"
+import { InternalUnionEntities } from "../../../PolymorphicEntity"
 
 // Helpers
 import { SQLStringHelper } from "../../../Helpers"

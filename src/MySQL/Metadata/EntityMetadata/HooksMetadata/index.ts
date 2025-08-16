@@ -26,7 +26,7 @@ import type {
 } from "../../../../types/General"
 import type { HookType } from "./HookMetadata/types"
 import type BaseEntity from "../../../BaseEntity"
-import type BaseEntityUnion from "../../../BaseEntityUnion"
+import type PolymorphicEntity from "../../../PolymorphicEntity"
 import type { FindQueryOptions } from "../../../QueryBuilder"
 import type {
     RawData,
@@ -92,7 +92,7 @@ export default class HooksMetadata {
     // ------------------------------------------------------------------------
 
     public async callAfterFind<T extends (
-        (BaseEntity | BaseEntityUnion<any>) |
+        (BaseEntity | PolymorphicEntity<any>) |
         RawData<any> |
         MySQL2RawData
     )>(entity: T) {
@@ -113,7 +113,7 @@ export default class HooksMetadata {
 
     public async callAfterBulkFind<
         T extends (
-            (BaseEntity | BaseEntityUnion<any>) |
+            (BaseEntity | PolymorphicEntity<any>) |
             RawData<any> |
             MySQL2RawData
         )
@@ -136,7 +136,7 @@ export default class HooksMetadata {
     // ------------------------------------------------------------------------
 
     public async callAfterCreate<T extends (
-        (BaseEntity | BaseEntityUnion<any>)
+        (BaseEntity | PolymorphicEntity<any>)
     )>(entity: T) {
         if (this.toCall.has('after-create'))
             for (const hook of this.afterCreate) await hook.call(entity)
@@ -156,7 +156,7 @@ export default class HooksMetadata {
     // ------------------------------------------------------------------------
 
     public async callAfterBulkCreate<T extends (
-        (BaseEntity | BaseEntityUnion<any>) |
+        (BaseEntity | PolymorphicEntity<any>) |
         RawData<any> |
         MySQL2RawData
     )>(result: T[]) {

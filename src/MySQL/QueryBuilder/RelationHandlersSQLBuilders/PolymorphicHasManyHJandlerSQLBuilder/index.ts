@@ -1,5 +1,5 @@
 import ManyRelationHandlerSQLBuilder from "../ManyRelationHandlerSQLBuilder"
-import BaseEntityUnion from "../../../BaseEntityUnion"
+import PolymorphicEntity from "../../../PolymorphicEntity"
 
 // Types
 import type {
@@ -29,7 +29,7 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public override get targetPrimaryValue(): any {
-        return this.target instanceof BaseEntityUnion
+        return this.target instanceof PolymorphicEntity
             ? this.target.primaryKey
             : super.targetPrimaryValue
     }
@@ -56,7 +56,7 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get targetType(): string {
-        return this.target instanceof BaseEntityUnion
+        return this.target instanceof PolymorphicEntity
             ? this.target.entityType
             : this.metadata.targetType
     }

@@ -1,7 +1,7 @@
 import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
-import BaseEntityUnion from "../../BaseEntityUnion"
+import PolymorphicEntity from "../../PolymorphicEntity"
 
 // SQL Builders
 import ConditionalSQLBuilder, {
@@ -30,7 +30,7 @@ export default class DeleteSQLBuilder<
         public where: (
             ConditionalQueryOptions<InstanceType<T>> |
             BaseEntity |
-            BaseEntityUnion<any>
+            PolymorphicEntity<any>
         ),
         alias?: string
     ) {
@@ -39,7 +39,7 @@ export default class DeleteSQLBuilder<
 
         this.applyWhereScope()
 
-        if (this.where instanceof BaseEntityUnion) this.where = (
+        if (this.where instanceof PolymorphicEntity) this.where = (
             this.where.toSourceEntity()
         )
     }
@@ -85,7 +85,7 @@ export default class DeleteSQLBuilder<
     private applyWhereScope(): void {
         if (
             this.where instanceof BaseEntity ||
-            this.where instanceof BaseEntityUnion
+            this.where instanceof PolymorphicEntity
         ) return
 
         this.where = ScopeMetadataHandler.applyScope(
@@ -113,7 +113,7 @@ export default class DeleteSQLBuilder<
     private isConditional(): boolean {
         return (
             !(this.where instanceof BaseEntity) &&
-            !(this.where instanceof BaseEntityUnion)
+            !(this.where instanceof PolymorphicEntity)
         )
     }
 

@@ -1,5 +1,5 @@
 import BaseEntity from "../BaseEntity"
-import BaseEntityUnion from "../BaseEntityUnion"
+import PolymorphicEntity from "../PolymorphicEntity"
 
 
 // SQL Builders
@@ -81,7 +81,7 @@ export default class UnionRepository<T extends EntityUnionTarget> {
     // ------------------------------------------------------------------------
 
     public async update<Data extends (
-        (BaseEntityUnion<any> & InstanceType<T>) |
+        (PolymorphicEntity<any> & InstanceType<T>) |
         UpdateAttributes<InstanceType<T>>
     )>(
         attributes: Data,
