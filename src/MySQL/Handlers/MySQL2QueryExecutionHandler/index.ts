@@ -1,7 +1,7 @@
 import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
-import PolymorphicEntity from "../../PolymorphicEntity"
+import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 
 import RelationQueryExecutionHandler from "./RelationQueryExecutionHandler"
 

@@ -8,7 +8,7 @@ import { EntityMetadata, DataType } from './Metadata'
 
 // Bases
 import BaseEntity from './BaseEntity'
-import PolymorphicEntity from './PolymorphicEntity'
+import BasePolymorphicEntity from './BasePolymorphicEntity'
 
 // Symbols
 import { Case, Exists, Cross } from './QueryBuilder'
@@ -30,7 +30,7 @@ import {
 // Decorators
 import {
     Entity,
-    EntityUnion,
+    PolymorphicEntity,
 
     Column,
     ComputedColumn,
@@ -96,12 +96,12 @@ export {
     DataType,
 
     BaseEntity,
-    PolymorphicEntity,
+    BasePolymorphicEntity,
 
     Trigger,
 
     Entity,
-    EntityUnion,
+    PolymorphicEntity,
 
     Column,
     ComputedColumn,

@@ -9,7 +9,7 @@ import Combine, {
 // Types
 import type { EntityUnionTarget, EntityTarget } from "../../../types/General"
 
-export default function EntityUnion(...entities: EntityTarget[]) {
+export default function PolymorphicEntity(...entities: EntityTarget[]) {
     return function (target: EntityUnionTarget) {
         EntityUnionMetadata.findOrBuild(
             target.name.toLowerCase(),

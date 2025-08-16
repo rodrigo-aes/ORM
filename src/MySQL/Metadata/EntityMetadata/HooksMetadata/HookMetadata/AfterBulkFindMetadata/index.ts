@@ -2,7 +2,7 @@ import HookMetadata from "../HookMetadata"
 
 // Types
 import type BaseEntity from "../../../../../BaseEntity"
-import type PolymorphicEntity from "../../../../../PolymorphicEntity"
+import type BasePolymorphicEntity from "../../../../../BasePolymorphicEntity"
 import type {
     RawData,
     MySQL2RawData
@@ -19,7 +19,7 @@ export default class AfterBulkFindMetadata extends HookMetadata {
     // Publics ----------------------------------------------------------------
     public call<
         T extends (
-            (BaseEntity | PolymorphicEntity<any>) |
+            (BaseEntity | BasePolymorphicEntity<any>) |
             RawData<any> |
             MySQL2RawData
         )>(result: T[]): (

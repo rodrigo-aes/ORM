@@ -17,7 +17,7 @@ import type { SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
 import type { EntityProperties } from "../QueryBuilder"
 
-export default abstract class PolymorphicEntity<Targets extends object[]> {
+export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     protected hidden: string[] = []
 
     public entities: UnionEntitiesMap = this.getMetadata().entities
@@ -40,7 +40,7 @@ export default abstract class PolymorphicEntity<Targets extends object[]> {
 
     // ------------------------------------------------------------------------
 
-    public toJSON<T extends PolymorphicEntity<Targets>>(this: T): (
+    public toJSON<T extends BasePolymorphicEntity<Targets>>(this: T): (
         EntityProperties<T>
     ) {
         const json = Object.fromEntries([...this.getMetadata().columns].map(
@@ -54,7 +54,7 @@ export default abstract class PolymorphicEntity<Targets extends object[]> {
 
     // ------------------------------------------------------------------------
 
-    public hide<T extends PolymorphicEntity<Targets>>(
+    public hide<T extends BasePolymorphicEntity<Targets>>(
         this: T, json?: EntityProperties<T>
     ): EntityProperties<T> {
         if (!json) json = this.toJSON()
@@ -65,7 +65,7 @@ export default abstract class PolymorphicEntity<Targets extends object[]> {
 
     // ------------------------------------------------------------------------
 
-    public fill<T extends PolymorphicEntity<Targets>>(
+    public fill<T extends BasePolymorphicEntity<Targets>>(
         this: T,
         data: Partial<EntityProperties<T>>
     ): T {

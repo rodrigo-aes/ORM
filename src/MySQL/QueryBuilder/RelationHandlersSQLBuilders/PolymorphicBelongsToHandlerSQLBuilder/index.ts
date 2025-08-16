@@ -2,7 +2,7 @@ import OneRelationHandlerSQLBuilder from "../OneRelationHandlerSQLBuilder"
 
 // SQL Builders
 import UnionSQLBuilder from "../../UnionSQLBuilder"
-import { InternalUnionEntities } from "../../../PolymorphicEntity"
+import { InternalUnionEntities } from "../../../BasePolymorphicEntity"
 
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"

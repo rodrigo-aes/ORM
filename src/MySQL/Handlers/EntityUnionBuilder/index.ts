@@ -1,5 +1,5 @@
 import { EntityUnionMetadata } from "../../Metadata"
-import EntityUnion, { InternalUnionEntities } from "../../PolymorphicEntity"
+import EntityUnion, { InternalUnionEntities } from "../../BasePolymorphicEntity"
 import type { EntityUnionTarget } from "../../../types/General"
 
 export default class EntityUnionBuilder {

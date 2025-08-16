@@ -1,10 +1,10 @@
 import Entity from "./Entity"
-import EntityUnion, {
+import PolymorphicEntity, {
     ExcludeColumns,
     Combine,
 
     type CombinedColumnOptions
-} from "./EntityUnion"
+} from "./PolymorphicEntity"
 
 import Column from "./Column"
 import ComputedColumn from "./ComputedColumn"
@@ -67,7 +67,7 @@ import {
 
 export {
     Entity,
-    EntityUnion,
+    PolymorphicEntity,
     ExcludeColumns,
     Combine,
 
