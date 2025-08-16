@@ -26,7 +26,7 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     public scope?: any
 
     private foreignKeyName: string
-    public typeKey: string
+    public typeKey?: string
 
     constructor(
         target: EntityTarget,
@@ -77,8 +77,8 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get typeColum(): ColumnMetadata {
-        return EntityMetadata.findOrBuild(this.target)
+    public get typeColum(): ColumnMetadata | undefined {
+        if (this.typeKey) return EntityMetadata.findOrBuild(this.target)
             .getColumn(this.typeKey)
     }
 
@@ -105,7 +105,7 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
             ...Object.entries({
                 entities: this.entitiesToJSON(),
                 foreignKey: this.foreignKey.toJSON(),
-                typeColumn: this.typeColum.toJSON(),
+                typeColumn: this.typeColum?.toJSON(),
                 type: this.type
             }),
             ...Object.entries(this).filter(

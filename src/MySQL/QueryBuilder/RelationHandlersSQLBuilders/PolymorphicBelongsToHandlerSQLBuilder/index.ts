@@ -64,12 +64,6 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private get targetType(): string {
-        return this.target.constructor.name
-    }
-
-    // ------------------------------------------------------------------------
-
     private get foreignKey(): keyof Target {
         return this.metadata.foreignKey.name as keyof Target
     }
@@ -82,8 +76,16 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private get typeKey(): keyof Target {
-        return this.metadata.typeKey as keyof Target
+    private get typeKey(): keyof Target | undefined {
+        return this.metadata.typeKey as keyof Target | undefined
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get sourceType(): string {
+        return this.typeKey
+            ? this.target[this.typeKey] as string
+            : (this.target[this.foreignKey] as string).split('_')[0]
     }
 
     // ------------------------------------------------------------------------
@@ -110,6 +112,27 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
         return this.sourceMetadata.columns.primary.name
     }
 
+    // ------------------------------------------------------------------------
+
+    private get whereForeignKeySQL(): string {
+        return `${this.union}.primaryKey = ${this.targetPrimaryValue}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get whereEntityTypeSQL(): string {
+        return `AND ${this.union}.entityType = "${this.sourceType as string}"`
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get sourceWhereSQL(): string {
+        return `
+            WHERE ${this.sourceAlias}.${this.sourcePrimary} = 
+            ${this.foreignKeyValue}
+        `
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public override createSQL(_: CreationAttributes<InstanceType<Related>>): (
@@ -134,14 +157,14 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
         return SQLStringHelper.normalizeSQL(`
             UPDATE ${this.sourceTable} ${this.sourceAlias} 
             ${this.setSQL(attributes)}
-            ${this.sourceWhereSQL()}
+            ${this.sourceWhereSQL}
         `)
     }
 
     // ------------------------------------------------------------------------
 
     public override deleteSQL(): string {
-        return `DELETE FROM ${this.sourceAlias} ${this.sourceWhereSQL()}`
+        return `DELETE FROM ${this.sourceAlias} ${this.sourceWhereSQL}`
     }
 
     // Protecteds -------------------------------------------------------------
@@ -166,18 +189,12 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     protected fixedWhereSQL(): string {
-        return `
-            WHERE ${this.union}.primaryKey = ${this.targetPrimaryValue}
-            AND ${this.union}.entityType = "${this.targetType}"
-        `
+        return `WHERE ${this.whereForeignKeySQL} ${this.whereEntityTypeSQL}`
     }
 
     // Privates ---------------------------------------------------------------
     private loadSourceMetadata(): EntityMetadata {
-        this._sourceMetadata = this.metadata.entities[
-            this.target[this.typeKey] as string
-        ]
-
+        this._sourceMetadata = this.metadata.entities[this.sourceType]
         return this._sourceMetadata
     }
 
@@ -189,14 +206,5 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
             this.related
         )
             .SQL()
-    }
-
-    // ------------------------------------------------------------------------
-
-    private sourceWhereSQL(): string {
-        return `
-            WHERE ${this.sourceAlias}.${this.sourcePrimary} = 
-            ${this.foreignKeyValue}
-        `
     }
 }

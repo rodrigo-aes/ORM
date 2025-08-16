@@ -30,7 +30,9 @@ import type { PolymorphicEntityTarget } from "../../types/General"
 import type { UpdateQueryResult } from "./types"
 import type { ResultSetHeader } from "mysql2"
 
-export default class PolymorphicRespository<T extends PolymorphicEntityTarget> {
+export default class PolymorphicRespository<
+    T extends PolymorphicEntityTarget
+> {
     constructor(
         public target: T
     ) { }

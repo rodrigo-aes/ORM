@@ -1,5 +1,5 @@
 export type RelationOptions = {
     foreignKey: string
-    typeKey: string
+    typeKey?: string
     scope?: any
 }

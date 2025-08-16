@@ -7,6 +7,6 @@ export interface PolymorphicBelongsToMetadataJSON
     extends RelationMetadataJSON {
     entities: RelatedEntitiesMap
     foreignKey: ColumnMetadataJSON
-    typeColumn: ColumnMetadataJSON
+    typeColumn?: ColumnMetadataJSON
     scope?: any
 }

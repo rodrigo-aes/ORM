@@ -7,7 +7,7 @@ export type PolymorphicParentRelatedGetter = () => EntityTarget[]
 export interface PolymorphicParentOptions extends RelationOptions {
     related: PolymorphicParentRelatedGetter,
     foreignKey: string
-    typeKey: string
+    typeKey?: string
     scope?: any
 }
 
@@ -17,6 +17,6 @@ export type PolymorphicChildRelatedGetter = () => EntityTarget
 export interface PolymorphicChildOptions extends RelationOptions {
     related: PolymorphicChildRelatedGetter
     foreignKey: string
-    typeKey: string
+    typeKey?: string
     scope?: any
 }

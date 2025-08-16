@@ -5,6 +5,6 @@ import type { ColumnMetadataJSON } from "../../../../ColumnsMetadata/ColumnMetad
 export interface PolymorphicHasManyMetadataJSON extends RelationMetadataJSON {
     entity: EntityMetadataJSON
     foreignKey: ColumnMetadataJSON
-    typeColumn: ColumnMetadataJSON
+    typeColumn?: ColumnMetadataJSON
     scope?: any
 }

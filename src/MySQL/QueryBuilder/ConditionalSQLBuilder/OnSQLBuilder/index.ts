@@ -205,7 +205,7 @@ export default class OnSQLBuilder<
 
         return `
             ${this.alias}.${foreignKey.name} = ${this.parentAlias}.${primary}
-            AND ${this.alias}.${typeKey} = "${targetType}"
+            ${typeKey ? `AND ${this.alias}.${typeKey} = "${targetType}"` : ''}
         `
     }
 
@@ -222,7 +222,10 @@ export default class OnSQLBuilder<
 
         return `
             ${unionName}.primaryKey = ${this.parentAlias}.${foreignKey.name}
-            AND ${unionName}.entityType = ${this.parentAlias}.${typeKey}
+            ${typeKey
+                ? `AND ${unionName}.entityType = ${this.parentAlias}.${typeKey}`
+                : ''
+            }
         `
     }
 }

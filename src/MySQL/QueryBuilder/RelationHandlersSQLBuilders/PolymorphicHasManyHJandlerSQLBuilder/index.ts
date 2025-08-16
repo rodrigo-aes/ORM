@@ -38,7 +38,7 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
     protected get includedAtrributes(): any {
         return {
             [this.foreignKey]: this.targetPrimaryValue,
-            [this.typeKey]: this.targetType
+            ...this.includeTypeKey
         }
     }
 
@@ -49,7 +49,7 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private get typeKey(): string {
+    private get typeKey(): string | undefined {
         return this.metadata.typeKey
     }
 
@@ -61,12 +61,31 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
             : this.metadata.targetType
     }
 
+    // ------------------------------------------------------------------------
+
+    private get includeTypeKey(): any {
+        return this.typeKey ? { [this.typeKey]: this.targetType } : {}
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get whereForeignKeySQL(): string {
+        return `
+        ${this.relatedAlias}.${this.foreignKey} = ${this.targetPrimaryValue}
+        `
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get whereTypeKeySQL(): string {
+        return this.typeKey
+            ? `AND ${this.relatedAlias}.${this.typeKey} = "${this.targetType}"`
+            : ''
+    }
+
     // Instance Methods =======================================================
     // Protecteds -------------------------------------------------------------
     protected fixedWhereSQL(): string {
-        return `
-            WHERE ${this.relatedAlias}.${this.foreignKey} = ${this.targetPrimaryValue}
-            AND ${this.relatedAlias}.${this.typeKey} = "${this.targetType}"
-        `
+        return `WHERE ${this.whereForeignKeySQL} ${this.whereTypeKeySQL}`
     }
 }
