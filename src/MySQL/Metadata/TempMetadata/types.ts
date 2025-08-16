@@ -1,10 +1,10 @@
 import type EntityMetadata from "../EntityMetadata"
-import type EntityUnionMetadata from "../EntityUnionMetadata"
+import type PolymorphicEntityMetadata from "../PolymorphicEntityMetadata"
 import type { FindQueryOptions } from "../../Repository"
 import type { Collection } from "../../BaseEntity"
 
 export type TempMetadataValue = {
-    metadata?: EntityMetadata | EntityUnionMetadata,
+    metadata?: EntityMetadata | PolymorphicEntityMetadata,
     scope?: FindQueryOptions<any>
     collection?: typeof Collection
 }

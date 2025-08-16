@@ -1,4 +1,4 @@
-import type { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import type { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 // Query Builders
 import CountSQL from "./CountSQL"
@@ -22,7 +22,7 @@ import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 export default class CountSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 

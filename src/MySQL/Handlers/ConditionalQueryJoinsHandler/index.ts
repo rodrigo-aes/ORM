@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata, RelationMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata, RelationMetadata } from "../../Metadata"
 
 // SQL Builders
 import JoinSQLBuilder from "../../QueryBuilder/JoinSQLBuilder"
@@ -13,7 +13,7 @@ import type { ConditionalQueryOptions } from "../../QueryBuilder/ConditionalSQLB
 export default class ConditionalQueryJoinsHandler<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 
@@ -54,7 +54,7 @@ export default class ConditionalQueryJoinsHandler<
 
     private handleJoin(
         key: string,
-        metadata: EntityMetadata | EntityUnionMetadata = this.metadata,
+        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata,
         parentAlias: string = this.alias
     ): JoinSQLBuilder<any> | JoinSQLBuilder<any>[] {
         const [first, second, ...rest] = key.split('.')

@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../../Metadata"
 
 // QueryBuilders
 import AndSQLBuilder from "../AndSQLBuilder"
@@ -14,7 +14,7 @@ import type UnionSQLBuilder from "../../UnionSQLBuilder"
 export default class OrSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 

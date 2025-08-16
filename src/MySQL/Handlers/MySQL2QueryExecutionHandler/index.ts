@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
 import BasePolymorphicEntity from "../../BasePolymorphicEntity"
@@ -52,7 +52,7 @@ export default class MySQL2QueryExecutionHandler<
     Builder extends SQLBuilder<T>,
     MapTo extends ResultMapOption
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     constructor(
         public target: T,

@@ -1,4 +1,4 @@
-import { EntityUnionMetadata } from "../../Metadata"
+import { PolymorphicEntityMetadata } from "../../Metadata"
 
 // Decorators
 import ExcludeColumns from "./ExcludeColumns"
@@ -11,7 +11,7 @@ import type { EntityUnionTarget, EntityTarget } from "../../../types/General"
 
 export default function PolymorphicEntity(...entities: EntityTarget[]) {
     return function (target: EntityUnionTarget) {
-        EntityUnionMetadata.findOrBuild(
+        PolymorphicEntityMetadata.findOrBuild(
             target.name.toLowerCase(),
             target,
             entities

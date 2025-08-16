@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 
 import EntityMetadata from '../../EntityMetadata'
-import UnionColumnMetadata from './UnionColumnMetadata'
+import PolymorphicColumnMetadata from './PolymorphicColumnMetadata'
 
 // Types
 import type { EntityUnionTarget } from '../../../../types/General'
@@ -12,7 +12,9 @@ import type {
     MergeSourceColumnsConfig
 } from './types'
 
-export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
+export default class PolymorphicColumnsMetadata extends Array<
+    PolymorphicColumnMetadata
+> {
     constructor(
         public target: EntityUnionTarget | null,
         public sources: ColumnMetadata[]
@@ -26,19 +28,19 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get primary(): UnionColumnMetadata {
+    public get primary(): PolymorphicColumnMetadata {
         return this.find(({ primary }) => primary)!
     }
 
     // ------------------------------------------------------------------------
 
-    public get foreignKeys(): UnionColumnMetadata[] {
+    public get foreignKeys(): PolymorphicColumnMetadata[] {
         return this.filter(({ isForeignKey }) => isForeignKey)
     }
 
     // ------------------------------------------------------------------------
 
-    public get constrainedForeignKeys(): UnionColumnMetadata[] {
+    public get constrainedForeignKeys(): PolymorphicColumnMetadata[] {
         return this.foreignKeys.filter(
             ({ references }) => references?.constrained
         )
@@ -52,7 +54,7 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
 
     // ------------------------------------------------------------------------
 
-    public findColumn(name: string): UnionColumnMetadata | undefined {
+    public findColumn(name: string): PolymorphicColumnMetadata | undefined {
         return this.find((col) => col.name === name)
     }
 
@@ -83,7 +85,7 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
     private buildEntityTypeColumn(): void {
         const entityTypes = new Set(this.sources.map(({ target }) => target))
 
-        this.push(UnionColumnMetadata.buildEntityTypeColumn(
+        this.push(PolymorphicColumnMetadata.buildEntityTypeColumn(
             this.target,
             ...entityTypes
         ))
@@ -114,14 +116,14 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
             shouldVerifyDataType = true,
             shouldAssignCommonProperties = true
         }: MergeSourceColumnsConfig = {}
-    ): UnionColumnMetadata {
+    ): PolymorphicColumnMetadata {
         const shouldMerge = columns.length > 1
 
         if (shouldVerifyDataType && shouldMerge) this.verifyDataType(columns)
 
         const [{ name, dataType }] = columns
 
-        const unionColumn = new UnionColumnMetadata(
+        const unionColumn = new PolymorphicColumnMetadata(
             this.target,
             internalName ?? name,
             dataType,
@@ -166,7 +168,7 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
     // ------------------------------------------------------------------------
 
     private assignCommonProperties(
-        unionColumn: UnionColumnMetadata,
+        unionColumn: PolymorphicColumnMetadata,
         columns: ColumnMetadata[]
     ): void {
         const [first] = columns
@@ -193,7 +195,7 @@ export default class UnionColumnsMetadata extends Array<UnionColumnMetadata> {
 }
 
 export {
-    UnionColumnMetadata,
+    PolymorphicColumnMetadata,
 
     type CombinedColumns,
     type CombinedColumnOptions

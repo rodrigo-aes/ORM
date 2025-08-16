@@ -1,4 +1,4 @@
-import { EntityUnionMetadata } from "../../Metadata"
+import { PolymorphicEntityMetadata } from "../../Metadata"
 import EntityUnion, { InternalUnionEntities } from "../../BasePolymorphicEntity"
 import type { EntityUnionTarget } from "../../../types/General"
 
@@ -8,7 +8,7 @@ export default class EntityUnionBuilder {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static buildInternalEntityUnion(
-        metadata: EntityUnionMetadata
+        metadata: PolymorphicEntityMetadata
     ): EntityUnionTarget {
         if (!this.entityNameRegExp.test(metadata.targetName)) throw new Error
 
@@ -29,7 +29,7 @@ export default class EntityUnionBuilder {
     }
 
     // Privates ---------------------------------------------------------------
-    private static fillDinamicColumns(metadata: EntityUnionMetadata): string {
+    private static fillDinamicColumns(metadata: PolymorphicEntityMetadata): string {
         return [...metadata.columns].map(
             col => `this[${JSON.stringify(col.name)}] = null`
         )

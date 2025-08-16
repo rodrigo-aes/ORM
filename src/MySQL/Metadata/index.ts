@@ -75,25 +75,25 @@ import EntityMetadata, {
     type ComputedPropertyFunction
 } from "./EntityMetadata"
 
-import EntityUnionMetadata, {
-    UnionColumnsMetadata,
-    UnionColumnMetadata,
+import PolymorphicEntityMetadata, {
+    PolymorphicColumnsMetadata,
+    PolymorphicColumnMetadata,
 
     type UnionEntitiesMap,
     type CombinedColumnOptions
-} from "./EntityUnionMetadata"
+} from "./PolymorphicEntityMetadata"
 
 import MetadataHandler from "./MetadataHandler"
 import TempMetadata from "./TempMetadata"
 
 export {
     EntityMetadata,
-    EntityUnionMetadata,
+    PolymorphicEntityMetadata,
     DataType,
     ColumnsMetadata,
     ColumnMetadata,
-    UnionColumnsMetadata,
-    UnionColumnMetadata,
+    PolymorphicColumnsMetadata,
+    PolymorphicColumnMetadata,
     RelationMetadata,
     RelationsMetadata,
     JoinTableMetadata,

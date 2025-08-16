@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 // SQL Builders
 import SelectSQLBuilder from "../SelectSQLBuilder"
@@ -15,7 +15,7 @@ import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 export default class FindByPkSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
     public select: SelectSQLBuilder<T>

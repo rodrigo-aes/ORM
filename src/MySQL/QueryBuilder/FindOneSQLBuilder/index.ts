@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 // Query Builders
 import UnionSQLBuilder from "../UnionSQLBuilder"
@@ -26,7 +26,7 @@ import type { RelationOptions, RelationsOptions } from "../JoinSQLBuilder/types"
 export default class FindOneSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    private metadata: EntityMetadata | EntityUnionMetadata
+    private metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 

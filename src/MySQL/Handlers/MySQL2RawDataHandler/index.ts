@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 // Metadata
 import { RelationMetadata } from "../../Metadata"
@@ -23,7 +23,7 @@ import type { RelationMetadataType } from "../../Metadata"
 export default class MySQL2RawDataHandler<
     T extends EntityTarget | EntityUnionTarget
 > {
-    private metadata: EntityMetadata | EntityUnionMetadata
+    private metadata: EntityMetadata | PolymorphicEntityMetadata
     private mySQL2RawData!: MySQL2RawData[]
     private _raw?: RawData<T> | RawData<T>[]
     private _entity?: InstanceType<T> | Collection<InstanceType<T>>
@@ -93,7 +93,7 @@ export default class MySQL2RawDataHandler<
     // Privates ---------------------------------------------------------------
     private reduceMySQL2RawData(
         rawData: MySQL2RawData[],
-        metadata: EntityMetadata | EntityUnionMetadata = this.metadata,
+        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata,
         method: 'raw' | 'entity' = 'raw',
         relation?: RelationMetadataType
     ): MappedDataType<T, typeof method>[] {
@@ -164,7 +164,7 @@ export default class MySQL2RawDataHandler<
 
     private filterRelations(
         raw: MySQL2RawData[],
-        metadata: EntityMetadata | EntityUnionMetadata = this.metadata,
+        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata,
         method: 'raw' | 'entity' = 'raw'
     ): { [K: string]: MappedDataType<T, typeof method> } {
         const relations: any = {}

@@ -4,7 +4,7 @@ import type { TempMetadataValue } from "./types"
 import type { FindQueryOptions } from "../../Repository"
 import type { Collection } from "../../BaseEntity"
 import type EntityMetadata from "../EntityMetadata"
-import type EntityUnionMetadata from "../EntityUnionMetadata"
+import type PolymorphicEntityMetadata from "../PolymorphicEntityMetadata"
 
 class TempMetadata extends WeakMap<
     EntityTarget | EntityUnionTarget,
@@ -24,7 +24,7 @@ class TempMetadata extends WeakMap<
 
     public getMetadata<T extends EntityTarget | EntityUnionTarget>(
         target: T
-    ): EntityMetadata | EntityUnionMetadata | undefined {
+    ): EntityMetadata | PolymorphicEntityMetadata | undefined {
         return this.get(target)?.metadata
     }
 
@@ -48,7 +48,7 @@ class TempMetadata extends WeakMap<
 
     public setMetadata(
         target: EntityTarget | EntityUnionTarget,
-        metadata: EntityMetadata | EntityUnionMetadata
+        metadata: EntityMetadata | PolymorphicEntityMetadata
     ): this {
         this.set(target, {
             ...this.get(target),

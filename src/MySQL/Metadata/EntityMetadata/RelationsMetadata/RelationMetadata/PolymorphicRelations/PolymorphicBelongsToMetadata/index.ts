@@ -1,5 +1,5 @@
 import EntityMetadata from "../../../.."
-import EntityUnionMetadata from "../../../../../EntityUnionMetadata"
+import PolymorphicEntityMetadata from "../../../../../PolymorphicEntityMetadata"
 import RelationMetadata from "../../RelationMetadata"
 
 import { InternalUnionEntities } from "../../../../../../BasePolymorphicEntity"
@@ -127,7 +127,7 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
 
     // Privates ---------------------------------------------------------------
     private registerParentsUnion(): void {
-        EntityUnionMetadata.findOrBuild(this.unionName, null, this.related)
+        PolymorphicEntityMetadata.findOrBuild(this.unionName, null, this.related)
     }
 
     // ------------------------------------------------------------------------

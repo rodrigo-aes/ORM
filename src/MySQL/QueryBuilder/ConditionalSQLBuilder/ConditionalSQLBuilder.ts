@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 // Query Builders
 import AndSQLBuilder from "./AndSQLBuilder"
@@ -15,7 +15,7 @@ import type UnionSQLBuilder from "../UnionSQLBuilder"
 export default abstract class ConditionalSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata!: EntityMetadata | EntityUnionMetadata
+    protected metadata!: EntityMetadata | PolymorphicEntityMetadata
 
     protected sqlBuilder: AndSQLBuilder<T> | OrSQLBuilder<T> | undefined
 

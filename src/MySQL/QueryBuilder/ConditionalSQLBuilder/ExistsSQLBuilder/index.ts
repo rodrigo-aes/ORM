@@ -8,7 +8,7 @@ import { Exists, Cross } from "./Symbol"
 // Handlers
 import {
     MetadataHandler,
-    EntityUnionMetadata,
+    PolymorphicEntityMetadata,
 
     type EntityMetadata,
     type RelationMetadataType
@@ -35,7 +35,7 @@ import type {
 export default class ExistsSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
     public alias: string
 
     private unions: string[] = []
@@ -92,7 +92,7 @@ export default class ExistsSQLBuilder<
     // ------------------------------------------------------------------------
 
     private handleRelationsOptions(
-        metadata: EntityMetadata | EntityUnionMetadata = this.metadata,
+        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata,
         options: any = this.options
     ) {
         const included = new Set<string>()
@@ -124,7 +124,7 @@ export default class ExistsSQLBuilder<
             ))
         ) {
             const meta = MetadataHandler.loadMetadata(target)
-            if (meta instanceof EntityUnionMetadata) this.addUnion(meta)
+            if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)
 
             if (where) {
                 const whereOptions = Object.fromEntries(
@@ -134,7 +134,7 @@ export default class ExistsSQLBuilder<
                     Object.entries(where).filter(([key]) => key.includes('.'))
                 )
 
-                if (meta instanceof EntityUnionMetadata) this.addUnion(meta)
+                if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)
                 this.addJoin(meta)
                 this.handleRelationsOptions(meta, relationsOptions)
                 this.addWhere(
@@ -150,14 +150,14 @@ export default class ExistsSQLBuilder<
 
     private handleQueryParts(
         options: any,
-        metadata: EntityMetadata | EntityUnionMetadata = this.metadata
+        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata
     ) {
         for (const [name, opts] of Object.entries(options)) {
             const relation = metadata.relations?.find(rel => rel.name === name)
             if (!relation) throw new Error
 
             const meta = MetadataHandler.loadMetadata(relation.relatedTarget)
-            if (meta instanceof EntityUnionMetadata) this.addUnion(meta)
+            if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)
 
             const whereOptions = this.extractWhereOptions(opts)
             const nested = this.extractNestedRelationOptions(opts)
@@ -184,7 +184,7 @@ export default class ExistsSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private addUnion(metadata: EntityUnionMetadata): void {
+    private addUnion(metadata: PolymorphicEntityMetadata): void {
         this.unions.push(
             new UnionSQLBuilder(
                 metadata.tableName,
@@ -199,7 +199,7 @@ export default class ExistsSQLBuilder<
     // ------------------------------------------------------------------------
 
     private addJoin(
-        metadata: EntityMetadata | EntityUnionMetadata
+        metadata: EntityMetadata | PolymorphicEntityMetadata
     ): void {
         this.joins.push(`CROSS JOIN ${metadata.tableName}`)
 

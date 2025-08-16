@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../../Metadata"
 
 // Query Builders
 import AndSQLBuilder from "../AndSQLBuilder"
@@ -26,7 +26,7 @@ import type {
 export default class CaseSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 

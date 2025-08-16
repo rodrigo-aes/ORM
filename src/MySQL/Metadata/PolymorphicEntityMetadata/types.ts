@@ -11,7 +11,7 @@ export type SourcesMetadata = {
     [K: string]: EntityMetadata
 }
 
-export type EntityUnionMetadataJSON = {
+export type PolymorphicEntityMetadataJSON = {
     target: EntityUnionTarget
     name: string
     tableName: string

@@ -1,5 +1,5 @@
 import { DataType } from "../../../EntityMetadata"
-import UnionForeignKeyReferences from "./UnionForeignKeyReferences"
+import PolymorphicForeignKeyReferences from "./PolymorphicForeignKeyReferences"
 
 
 // Types
@@ -10,7 +10,7 @@ import type {
 
 import type { ColumnMetadata, ColumnMetadataJSON } from "../../../EntityMetadata"
 
-export default class UnionColumnMetadata {
+export default class PolymorphicColumnMetadata {
     public length?: number
     public nullable?: boolean
     public defaultValue?: any
@@ -19,7 +19,7 @@ export default class UnionColumnMetadata {
     public autoIncrement?: boolean
     public unsigned?: boolean
     public isForeignKey?: boolean
-    public references?: UnionForeignKeyReferences
+    public references?: PolymorphicForeignKeyReferences
 
     constructor(
         public target: EntityUnionTarget | null,
@@ -64,8 +64,8 @@ export default class UnionColumnMetadata {
     public static buildEntityTypeColumn(
         target: EntityUnionTarget | null,
         ...types: EntityTarget[]
-    ): UnionColumnMetadata {
-        return new UnionColumnMetadata(
+    ): PolymorphicColumnMetadata {
+        return new PolymorphicColumnMetadata(
             target,
             'entityType',
             DataType.ENUM(...types.map(target => target.name))

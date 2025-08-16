@@ -16,7 +16,7 @@ import { MetadataHandler } from "../../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type { EntityMetadata, EntityUnionMetadata } from "../../../Metadata"
+import type { EntityMetadata, PolymorphicEntityMetadata } from "../../../Metadata"
 import type {
     AndQueryOptions,
     EntityAndQueryOptions,
@@ -29,7 +29,7 @@ import type UnionSQLBuilder from "../../UnionSQLBuilder"
 
 
 export default class AndSQLBuilder<T extends EntityTarget | EntityUnionTarget> {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 

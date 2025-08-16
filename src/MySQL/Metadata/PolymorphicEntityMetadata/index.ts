@@ -6,14 +6,14 @@ import EntityMetadata, {
     type PolymorphicParentRelatedGetter,
 } from "../EntityMetadata"
 
-import UnionColumnsMetadata, {
-    UnionColumnMetadata,
+import PolymorphicColumnsMetadata, {
+    PolymorphicColumnMetadata,
 
     type CombinedColumns,
     type CombinedColumnOptions
-} from "./UnionColumnsMetadata"
+} from "./PolymorphicColumnsMetadata"
 
-import UnionRelationsMetadata from "./UnionRelationsMetadata"
+import PolymorphicRelationsMetadata from "./PolymorphicRelationsMetadata"
 
 // Handlers
 import { EntityUnionBuilder } from "../../Handlers"
@@ -25,17 +25,17 @@ import type { EntityUnionTarget, EntityTarget } from "../../../types/General"
 import type {
     UnionEntitiesMap,
     SourcesMetadata,
-    EntityUnionMetadataJSON
+    PolymorphicEntityMetadataJSON
 } from "./types"
 
-export default class EntityUnionMetadata {
+export default class PolymorphicEntityMetadata {
     public connection?: MySQLConnection
 
     private _entities!: UnionEntitiesMap
     private _sourcesMetadata!: SourcesMetadata
 
-    private _columns!: UnionColumnsMetadata
-    private _relations?: UnionRelationsMetadata
+    private _columns!: PolymorphicColumnsMetadata
+    private _relations?: PolymorphicRelationsMetadata
 
     public hooks?: HooksMetadata
     public scopes?: ScopesMetadata
@@ -104,26 +104,26 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get columns(): UnionColumnsMetadata {
+    public get columns(): PolymorphicColumnsMetadata {
         if (typeof this.sources === 'function') this.loadSourcesMetadata()
         return this.loadColumns()
     }
 
     // ------------------------------------------------------------------------
 
-    public get relations(): UnionRelationsMetadata | undefined {
+    public get relations(): PolymorphicRelationsMetadata | undefined {
         return this.loadRelations()
     }
 
     // ------------------------------------------------------------------------
 
-    public get foreignKeys(): UnionColumnMetadata[] {
+    public get foreignKeys(): PolymorphicColumnMetadata[] {
         return this.columns.filter(({ isForeignKey }) => isForeignKey)
     }
 
     // ------------------------------------------------------------------------
 
-    public get constrainedForeignKeys(): UnionColumnMetadata[] {
+    public get constrainedForeignKeys(): PolymorphicColumnMetadata[] {
         return this.foreignKeys.filter(
             ({ references }) => references?.constrained
         )
@@ -146,7 +146,7 @@ export default class EntityUnionMetadata {
     // ------------------------------------------------------------------------
 
     public toJSON(): (
-        EntityUnionMetadataJSON | undefined
+        PolymorphicEntityMetadataJSON | undefined
     ) {
         return EntityToJSONProcessMetadata.initialized
             ? this.buildJSON()
@@ -221,10 +221,10 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    private loadColumns(): UnionColumnsMetadata {
+    private loadColumns(): PolymorphicColumnsMetadata {
         const metas = Object.values(this.sourcesMetadata)
 
-        this._columns = new UnionColumnsMetadata(
+        this._columns = new PolymorphicColumnsMetadata(
             this.target,
             metas.flatMap(meta => [
                 ...[...meta.columns].filter(
@@ -244,11 +244,11 @@ export default class EntityUnionMetadata {
 
     // ------------------------------------------------------------------------
 
-    private loadRelations(): UnionRelationsMetadata | undefined {
+    private loadRelations(): PolymorphicRelationsMetadata | undefined {
         const metas = Object.values(this.sourcesMetadata)
         const relations = metas.flatMap(meta => [...meta.relations ?? []])
 
-        if (relations.length > 0) this._relations = new UnionRelationsMetadata(
+        if (relations.length > 0) this._relations = new PolymorphicRelationsMetadata(
             this.target,
             ...relations
         )
@@ -283,7 +283,7 @@ export default class EntityUnionMetadata {
     // ------------------------------------------------------------------------
 
     private buildJSON<T extends EntityUnionTarget = any>(): (
-        EntityUnionMetadataJSON | undefined
+        PolymorphicEntityMetadataJSON | undefined
     ) {
         return EntityToJSONProcessMetadata.shouldAdd(this.name)
             ? {
@@ -304,7 +304,7 @@ export default class EntityUnionMetadata {
         target: EntityUnionTarget | null,
         sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
-        return new EntityUnionMetadata(
+        return new PolymorphicEntityMetadata(
             name,
             target,
             sources
@@ -314,7 +314,7 @@ export default class EntityUnionMetadata {
     // ------------------------------------------------------------------------
 
     public static find(target: EntityUnionTarget | null): (
-        EntityUnionMetadata | undefined
+        PolymorphicEntityMetadata | undefined
     ) {
         if (target) return Reflect.getOwnMetadata('union-metadata', target)
     }
@@ -325,7 +325,7 @@ export default class EntityUnionMetadata {
         name: string,
         target: EntityUnionTarget | null,
         sources: EntityTarget[] | PolymorphicParentRelatedGetter
-    ): EntityUnionMetadata {
+    ): PolymorphicEntityMetadata {
         return this.find(target) ?? this.build(
             name, target, sources
         )
@@ -333,8 +333,8 @@ export default class EntityUnionMetadata {
 }
 
 export {
-    UnionColumnsMetadata,
-    UnionColumnMetadata,
+    PolymorphicColumnsMetadata,
+    PolymorphicColumnMetadata,
 
     type UnionEntitiesMap,
     type CombinedColumnOptions

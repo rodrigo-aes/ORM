@@ -1,5 +1,5 @@
 import EntityMetadata from "../EntityMetadata"
-import EntityUnionMetadata from "../EntityUnionMetadata"
+import PolymorphicEntityMetadata from "../PolymorphicEntityMetadata"
 import { JoinTableMetadata } from "../EntityMetadata"
 
 import BaseEntity from "../../BaseEntity"
@@ -39,7 +39,7 @@ export default class MetadataHandler {
     // ------------------------------------------------------------------------
 
     public static loadMetadata(target: EntityTarget | EntityUnionTarget): (
-        EntityMetadata | EntityUnionMetadata
+        EntityMetadata | PolymorphicEntityMetadata
     ) {
         switch (true) {
             case (target as any).prototype instanceof BaseEntity: return (
@@ -48,7 +48,7 @@ export default class MetadataHandler {
             )!
 
             case (target as any).prototype instanceof BasePolymorphicEntity: return (
-                EntityUnionMetadata.find(target as EntityUnionTarget)
+                PolymorphicEntityMetadata.find(target as EntityUnionTarget)
                 ?? TemMetadata.getMetadata(target)
             )!
         }

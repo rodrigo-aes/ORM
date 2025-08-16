@@ -1,4 +1,4 @@
-import EntityUnionMetadata from "../../.."
+import PolymorphicEntityMetadata from "../../.."
 import EntityMetadata from "../../../../EntityMetadata"
 
 import type { EntityUnionTarget } from "../../../../../../types/General"
@@ -25,7 +25,7 @@ import type {
     RelatedColumnsMap
 } from "../../../../EntityMetadata/ColumnsMetadata/ColumnMetadata/ForeignKeyReferences/types"
 
-export default class UnionForeignKeyReferences {
+export default class PolymorphicForeignKeyReferences {
     public constrained: boolean = true
     public onDelete?: ForeignKeyActionListener
     public onUpdate?: ForeignKeyActionListener
@@ -43,8 +43,8 @@ export default class UnionForeignKeyReferences {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get targetMetadata(): EntityUnionMetadata {
-        return EntityUnionMetadata.find(this.target)!
+    public get targetMetadata(): PolymorphicEntityMetadata {
+        return PolymorphicEntityMetadata.find(this.target)!
     }
 
     // ------------------------------------------------------------------------

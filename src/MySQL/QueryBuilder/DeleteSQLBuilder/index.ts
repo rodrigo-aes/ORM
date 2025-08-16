@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 import BaseEntity from "../../BaseEntity"
 import BasePolymorphicEntity from "../../BasePolymorphicEntity"
@@ -21,7 +21,7 @@ import type { EntityTarget, EntityUnionTarget } from "../../../types/General"
 export default class DeleteSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 
@@ -98,7 +98,7 @@ export default class DeleteSQLBuilder<
     // ------------------------------------------------------------------------
 
     private handleTableName(): string {
-        if (this.metadata instanceof EntityUnionMetadata) return (
+        if (this.metadata instanceof PolymorphicEntityMetadata) return (
             this.metadata.sourcesMetadata[
                 (this.where as BaseEntity).constructor.name
             ]

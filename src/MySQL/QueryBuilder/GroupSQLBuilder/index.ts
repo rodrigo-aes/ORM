@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 // Handlers
 import { MetadataHandler } from "../../Metadata"
@@ -13,7 +13,7 @@ import type { GroupQueryOptions } from "./types"
 export default class GroupSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
     public mergedProperties: string[] = []

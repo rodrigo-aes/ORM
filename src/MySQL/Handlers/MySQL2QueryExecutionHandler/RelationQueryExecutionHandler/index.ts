@@ -3,7 +3,7 @@ import {
     MetadataHandler,
 
     type EntityMetadata,
-    type EntityUnionMetadata
+    type PolymorphicEntityMetadata
 } from "../../../Metadata"
 
 import MySQL2RawDataHandler, {
@@ -32,7 +32,7 @@ import type { DeleteResult } from "../types"
 export default class RelationQueryExecutionHandler<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     constructor(public target: T) {
         this.metadata = MetadataHandler.loadMetadata(this.target)

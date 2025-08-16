@@ -1,6 +1,6 @@
 import {
-    EntityUnionMetadata,
-    type UnionColumnMetadata
+    PolymorphicEntityMetadata,
+    type PolymorphicColumnMetadata
 } from "../../Metadata"
 
 import type { EntityMetadata } from "../../Metadata"
@@ -12,7 +12,7 @@ import { SQLStringHelper } from "../../Helpers"
 import type { EntityUnionTarget } from "../../../types/General"
 
 export default class UnionSQLBuilder {
-    protected metadata: EntityUnionMetadata
+    protected metadata: PolymorphicEntityMetadata
 
     constructor(
         public name: string,
@@ -29,7 +29,7 @@ export default class UnionSQLBuilder {
 
     // ------------------------------------------------------------------------
 
-    private get restColumns(): UnionColumnMetadata[] {
+    private get restColumns(): PolymorphicColumnMetadata[] {
         return [...this.metadata.columns].filter(
             ({ primary, name }) => !primary && name !== 'entityType'
         )
@@ -44,8 +44,8 @@ export default class UnionSQLBuilder {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityUnionMetadata {
-        return EntityUnionMetadata.find(this.target)!
+    private loadMetadata(): PolymorphicEntityMetadata {
+        return PolymorphicEntityMetadata.find(this.target)!
     }
 
     // ------------------------------------------------------------------------

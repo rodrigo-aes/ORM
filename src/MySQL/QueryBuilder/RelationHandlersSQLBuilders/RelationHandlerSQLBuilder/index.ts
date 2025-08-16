@@ -11,7 +11,7 @@ import { PropertySQLHelper } from "../../../Helpers"
 import type {
     RelationMetadataType,
     EntityMetadata,
-    EntityUnionMetadata
+    PolymorphicEntityMetadata
 } from "../../../Metadata"
 
 import type {
@@ -28,12 +28,12 @@ export default abstract class RelationHandlerSQLBuilder<
     Target extends object,
     Related extends EntityTarget | EntityUnionTarget
 > {
-    protected targetMetadata: EntityMetadata | EntityUnionMetadata = (
+    protected targetMetadata: EntityMetadata | PolymorphicEntityMetadata = (
         MetadataHandler.loadMetadata(
             this.target.constructor as EntityTarget | EntityUnionTarget
         )
     )
-    protected relatedMetadata: EntityMetadata | EntityUnionMetadata = (
+    protected relatedMetadata: EntityMetadata | PolymorphicEntityMetadata = (
         MetadataHandler.loadMetadata(this.related)
     )
 

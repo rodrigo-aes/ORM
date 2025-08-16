@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 import ConditionalSQLBuilder, { Case } from "../ConditionalSQLBuilder"
 import CountSQLBuilder from "../CountSQLBuilder"
@@ -24,7 +24,7 @@ import type {
 export default class SelectSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    private metadata: EntityMetadata | EntityUnionMetadata
+    private metadata: EntityMetadata | PolymorphicEntityMetadata
 
     private mergedProperties: string[] = []
 

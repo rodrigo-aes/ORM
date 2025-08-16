@@ -1,7 +1,7 @@
 import {
     MetadataHandler,
     type EntityMetadata,
-    type EntityUnionMetadata
+    type PolymorphicEntityMetadata
 } from "../../Metadata"
 
 // Handlers
@@ -25,7 +25,7 @@ export default abstract class ManyRelation<
     Target extends object,
     Related extends EntityTarget | EntityUnionTarget
 > extends Array<InstanceType<Related>> {
-    private _relatedMetadata?: EntityMetadata | EntityUnionMetadata
+    private _relatedMetadata?: EntityMetadata | PolymorphicEntityMetadata
 
     constructor(
         protected metadata: ManyRelationMetadatatype,
@@ -50,7 +50,7 @@ export default abstract class ManyRelation<
 
     // ------------------------------------------------------------------------
 
-    protected get relatedMetadata(): EntityMetadata | EntityUnionMetadata {
+    protected get relatedMetadata(): EntityMetadata | PolymorphicEntityMetadata {
         return this._relatedMetadata ?? this.loadRelatedMetadata()
     }
 
@@ -104,7 +104,7 @@ export default abstract class ManyRelation<
     }
 
     // Privates ---------------------------------------------------------------
-    private loadRelatedMetadata(): EntityMetadata | EntityUnionMetadata {
+    private loadRelatedMetadata(): EntityMetadata | PolymorphicEntityMetadata {
         this._relatedMetadata = MetadataHandler.loadMetadata(this.related)
         return this._relatedMetadata
     }

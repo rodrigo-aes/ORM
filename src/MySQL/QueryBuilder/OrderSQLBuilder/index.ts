@@ -1,4 +1,4 @@
-import { EntityMetadata, EntityUnionMetadata } from "../../Metadata"
+import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 // Query Builders
 import ConditionalSQLBuilder, { Case } from "../ConditionalSQLBuilder"
@@ -20,7 +20,7 @@ import type {
 export default class OrderSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    private metadata: EntityMetadata | EntityUnionMetadata
+    private metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 

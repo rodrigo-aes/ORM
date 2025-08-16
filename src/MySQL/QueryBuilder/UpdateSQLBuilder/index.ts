@@ -1,6 +1,6 @@
 import {
     EntityMetadata,
-    EntityUnionMetadata,
+    PolymorphicEntityMetadata,
     MetadataHandler
 } from "../../Metadata"
 
@@ -28,7 +28,7 @@ import type { UpdateAttributes, UpdateAttibutesKey } from "./types"
 export default class UpdateSQLBuilder<
     T extends EntityTarget | EntityUnionTarget
 > {
-    protected metadata: EntityMetadata | EntityUnionMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 
@@ -110,7 +110,7 @@ export default class UpdateSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private handleTableName(): string {
-        if (this.metadata instanceof EntityUnionMetadata) return (
+        if (this.metadata instanceof PolymorphicEntityMetadata) return (
             this.metadata.sourcesMetadata[
                 (this.attributes as BaseEntity).constructor.name
             ]

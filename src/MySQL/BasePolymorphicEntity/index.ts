@@ -1,4 +1,4 @@
-import { EntityUnionMetadata } from "../Metadata"
+import { PolymorphicEntityMetadata } from "../Metadata"
 import { InternalUnionEntities } from "./Components"
 import { ColumnsSnapshots } from "../BaseEntity"
 
@@ -34,8 +34,8 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public getMetadata(): EntityUnionMetadata {
-        return EntityUnionMetadata.find(this.constructor as EntityUnionTarget)!
+    public getMetadata(): PolymorphicEntityMetadata {
+        return PolymorphicEntityMetadata.find(this.constructor as EntityUnionTarget)!
     }
 
     // ------------------------------------------------------------------------

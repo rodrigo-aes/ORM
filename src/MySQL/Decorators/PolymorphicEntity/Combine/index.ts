@@ -1,5 +1,5 @@
 import {
-    EntityUnionMetadata,
+    PolymorphicEntityMetadata,
     type CombinedColumnOptions
 } from "../../../Metadata"
 
@@ -11,7 +11,7 @@ export default function Combine(options: CombinedColumnOptions) {
         target: Entity,
         name: string
     ) {
-        const meta = EntityUnionMetadata.find(target.constructor as (
+        const meta = PolymorphicEntityMetadata.find(target.constructor as (
             EntityUnionTarget
         ))
         if (!meta) throw new Error

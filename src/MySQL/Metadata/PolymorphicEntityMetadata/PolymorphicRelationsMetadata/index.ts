@@ -2,7 +2,9 @@ import type { RelationMetadata } from "../../EntityMetadata"
 import type { EntityUnionTarget } from "../../../../types/General"
 import type { RelationsMetadataJSON } from "../../EntityMetadata"
 
-export default class UnionRelationsMetadata extends Array<RelationMetadata> {
+export default class PolymorphicRelationsMetadata extends Array<
+    RelationMetadata
+> {
     constructor(
         public target: EntityUnionTarget | null,
         ...relations: RelationMetadata[]
