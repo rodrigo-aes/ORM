@@ -6,10 +6,10 @@ export type UpdateAttributes<Entity extends object> = (
     Partial<EntityProperties<Entity>>
 )
 
-export type UpdateAttibutesKey<Entity extends object> = (
+export type UpdateAtt5ributesKey<Entity extends object> = (
     keyof UpdateAttributes<Entity>
 )
 
 export type AttributesNames<Entity extends object> = Set<
-    UpdateAttibutesKey<Entity>
+    UpdateAtt5ributesKey<Entity>
 >

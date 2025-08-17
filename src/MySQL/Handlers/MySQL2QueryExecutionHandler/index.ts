@@ -202,6 +202,7 @@ export default class MySQL2QueryExecutionHandler<
         const resultHeader: ResultSetHeader = await connection.query(
             this.sqlBuilder.SQL()
         ) as any
+
         const result = isEntity
             ? (this.sqlBuilder as UpdateSQLBuilder<T>).attributes as (
                 InstanceType<T>

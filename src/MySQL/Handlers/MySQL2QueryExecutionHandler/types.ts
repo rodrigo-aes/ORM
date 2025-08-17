@@ -26,7 +26,14 @@ export type SQLBuilder<T extends EntityTarget | PolymorphicEntityTarget> = (
 
 import type { MySQL2RawData, RawData } from "../MySQL2RawDataHandler"
 
-export type ResultMapOption = 'entity' | 'json' | 'raw'
+export type ResultMapOption = (
+    'entity' |
+    'json' |
+    'raw' |
+    EntityTarget |
+    PolymorphicEntityTarget
+)
+
 
 export type ExecOptions = {
     mapTo?: ResultMapOption
@@ -63,11 +70,23 @@ export type ExecResult<
         : Builder extends FindByPkSQLBuilder<T>
         ? FindOneResult<T, MapTo>
         : Builder extends CreateSQLBuilder<T>
-        ? CreateResult<T>
+        ? CreateResult<(
+            MapTo extends EntityTarget | PolymorphicEntityTarget
+            ? MapTo
+            : T
+        )>
         : Builder extends UpdateSQLBuilder<T>
-        ? UpdateResult<T>
+        ? UpdateResult<(
+            MapTo extends EntityTarget | PolymorphicEntityTarget
+            ? MapTo
+            : T
+        )>
         : Builder extends UpdateOrCreateSQLBuilder<T>
-        ? UpdateOrCreateResult<T>
+        ? UpdateOrCreateResult<(
+            MapTo extends EntityTarget | PolymorphicEntityTarget
+            ? MapTo
+            : T
+        )>
         : Builder extends DeleteSQLBuilder<T>
         ? DeleteResult
         : never
@@ -84,6 +103,8 @@ export type FindOneResult<
         ? RawData<T> | null
         : MapTo extends 'raw'
         ? MySQL2RawData[]
+        : MapTo extends EntityTarget | PolymorphicEntityTarget
+        ? InstanceType<MapTo>
         : InstanceType<T>
     )
 
@@ -97,20 +118,25 @@ export type FindResult<
         ? RawData<T>[]
         : MapTo extends 'raw'
         ? MySQL2RawData[]
+        : MapTo extends EntityTarget | PolymorphicEntityTarget
+        ? Collection<InstanceType<MapTo>>
         : Collection<InstanceType<T>>
     )
 
-export type CreateResult<T extends EntityTarget> = (
-    InstanceType<T> | Collection<InstanceType<T>>
-)
+export type CreateResult<
+    T extends EntityTarget | PolymorphicEntityTarget
+> = InstanceType<T> | Collection<InstanceType<T>>
 
-export type UpdateResult<T extends EntityTarget | PolymorphicEntityTarget> = (
-    InstanceType<T> | ResultSetHeader
-)
 
-export type UpdateOrCreateResult<T extends EntityTarget> = (
-    InstanceType<T>
-)
+export type UpdateResult<
+    T extends EntityTarget | PolymorphicEntityTarget
+> = InstanceType<T> | ResultSetHeader
+
+
+export type UpdateOrCreateResult<
+    T extends EntityTarget | PolymorphicEntityTarget
+> = InstanceType<T>
+
 
 export type DeleteResult = {
     affectedRows: number,

@@ -147,9 +147,10 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private mergeAttributes(): UpdateOrCreateAttibutes<InstanceType<T>> {
-        const setted = Object.fromEntries(this._properties.map(
-            (key, index) => [key, this._values[index]]
-        ))
+        const setted = Object.fromEntries(
+            this._properties
+                .filter(key => this.metadata.columns.findColumn(key as string))
+                .map((key, index) => [key, this._values[index]]))
 
         this.attributes = {
             ...this.attributes,

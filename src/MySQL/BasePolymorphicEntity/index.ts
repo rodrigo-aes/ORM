@@ -35,7 +35,9 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public getMetadata(): PolymorphicEntityMetadata {
-        return PolymorphicEntityMetadata.find(this.constructor as PolymorphicEntityTarget)!
+        return PolymorphicEntityMetadata.find(
+            this.constructor as PolymorphicEntityTarget
+        )!
     }
 
     // ------------------------------------------------------------------------

@@ -5,13 +5,33 @@ import type { ResultSetHeader } from "mysql2"
 import type { UpdateAttributes } from "../QueryBuilder"
 
 export type UpdateQueryResult<
-    T extends EntityTarget | PolymorphicEntityTarget,
-    Data extends (
-        ((BaseEntity | BasePolymorphicEntity<any>) & InstanceType<T>) |
-        UpdateAttributes<InstanceType<T>>
-    )
+    T extends PolymorphicEntityTarget,
+    Source extends EntityTarget,
+    Data extends InstanceType<T> | UpdateAttributes<Source>
 > = (
-        Data extends (BaseEntity & InstanceType<T>)
-        ? InstanceType<T>
-        : ResultSetHeader
+        Data extends InstanceType<T>
+        ? Data
+        : Data extends UpdateAttributes<Source>
+        ? ResultSetHeader
+        : never
     )
+
+
+
+export type CreateQueryResult<
+    T extends PolymorphicEntityTarget,
+    Source extends EntityTarget,
+    MapTo extends 'this' | 'source'
+> = (
+        MapTo extends 'this'
+        ? InstanceType<T>
+        : MapTo extends 'source'
+        ? InstanceType<Source>
+        : never
+    )
+
+export type UpdateOrCreateQueryResult<
+    T extends PolymorphicEntityTarget,
+    Source extends EntityTarget,
+    MapTo extends 'this' | 'source'
+> = CreateQueryResult<T, Source, MapTo>

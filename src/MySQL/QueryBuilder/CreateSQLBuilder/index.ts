@@ -200,9 +200,9 @@ export default class CreateSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private propertyNames(
-        attributes?: CreationAttributes<InstanceType<T>>
-    ): CreationAttibutesKey<InstanceType<T>>[] {
+    private propertyNames(attributes?: CreationAttributes<InstanceType<T>>): (
+        CreationAttibutesKey<InstanceType<T>>[]
+    ) {
         return Object.keys(attributes ?? this.attributes ?? {})
             .filter(key => this.metadata.columns.findColumn(key)) as (
                 CreationAttibutesKey<InstanceType<T>>[]

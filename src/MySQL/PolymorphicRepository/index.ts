@@ -1,12 +1,13 @@
-import BaseEntity from "../BaseEntity"
-import BasePolymorphicEntity from "../BasePolymorphicEntity"
+import { MetadataHandler, type PolymorphicEntityMetadata } from "../Metadata"
 
 // SQL Builders
 import {
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
     FindSQLBuilder,
+    CreateSQLBuilder,
     UpdateSQLBuilder,
+    UpdateOrCreateSQLBuilder,
     DeleteSQLBuilder,
 
     type FindOneQueryOptions,
@@ -26,16 +27,21 @@ import {
 } from "../Handlers"
 
 // Types 
-import type { PolymorphicEntityTarget } from "../../types/General"
-import type { UpdateQueryResult } from "./types"
-import type { ResultSetHeader } from "mysql2"
+import type {
+    PolymorphicEntityTarget,
+    EntityTarget,
+} from "../../types/General"
+
+import type {
+    CreateQueryResult,
+    UpdateQueryResult,
+    UpdateOrCreateQueryResult
+} from "./types"
 
 export default class PolymorphicRespository<
     T extends PolymorphicEntityTarget
 > {
-    constructor(
-        public target: T
-    ) { }
+    constructor(public target: T) { }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
@@ -81,31 +87,70 @@ export default class PolymorphicRespository<
 
     // ------------------------------------------------------------------------
 
-    public async update<Data extends (
-        (BasePolymorphicEntity<any> & InstanceType<T>) |
-        UpdateAttributes<InstanceType<T>>
-    )>(
+    public create<
+        Source extends EntityTarget,
+        MapTo extends 'this' | 'source' = 'this'
+    >(
+        source: Source,
+        attributes: (
+            CreationAttributes<InstanceType<Source>> |
+            InstanceType<T>
+        ),
+        mapTo?: MapTo
+    ): Promise<CreateQueryResult<T, Source, MapTo>> {
+        return new MySQL2QueryExecutionHandler(
+            source,
+            new CreateSQLBuilder(source, attributes as any) as any,
+            (mapTo ?? 'this') === 'this'
+                ? this.target
+                : 'entity'
+        )
+            .exec() as Promise<CreateQueryResult<T, Source, MapTo>>
+    }
+
+    // ------------------------------------------------------------------------
+
+    public update<
+        Source extends EntityTarget,
+        Data extends InstanceType<T> | UpdateAttributes<Source>
+    >(
+        source: Source,
         attributes: Data,
-        where: ConditionalQueryOptions<InstanceType<T>>
-    ): Promise<UpdateQueryResult<T, Data>> {
-        const header: ResultSetHeader = await new MySQL2QueryExecutionHandler(
-            this.target,
+        where?: ConditionalQueryOptions<InstanceType<Source>>
+    ): Promise<UpdateQueryResult<T, Source, Data>> {
+        return new MySQL2QueryExecutionHandler(
+            source,
             new UpdateSQLBuilder(
-                this.target,
-                attributes,
-                where
+                source,
+                attributes as UpdateAttributes<InstanceType<Source>>,
+                where as ConditionalQueryOptions<InstanceType<Source>>
             ),
             'raw'
         )
-            .exec() as any
+            .exec() as Promise<UpdateQueryResult<T, Source, Data>>
+    }
 
-        return (
-            attributes instanceof BaseEntity
-                ? attributes
-                : header
-        ) as (
-                UpdateQueryResult<T, Data>
-            )
+    // ------------------------------------------------------------------------
+
+    public updateOrCreate<
+        Source extends EntityTarget,
+        MapTo extends 'this' | 'source' = 'this'
+    >(
+        source: Source,
+        attributes: UpdateOrCreateAttibutes<InstanceType<Source>>,
+        mapTo?: MapTo
+    ): Promise<UpdateOrCreateQueryResult<T, Source, MapTo>> {
+        return new MySQL2QueryExecutionHandler(
+            source,
+            new UpdateOrCreateSQLBuilder<any>(
+                source,
+                attributes
+            ),
+            (mapTo ?? 'this') === 'this'
+                ? this.target
+                : 'entity'
+        )
+            .exec() as Promise<UpdateOrCreateQueryResult<T, Source, MapTo>>
     }
 
     // ------------------------------------------------------------------------

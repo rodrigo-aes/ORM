@@ -23,7 +23,7 @@ import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 // Types
 import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
-import type { UpdateAttributes, UpdateAttibutesKey } from "./types"
+import type { UpdateAttributes, UpdateAtt5ributesKey, AttributesNames } from "./types"
 
 export default class UpdateSQLBuilder<
     T extends EntityTarget | PolymorphicEntityTarget
@@ -31,6 +31,9 @@ export default class UpdateSQLBuilder<
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
+
+    private _propertiesNames?: AttributesNames<InstanceType<T>>
+    private _values?: any[]
 
     constructor(
         public target: T,
@@ -56,6 +59,18 @@ export default class UpdateSQLBuilder<
         if (this.attributes instanceof BasePolymorphicEntity) this.attributes = (
             this.attributes.toSourceEntity()
         )
+    }
+
+    // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get columnsNames(): UpdateAtt5ributesKey<InstanceType<T>>[] {
+        return [...(this._propertiesNames ?? this.getFields())]
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get columnsValues(): any[] {
+        return this._values ?? this.getValues()
     }
 
     // Instance Methods =======================================================
@@ -122,6 +137,38 @@ export default class UpdateSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    private getFields(): AttributesNames<InstanceType<T>> {
+        this._propertiesNames = new Set([...this.propertyNames()]) as (
+            AttributesNames<InstanceType<T>>
+        )
+
+        return this._propertiesNames
+    }
+
+    // ------------------------------------------------------------------------
+
+    private propertyNames(attributes?: UpdateAtt5ributesKey<InstanceType<T>>): (
+        UpdateAtt5ributesKey<InstanceType<T>>[]
+    ) {
+        return Object.keys(attributes ?? this.attributes ?? {})
+            .filter(key => this.metadata.columns.findColumn(key)) as (
+                UpdateAtt5ributesKey<InstanceType<T>>[]
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private getValues(): any[] {
+        return this.columnsNames.map(
+            column => (
+                this.attributes as UpdateAttributes<InstanceType<T>>
+            )[column]
+                ?? null
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     private setValuesSQL(): string {
         return Object.entries(this.onlyChangedAttributes()).map(
             ([column, value]) => (
@@ -148,11 +195,23 @@ export default class UpdateSQLBuilder<
             this.attributes instanceof BasePolymorphicEntity
         )
             ? ColumnsSnapshots.changed(this.attributes)
-            : this.attributes
+            : this.validAttributes()
+    }
+
+    // ------------------------------------------------------------------------
+
+    private validAttributes(): UpdateAttributes<InstanceType<T>> {
+        return Object.fromEntries(Object.entries(this.attributes).flatMap(
+            ([key, value]) => this.columnsNames.includes(
+                key as UpdateAtt5ributesKey<InstanceType<T>>
+            )
+                ? [[key, value]]
+                : []
+        )) as UpdateAttributes<InstanceType<T>>
     }
 }
 
 export {
     type UpdateAttributes,
-    type UpdateAttibutesKey
+    type UpdateAtt5ributesKey as UpdateAttibutesKey
 }

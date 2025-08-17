@@ -27,6 +27,7 @@ import type {
     CreationAttributesOptions
 } from "../../../QueryBuilder"
 
+import type { MySQL2RawData } from "../../MySQL2RawDataHandler"
 import type { DeleteResult } from "../types"
 
 export default class RelationQueryExecutionHandler<
@@ -41,10 +42,9 @@ export default class RelationQueryExecutionHandler<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public async executeFindOne(sql: string): Promise<InstanceType<T> | null> {
-        return this.rawDataHandler('One')
-            .parseEntity(await this.getConnection().query(sql)) as (
-                InstanceType<T> | null
-            )
+        return this
+            .rawDataHandler('One', await this.getConnection().query(sql))
+            .parseEntity() as InstanceType<T> | null
     }
 
     // ------------------------------------------------------------------------
@@ -52,12 +52,9 @@ export default class RelationQueryExecutionHandler<
     public async executeFind(sql: string): (
         Promise<Collection<InstanceType<T>>>
     ) {
-        return this.rawDataHandler('Many')
-            .parseEntity(await this.getConnection().query(sql)) as (
-                InstanceType<T> | null
-            ) as (
-                Collection<InstanceType<T>>
-            )
+        return this
+            .rawDataHandler('Many', await this.getConnection().query(sql))
+            .parseEntity() as Collection<InstanceType<T>>
     }
 
     // ------------------------------------------------------------------------
@@ -101,13 +98,11 @@ export default class RelationQueryExecutionHandler<
     public async executeUpdateOrCreate(
         sql: string,
     ): Promise<InstanceType<T>> {
-        const [mySQL2RawData] = await this.getConnection()
-            .query(sql)
+        const [mySQL2RawData] = await this.getConnection().query(sql)
 
-        return this.rawDataHandler('One')
-            .parseEntity(mySQL2RawData) as (
-                InstanceType<T>
-            )
+        return this
+            .rawDataHandler('One', mySQL2RawData)
+            .parseEntity(mySQL2RawData) as InstanceType<T>
     }
 
     // ------------------------------------------------------------------------
@@ -142,12 +137,16 @@ export default class RelationQueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    private rawDataHandler(fillMethod: DataFillMethod): (
-        MySQL2RawDataHandler<T>
-    ) {
+    private rawDataHandler(
+        fillMethod: DataFillMethod,
+        rawData: MySQL2RawData
+    ): (
+            MySQL2RawDataHandler<T>
+        ) {
         return new MySQL2RawDataHandler(
             this.target,
-            fillMethod
+            fillMethod,
+            rawData
         )
     }
 

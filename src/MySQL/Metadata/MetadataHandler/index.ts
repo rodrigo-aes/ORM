@@ -41,9 +41,11 @@ export default class MetadataHandler {
 
     // ------------------------------------------------------------------------
 
-    public static loadMetadata(target: EntityTarget | PolymorphicEntityTarget): (
-        EntityMetadata | PolymorphicEntityMetadata
-    ) {
+    public static loadMetadata(
+        target: EntityTarget | PolymorphicEntityTarget
+    ): (
+            EntityMetadata | PolymorphicEntityMetadata
+        ) {
         switch (true) {
             case (target as any).prototype instanceof BaseEntity: return (
                 EntityMetadata.find(target as EntityTarget)
