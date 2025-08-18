@@ -17,19 +17,28 @@ import {
 import { MetadataHandler, TempMetadata } from "../Metadata"
 
 // Query Builder
-import { QueryBuilder } from "../QueryBuilder"
-
-// Components
-import { Collection, ColumnsSnapshots } from "./Components"
-
-// Repository
-import Repository, {
+import {
+    QueryBuilder,
     type FindQueryOptions,
     type FindOneQueryOptions,
+    type PaginationQueryOptions,
     type CreationAttributes,
     type UpdateAttributes,
     type UpdateOrCreateAttibutes,
     type ConditionalQueryOptions,
+} from "../QueryBuilder"
+
+// Components
+import {
+    Collection,
+    Pagination,
+    ColumnsSnapshots,
+
+    type PaginationInitMap
+} from "./Components"
+
+// Repository
+import Repository, {
     type ResultMapOption,
     type DeleteResult
 } from "../Repository"
@@ -49,7 +58,13 @@ import {
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget,
+    LocalOrInternalPolymorphicEntityTarget,
+    Constructor
+} from "../../types/General"
+
 import type { EntityProperties } from "../QueryBuilder"
 
 export default abstract class BaseEntity {
@@ -72,6 +87,14 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    public getRepository<
+        T extends Repository<Constructor<this>> = Repository<Constructor<this>>
+    >(): T {
+        return this.getMetadata().getRepository() as T
+    }
+
+    // ------------------------------------------------------------------------
+
     public toJSON<T extends BaseEntity>(this: T): EntityProperties<T> {
         const json = Object.fromEntries([...this.getMetadata().columns].map(
             ({ name }) => [name, this[name as keyof typeof this]]
@@ -79,9 +102,7 @@ export default abstract class BaseEntity {
                 EntityProperties<T>
             )
 
-        this.hide(json)
-
-        return json
+        return this.hide(json)
     }
 
     // ------------------------------------------------------------------------
@@ -107,12 +128,16 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
-    public async save<T extends BaseEntity>(this: T): Promise<T> {
-        Object.assign(
-            this,
-            await new Repository(this.constructor as EntityTarget)
-                .updateOrCreate(this)
-        )
+    public async save(): Promise<this> {
+        this.fill(await this.getRepository().updateOrCreate(this, 'json'))
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async update(attributes: UpdateAttributes<this>): Promise<this> {
+        this.fill(attributes)
+        await this.getRepository().update(this, this)
 
         return this
     }
@@ -120,12 +145,7 @@ export default abstract class BaseEntity {
     // ------------------------------------------------------------------------
 
     public async delete<T extends BaseEntity>(this: T): Promise<void> {
-        const primaryName = this.getMetadata().columns.primary.name as (
-            keyof T
-        )
-
-        await new Repository(this.constructor as EntityTarget)
-            .delete({ [primaryName]: this[primaryName] })
+        await this.getRepository().delete(this)
     }
 
     // Protecteds -------------------------------------------------------------
@@ -137,9 +157,7 @@ export default abstract class BaseEntity {
         name: string,
         related: Related
     ): HasOne<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof HasOneMetadata)) throw new Error
 
         return new HasOne(metadata, this, related)
@@ -155,9 +173,7 @@ export default abstract class BaseEntity {
         name: string,
         related: Related
     ): HasMany<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof HasManyMetadata)) throw new Error
 
         return new HasMany(metadata, this, related)
@@ -173,9 +189,7 @@ export default abstract class BaseEntity {
         name: string,
         related: Related
     ): BelongsTo<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof BelongsToMetadata)) throw new Error
 
         return new BelongsTo(metadata, this, related)
@@ -191,9 +205,7 @@ export default abstract class BaseEntity {
         name: string,
         related: Related
     ): HasOneThrough<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof HasOneThroughMetadata)) throw new Error
 
         return new HasOneThrough(metadata, this, related)
@@ -209,9 +221,7 @@ export default abstract class BaseEntity {
         name: string,
         related: Related
     ): HasManyThrough<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof HasManyThroughMetadata)) throw new Error
 
         return new HasManyThrough(metadata, this, related)
@@ -227,9 +237,7 @@ export default abstract class BaseEntity {
         name: string,
         related: Related
     ): BelongsToMany<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof BelongsToManyMetadata)) throw new Error
 
         return new BelongsToMany(metadata, this, related)
@@ -245,9 +253,7 @@ export default abstract class BaseEntity {
         name: string,
         related: Related
     ): PolymorphicHasOne<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof PolymorphicHasOneMetadata)) throw new Error
 
         return new PolymorphicHasOne(metadata, this, related)
@@ -263,9 +269,7 @@ export default abstract class BaseEntity {
         name: string,
         related: Related
     ): PolymorphicHasMany<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof PolymorphicHasManyMetadata)) throw new Error
 
         return new PolymorphicHasMany(metadata, this, related)
@@ -275,27 +279,37 @@ export default abstract class BaseEntity {
 
     protected polymorphicBelongsTo<
         T extends BaseEntity,
-        Related extends PolymorphicEntityTarget
+        Related extends PolymorphicEntityTarget | EntityTarget[]
     >(
         this: T,
         name: string,
         related: Related
-    ): PolymorphicBelongsTo<T, Related> {
-        const metadata = this.getRelationMetadataByName(name)
-
-        if (!metadata) throw new Error
+    ): PolymorphicBelongsTo<T, LocalOrInternalPolymorphicEntityTarget<Related>> {
+        const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw new Error
 
-        return new PolymorphicBelongsTo(metadata, this, related)
+        return new PolymorphicBelongsTo(
+            metadata,
+            this,
+            (
+                Array.isArray(related)
+                    ? metadata.relatedTarget
+                    : related
+            ) as LocalOrInternalPolymorphicEntityTarget<Related>
+        )
     }
 
     // Privates ---------------------------------------------------------------
-    private getRelationMetadataByName(name: string): (
-        RelationMetadataType | undefined
+    private getRelationMetadata(name: string): (
+        RelationMetadataType
     ) {
-        return this.getMetadata().relations?.find(
+        const meta = this.getMetadata().relations?.find(
             rel => rel.name === name
         )
+
+        if (meta) return meta
+
+        throw new Error
     }
 
     // Static Methods =========================================================
@@ -318,31 +332,23 @@ export default abstract class BaseEntity {
 
     public static getRepository<
         T extends Repository<Target> = Repository<typeof this>,
-        Target extends (EntityTarget & BaseEntity) = any
+        Target extends (EntityTarget & typeof BaseEntity) = any
     >(this: Target): T {
-        return this.getMetadata().repository as T
+        return this.getMetadata().getRepository() as T
     }
 
     // ------------------------------------------------------------------------
 
     public static scope<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         name: string,
         ...args: any[]
     ): T {
-        const scope = (this as T & BaseEntity)
-            .getMetadata()
-            .scopes?.getScopeOptions(name, ...args)
-
+        const scope = this.getMetadata().scopes?.getScope(name, ...args)
         if (!scope) throw new Error
 
-        const scoped = class extends (this as new (...args: any[]) => any) { }
-        Object.assign(scoped, this)
-
-        TempMetadata
-            .reply(scoped as EntityTarget, this)
-            .setMetadata(scoped as EntityTarget, (this as any).getMetadata())
-            .setScope(scoped as EntityTarget, scope)
+        const scoped = this.reply()
+        TempMetadata.reply(scoped, this).setScope(scoped, scope)
 
         return scoped as T
     }
@@ -350,23 +356,17 @@ export default abstract class BaseEntity {
     // ------------------------------------------------------------------------
 
     public static collection<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         collection: string | typeof Collection
     ): T {
         const coll: typeof Collection = typeof collection === 'object'
             ? collection
-            : (this as T & BaseEntity).getMetadata()
-                .collections?.search(collection as string)
+            : this.getMetadata().collections?.search(collection as string)
 
         if (!coll) throw new Error
 
-        const scoped = class extends (this as new (...args: any[]) => any) { }
-        Object.assign(scoped, this)
-
-        TempMetadata
-            .reply(scoped as EntityTarget, this)
-            .setMetadata(scoped as EntityTarget, (this as any).getMetadata())
-            .setCollection(scoped as EntityTarget, coll)
+        const scoped = this.reply()
+        TempMetadata.reply(scoped, this).setCollection(scoped, coll)
 
         return scoped as T
     }
@@ -377,66 +377,74 @@ export default abstract class BaseEntity {
         this: T,
         attributes: CreationAttributes<InstanceType<T>>
     ): InstanceType<T> {
-        const entity = new this().fill(attributes as any)
-        return entity as InstanceType<T>
+        return new this(attributes) as InstanceType<T>
     }
 
     // ------------------------------------------------------------------------
 
     public static findByPk<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         pk: any,
         mapTo: ResultMapOption = 'entity'
     ) {
-        return new Repository(this).findByPk(pk, mapTo)
+        return this.getRepository().findByPk(pk, mapTo)
     }
 
     // ------------------------------------------------------------------------
 
     public static find<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         options: FindQueryOptions<InstanceType<T>>,
         mapTo: ResultMapOption = 'entity'
     ) {
-        return new Repository(this).find(options, mapTo)
+        return this.getRepository().find(options, mapTo)
     }
 
     // ------------------------------------------------------------------------
 
     public static findOne<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         options: FindOneQueryOptions<InstanceType<T>>,
         mapTo: ResultMapOption = 'entity'
     ) {
-        return new Repository(this).findOne(options, mapTo)
+        return this.getRepository().findOne(options, mapTo)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static paginate<T extends EntityTarget>(
+        this: T & typeof BaseEntity,
+        options: PaginationQueryOptions<InstanceType<T>>
+    ) {
+        this.getRepository().paginate(options)
     }
 
     // ------------------------------------------------------------------------
 
     public static create<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         attributes: CreationAttributes<InstanceType<T>>
     ): Promise<InstanceType<T>> {
-        return new Repository(this).create(attributes)
+        return this.getRepository().create(attributes)
     }
 
     // ------------------------------------------------------------------------
 
     public static createMany<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         attributes: CreationAttributes<InstanceType<T>>[]
     ): Promise<InstanceType<T>[]> {
-        return new Repository(this).createMany(attributes)
+        return this.getRepository().createMany(attributes)
     }
 
     // ------------------------------------------------------------------------
 
     public static update<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         attributes: UpdateAttributes<InstanceType<T>>,
         where: ConditionalQueryOptions<InstanceType<T>>
     ): Promise<ResultSetHeader> {
-        return new Repository(this).update(attributes, where) as (
+        return this.getRepository().update(attributes, where) as (
             Promise<ResultSetHeader>
         )
     }
@@ -444,23 +452,36 @@ export default abstract class BaseEntity {
     // ------------------------------------------------------------------------
 
     public static updateOrCreate<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         attributes: UpdateOrCreateAttibutes<InstanceType<T>>,
     ): Promise<InstanceType<T>> {
-        return new Repository(this).updateOrCreate(attributes)
+        return this.getRepository().updateOrCreate(attributes as (
+            UpdateOrCreateAttibutes<InstanceType<T & typeof BaseEntity>>
+        ))
     }
 
     // ------------------------------------------------------------------------
 
     public static delete<T extends EntityTarget>(
-        this: T,
+        this: T & typeof BaseEntity,
         where: ConditionalQueryOptions<InstanceType<T>>
     ): Promise<DeleteResult> {
-        return new Repository(this).delete(where)
+        return this.getRepository().delete(where)
+    }
+
+    // Privates --------------------------------------------------------------
+    private static reply<T extends EntityTarget>(this: T): T {
+        const replic = class extends (this as new (...args: any[]) => any) { }
+        Object.assign(replic, this)
+
+        return replic as T
     }
 }
 
 export {
     ColumnsSnapshots,
-    Collection
+    Collection,
+    Pagination,
+
+    type PaginationInitMap
 }

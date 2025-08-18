@@ -44,11 +44,33 @@ export default class DeleteSQLBuilder<
         )
     }
 
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    protected get targetMetadata(): EntityMetadata {
+        return this.metadata instanceof PolymorphicEntityMetadata
+            ? this.metadata.sourcesMetadata[
+            (this.where as BasePolymorphicEntity<any>).entityType
+            ]
+            : this.metadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get tableName(): string {
+        return this.targetMetadata.tableName
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get primary(): string {
+        return this.targetMetadata.columns.primary.name
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            DELETE ${this.alias} FROM ${this.handleTableName()} ${this.alias}
+            DELETE ${this.alias} FROM ${this.tableName} ${this.alias}
             ${this.joinsSQL()}
             ${this.whereSQL()}
         `)
@@ -97,19 +119,6 @@ export default class DeleteSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private handleTableName(): string {
-        if (this.metadata instanceof PolymorphicEntityMetadata) return (
-            this.metadata.sourcesMetadata[
-                (this.where as BaseEntity).constructor.name
-            ]
-                .tableName
-        )
-
-        else return this.metadata.tableName
-    }
-
-    // ------------------------------------------------------------------------
-
     private isConditional(): boolean {
         return (
             !(this.where instanceof BaseEntity) &&
@@ -130,12 +139,11 @@ export default class DeleteSQLBuilder<
             )
 
             return {
-                [primaryName]: (this.where as BaseEntity)[
-                    primaryName as keyof BaseEntity
+                [primaryName]: (this.where as BasePolymorphicEntity<any>)[
+                    this.primary as keyof BasePolymorphicEntity<any>
                 ]
-            } as (
-                    ConditionalQueryOptions<InstanceType<T>>
-                )
+            } as ConditionalQueryOptions<InstanceType<T>>
+
         }
     }
 }

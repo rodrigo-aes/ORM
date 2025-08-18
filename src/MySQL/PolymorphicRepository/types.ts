@@ -7,11 +7,11 @@ import type { UpdateAttributes } from "../QueryBuilder"
 export type UpdateQueryResult<
     T extends PolymorphicEntityTarget,
     Source extends EntityTarget,
-    Data extends InstanceType<T> | UpdateAttributes<Source>
+    Data extends InstanceType<T> | UpdateAttributes<InstanceType<Source>>
 > = (
         Data extends InstanceType<T>
         ? Data
-        : Data extends UpdateAttributes<Source>
+        : Data extends UpdateAttributes<InstanceType<Source>>
         ? ResultSetHeader
         : never
     )

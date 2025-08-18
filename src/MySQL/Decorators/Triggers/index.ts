@@ -9,8 +9,6 @@ export default function Triggers<
     Triggers extends Constructor<Trigger<InstanceType<T>>>[]
 >(...triggers: Triggers) {
     return function (target: T) {
-        console.log(TriggersMetadata.findOrBuild(target))
-
         TriggersMetadata.findOrBuild(target).addTriggers(...triggers)
     }
 }

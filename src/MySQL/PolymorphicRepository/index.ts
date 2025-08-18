@@ -1,10 +1,12 @@
 import { MetadataHandler, type PolymorphicEntityMetadata } from "../Metadata"
+import BasePolymorphicEntity from "../BasePolymorphicEntity"
 
 // SQL Builders
 import {
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
     FindSQLBuilder,
+    PaginationSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
@@ -12,6 +14,7 @@ import {
 
     type FindOneQueryOptions,
     type FindQueryOptions,
+    type PaginationQueryOptions,
     type CreationAttributes,
     type UpdateAttributes,
     type UpdateOrCreateAttibutes,
@@ -38,10 +41,18 @@ import type {
     UpdateOrCreateQueryResult
 } from "./types"
 
-export default class PolymorphicRespository<
+import type { Pagination } from "../BaseEntity"
+
+export default class PolymorphicRepository<
     T extends PolymorphicEntityTarget
 > {
-    constructor(public target: T) { }
+    protected metadata: PolymorphicEntityMetadata
+
+    constructor(public target: T) {
+        this.metadata = MetadataHandler.loadMetadata(this.target) as (
+            PolymorphicEntityMetadata
+        )
+    }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
@@ -87,6 +98,19 @@ export default class PolymorphicRespository<
 
     // ------------------------------------------------------------------------
 
+    public paginate(options: PaginationQueryOptions<InstanceType<T>>): (
+        Promise<Pagination<InstanceType<T>>>
+    ) {
+        return new MySQL2QueryExecutionHandler(
+            this.target,
+            new PaginationSQLBuilder(this.target, options),
+            'entity'
+        )
+            .exec() as Promise<Pagination<InstanceType<T>>>
+    }
+
+    // ------------------------------------------------------------------------
+
     public create<
         Source extends EntityTarget,
         MapTo extends 'this' | 'source' = 'this'
@@ -98,6 +122,8 @@ export default class PolymorphicRespository<
         ),
         mapTo?: MapTo
     ): Promise<CreateQueryResult<T, Source, MapTo>> {
+        this.verifySource(source)
+
         return new MySQL2QueryExecutionHandler(
             source,
             new CreateSQLBuilder(source, attributes as any) as any,
@@ -110,19 +136,45 @@ export default class PolymorphicRespository<
 
     // ------------------------------------------------------------------------
 
+    public createMany<
+        Source extends EntityTarget,
+        MapTo extends 'this' | 'source' = 'this'
+    >(
+        source: Source,
+        attributes: CreationAttributes<InstanceType<Source>>[],
+        mapTo?: MapTo
+    ): Promise<CreateQueryResult<T, Source, MapTo>[]> {
+        this.verifySource(source)
+
+        return new MySQL2QueryExecutionHandler(
+            source,
+            new CreateSQLBuilder(source, attributes as any) as any,
+            (mapTo ?? 'this') === 'this'
+                ? this.target
+                : 'entity'
+        )
+            .exec() as Promise<CreateQueryResult<T, Source, MapTo>[]>
+    }
+
+    // ------------------------------------------------------------------------
+
     public update<
         Source extends EntityTarget,
-        Data extends InstanceType<T> | UpdateAttributes<Source>
+        Data extends InstanceType<T> | UpdateAttributes<InstanceType<Source>>
     >(
         source: Source,
         attributes: Data,
         where?: ConditionalQueryOptions<InstanceType<Source>>
     ): Promise<UpdateQueryResult<T, Source, Data>> {
+        this.verifySource(source)
+
         return new MySQL2QueryExecutionHandler(
             source,
             new UpdateSQLBuilder(
                 source,
-                attributes as UpdateAttributes<InstanceType<Source>>,
+                attributes instanceof BasePolymorphicEntity
+                    ? attributes.toSourceEntity()
+                    : attributes,
                 where as ConditionalQueryOptions<InstanceType<Source>>
             ),
             'raw'
@@ -140,12 +192,11 @@ export default class PolymorphicRespository<
         attributes: UpdateOrCreateAttibutes<InstanceType<Source>>,
         mapTo?: MapTo
     ): Promise<UpdateOrCreateQueryResult<T, Source, MapTo>> {
+        this.verifySource(source)
+
         return new MySQL2QueryExecutionHandler(
             source,
-            new UpdateOrCreateSQLBuilder<any>(
-                source,
-                attributes
-            ),
+            new UpdateOrCreateSQLBuilder<any>(source, attributes),
             (mapTo ?? 'this') === 'this'
                 ? this.target
                 : 'entity'
@@ -155,17 +206,25 @@ export default class PolymorphicRespository<
 
     // ------------------------------------------------------------------------
 
-    public delete(where: ConditionalQueryOptions<InstanceType<T>>): (
-        Promise<DeleteResult>
-    ) {
+    public delete<Source extends EntityTarget>(
+        source: Source,
+        where: ConditionalQueryOptions<InstanceType<Source>>
+    ): Promise<DeleteResult> {
+        this.verifySource(source)
+
         return new MySQL2QueryExecutionHandler(
-            this.target,
-            new DeleteSQLBuilder(this.target, where),
+            source,
+            new DeleteSQLBuilder(source, where),
             'raw'
         )
             .exec() as (
                 Promise<DeleteResult>
             )
+    }
+
+    // Privates ---------------------------------------------------------------
+    private verifySource(source: EntityTarget): void {
+        if (!this.metadata.entities[source.name]) throw new Error
     }
 }
 

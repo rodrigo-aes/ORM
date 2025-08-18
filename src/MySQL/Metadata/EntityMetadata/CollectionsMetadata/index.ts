@@ -33,12 +33,12 @@ export default class CollectionsMetadata<
 
     // ------------------------------------------------------------------------
 
-    public addCollections(...collections: (typeof Collection)[]): void {
+    public add(...collections: (typeof Collection)[]): void {
         this.push(...collections as CollectionType[])
     }
 
-    // Privates ---------------------------------------------------------------
-    private register() {
+    // Protecteds -------------------------------------------------------------
+    protected register() {
         Reflect.defineMetadata('collections', this, this.target)
     }
 

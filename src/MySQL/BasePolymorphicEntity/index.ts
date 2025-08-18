@@ -1,6 +1,40 @@
-import { PolymorphicEntityMetadata } from "../Metadata"
+import {
+    MetadataHandler,
+    TempMetadata,
+
+    HasOneMetadata,
+    HasManyMetadata,
+    BelongsToMetadata,
+    HasOneThroughMetadata,
+    HasManyThroughMetadata,
+    BelongsToManyMetadata,
+    PolymorphicHasOneMetadata,
+    PolymorphicHasManyMetadata,
+    PolymorphicBelongsToMetadata,
+
+    type PolymorphicEntityMetadata,
+    type EntityMetadata,
+    type RelationMetadataType
+} from "../Metadata"
+
 import { InternalPolymorphicEntities } from "./Components"
-import { ColumnsSnapshots } from "../BaseEntity"
+import { ColumnsSnapshots, Collection } from "../BaseEntity"
+
+// Repository
+import PolymorphicRepository from "../PolymorphicRepository"
+
+// Relations
+import {
+    HasOne,
+    HasMany,
+    BelongsTo,
+    HasOneThrough,
+    HasManyThrough,
+    BelongsToMany,
+    PolymorphicHasOne,
+    PolymorphicHasMany,
+    PolymorphicBelongsTo
+} from '../Relations'
 
 // Decorators
 import {
@@ -9,13 +43,31 @@ import {
 } from "../Decorators"
 
 // Handlers
-import { EntityBuilder } from "../Handlers"
+import { PolymorphicEntityBuilder } from "../Handlers"
 
 // Types
-import type { PolymorphicEntityTarget } from "../../types/General"
+import type {
+    PolymorphicEntityTarget,
+    EntityTarget,
+    LocalOrInternalPolymorphicEntityTarget,
+    Constructor
+} from "../../types/General"
+import type BaseEntity from "../BaseEntity"
 import type { SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
-import type { EntityProperties } from "../QueryBuilder"
+import type {
+    EntityProperties,
+    FindQueryOptions,
+    FindOneQueryOptions,
+    PaginationQueryOptions,
+    CreationAttributes,
+    UpdateAttributes,
+    UpdateOrCreateAttibutes,
+    ConditionalQueryOptions,
+} from "../QueryBuilder"
+
+import { ResultSetHeader } from "mysql2"
+import { ResultMapOption, DeleteResult } from "../Handlers"
 
 export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     protected hidden: string[] = []
@@ -35,9 +87,27 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public getMetadata(): PolymorphicEntityMetadata {
-        return PolymorphicEntityMetadata.find(
+        return MetadataHandler.loadMetadata(
             this.constructor as PolymorphicEntityTarget
-        )!
+        ) as PolymorphicEntityMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public getSourceMetadata(): EntityMetadata {
+        return MetadataHandler.loadMetadata(
+            this.entities[this.entityType]
+        ) as EntityMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public getRepository<
+        T extends PolymorphicRepository<Constructor<this>> = (
+            PolymorphicRepository<Constructor<this>>
+        )
+    >(): T {
+        return this.getMetadata().getRepository() as T
     }
 
     // ------------------------------------------------------------------------
@@ -77,15 +147,217 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     // ------------------------------------------------------------------------
 
-
-    public toSourceEntity(): SourceEntity<Targets> {
-        return new EntityBuilder(
+    public toSourceEntity<T extends object | undefined = undefined>() {
+        return PolymorphicEntityBuilder.buildSourceEntity(
             this.entities[this.entityType],
             this
-        )
-            .build() as (
-                SourceEntity<Targets>
+        ) as (
+                T extends object
+                ? T
+                : T extends undefined
+                ? SourceEntity<Targets>
+                : never
             )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async save<T extends BasePolymorphicEntity<any>>(
+        this: T,
+        source?: Constructor<Targets[number]>
+    ): Promise<T> {
+        if (!this.entityType && !source) throw new Error
+
+        this.fill(
+            await this.getRepository().updateOrCreate(
+                (
+                    this.entityType
+                        ? this.entities[this.entityType]
+                        : source
+                ) as EntityTarget,
+                this,
+            ) as any
+        )
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async update(attributes: UpdateAttributes<this>): Promise<this> {
+        this.fill(attributes)
+
+        await this.getRepository().update(
+            this.entities[this.entityType],
+            this,
+            this
+        )
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async delete<T extends BasePolymorphicEntity<any>>(this: T): (
+        Promise<void>
+    ) {
+        await this.getRepository().delete(this.entities[this.entityType], this)
+    }
+
+    // Protecteds -------------------------------------------------------------
+    protected hasOne<Related extends EntityTarget>(
+        name: string,
+        related: Related
+    ): HasOne<this, Related> {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof HasOneMetadata)) throw new Error
+
+        return new HasOne(metadata, target, related) as HasOne<this, Related>
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected hasMany<Related extends EntityTarget>(
+        name: string,
+        related: Related
+    ): HasMany<this, Related> {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof HasManyMetadata)) throw new Error
+
+        return new HasMany(metadata, target, related) as HasMany<this, Related>
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected belongsTo<Related extends EntityTarget>(
+        name: string,
+        related: Related
+    ): BelongsTo<this, Related> {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof BelongsToMetadata)) throw new Error
+
+        return new BelongsTo(metadata, target, related) as BelongsTo<
+            this,
+            Related
+        >
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected hasOneThrough<Related extends EntityTarget>(
+        name: string,
+        related: Related
+    ): HasOneThrough<this, Related> {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof HasOneThroughMetadata)) throw new Error
+
+        return new HasOneThrough(metadata, this, related) as HasOneThrough<
+            this,
+            Related
+        >
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected hasManyThrough<Related extends EntityTarget>(
+        name: string,
+        related: Related
+    ): HasManyThrough<this, Related> {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof HasManyThroughMetadata)) throw new Error
+
+        return new HasManyThrough(metadata, target, related) as HasManyThrough<
+            this,
+            Related
+        >
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected belongsToMany<Related extends EntityTarget>(
+        name: string,
+        related: Related
+    ): BelongsToMany<this, Related> {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof BelongsToManyMetadata)) throw new Error
+
+        return new BelongsToMany(metadata, target, related) as BelongsToMany<
+            this,
+            Related
+        >
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected polymorphicHasOne<Related extends EntityTarget>(
+        name: string,
+        related: Related
+    ): PolymorphicHasOne<this, Related> {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof PolymorphicHasOneMetadata)) throw new Error
+
+        return new PolymorphicHasOne(metadata, target, related) as (
+            PolymorphicHasOne<this, Related>
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected polymorphicHasMany<Related extends EntityTarget>(
+        name: string,
+        related: Related
+    ): PolymorphicHasMany<this, Related> {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof PolymorphicHasManyMetadata)) throw new Error
+
+        return new PolymorphicHasMany(metadata, target, related) as (
+            PolymorphicHasMany<this, Related>
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected polymorphicBelongsTo<
+        Related extends PolymorphicEntityTarget | EntityTarget[]
+    >(
+        name: string,
+        related: Related
+    ): PolymorphicBelongsTo<
+        this,
+        LocalOrInternalPolymorphicEntityTarget<Related>
+    > {
+        const [metadata, target] = this.getRelationMetadata(name)
+        if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw new Error
+
+        return new PolymorphicBelongsTo(
+            metadata,
+            target,
+            (
+                Array.isArray(related)
+                    ? metadata.relatedTarget
+                    : related
+            ) as LocalOrInternalPolymorphicEntityTarget<Related>
+        ) as (
+                PolymorphicBelongsTo<
+                    this,
+                    LocalOrInternalPolymorphicEntityTarget<Related>
+                >
+            )
+    }
+
+    // Privates ---------------------------------------------------------------
+    private getRelationMetadata(name: string): (
+        [RelationMetadataType, BaseEntity | this]
+    ) {
+        let meta = this.getMetadata().relations?.find(rel => rel.name === name)
+        if (meta) return [meta, this]
+
+        meta = this.getSourceMetadata().relations?.find(
+            rel => rel.name === name
+        )
+        if (meta) return [meta, this.toSourceEntity()]
+
+        throw new Error
     }
 
     // Static Getters =========================================================
@@ -98,6 +370,188 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     public static get Exclude() {
         return ExcludeColumns
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static getMetadata<T extends PolymorphicEntityTarget>(this: T): (
+        PolymorphicEntityMetadata
+    ) {
+        return MetadataHandler.loadMetadata(this) as PolymorphicEntityMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static getRepository<
+        T extends PolymorphicRepository<Target> = PolymorphicRepository<
+            typeof this
+        >,
+        Target extends (
+            PolymorphicEntityTarget & typeof BasePolymorphicEntity
+        ) = any
+    >(this: Target): T {
+        return this.getMetadata().getRepository() as T
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static scope<T extends PolymorphicEntityTarget>(
+        this: T & typeof BasePolymorphicEntity,
+        name: string,
+        ...args: any[]
+    ): T {
+        const scope = this.getMetadata().scopes?.getScope(name, ...args)
+        if (!scope) throw new Error
+
+        const scoped = this.reply()
+        TempMetadata.reply(scoped, this).setScope(scoped, scope)
+
+        return scoped as T
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static collection<T extends PolymorphicEntityTarget>(
+        this: T & typeof BasePolymorphicEntity,
+        collection: string | typeof Collection
+    ): T {
+        const coll: typeof Collection = typeof collection === 'object'
+            ? collection
+            : this.getMetadata().collections?.search(collection as string)
+
+        if (!coll) throw new Error
+
+        const scoped = this.reply()
+        TempMetadata.reply(scoped, this).setCollection(scoped, coll)
+
+        return scoped as T
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static build<T extends PolymorphicEntityTarget>(
+        this: T,
+        attributes: CreationAttributes<InstanceType<T>>
+    ): InstanceType<T> {
+        return new this(attributes) as InstanceType<T>
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static findByPk<T extends PolymorphicEntityTarget>(
+        this: T & typeof BasePolymorphicEntity,
+        pk: any,
+        mapTo: ResultMapOption = 'entity'
+    ) {
+        return this.getRepository().findByPk(pk, mapTo)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static find<T extends PolymorphicEntityTarget>(
+        this: T & typeof BasePolymorphicEntity,
+        options: FindQueryOptions<InstanceType<T>>,
+        mapTo: ResultMapOption = 'entity'
+    ) {
+        return this.getRepository().find(options, mapTo)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static findOne<T extends PolymorphicEntityTarget>(
+        this: T & typeof BasePolymorphicEntity,
+        options: FindOneQueryOptions<InstanceType<T>>,
+        mapTo: ResultMapOption = 'entity'
+    ) {
+        return this.getRepository().findOne(options, mapTo)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static paginate<T extends PolymorphicEntityTarget>(
+        this: T & typeof BasePolymorphicEntity,
+        options: PaginationQueryOptions<InstanceType<T>>
+    ) {
+        this.getRepository().paginate(options)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static create<
+        T extends PolymorphicEntityTarget,
+        Source extends EntityTarget
+    >(
+        this: T & typeof BasePolymorphicEntity,
+        source: Source,
+        attributes: CreationAttributes<InstanceType<Source>>,
+        mapTo: 'this' | 'source' = 'this'
+    ) {
+        return this.getRepository().create(source, attributes, mapTo)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static createMany<
+        T extends PolymorphicEntityTarget,
+        Source extends EntityTarget
+    >(
+        this: T & typeof BasePolymorphicEntity,
+        source: Source,
+        attributes: CreationAttributes<InstanceType<Source>>[],
+        mapTo: 'this' | 'source' = 'this'
+    ) {
+        return this.getRepository().createMany(source, attributes, mapTo)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static update<
+        T extends PolymorphicEntityTarget,
+        Source extends EntityTarget
+    >(
+        this: T & typeof BasePolymorphicEntity,
+        source: Source,
+        attributes: UpdateAttributes<InstanceType<Source>>,
+        where: ConditionalQueryOptions<InstanceType<Source>>
+    ): Promise<ResultSetHeader> {
+        return this.getRepository().update(source, attributes, where) as (
+            Promise<ResultSetHeader>
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static updateOrCreate<
+        T extends PolymorphicEntityTarget,
+        Source extends EntityTarget
+    >(
+        this: T & typeof BasePolymorphicEntity,
+        source: Source,
+        attributes: UpdateOrCreateAttibutes<InstanceType<Source>>,
+        mapTo: 'this' | 'source' = 'this'
+    ) {
+        return this.getRepository().updateOrCreate(source, attributes, mapTo)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static delete<
+        T extends PolymorphicEntityTarget,
+        Source extends EntityTarget
+    >(
+        this: T & typeof BasePolymorphicEntity,
+        source: Source,
+        where: ConditionalQueryOptions<InstanceType<Source>>
+    ): Promise<DeleteResult> {
+        return this.getRepository().delete(source, where)
+    }
+
+    // Privates --------------------------------------------------------------
+    private static reply<T extends PolymorphicEntityTarget>(this: T): T {
+        const replic = class extends (this as new (...args: any[]) => any) { }
+        Object.assign(replic, this)
+
+        return replic as T
     }
 }
 

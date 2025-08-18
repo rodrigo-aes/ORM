@@ -90,6 +90,7 @@ import HooksMetadata from './HooksMetadata'
 
 // Scopes
 import ScopesMetadata, {
+    ScopeMetadata,
     ScopeMetadataHandler,
 
     type Scope,
@@ -101,9 +102,14 @@ import ComputedPropertiesMetadata, {
 } from './ComputedPropertiesMetadata'
 
 import TriggersMetadata from './TriggersMetadata'
+
 import CollectionsMetadata, {
     CollectionsMetadataHandler
 } from './CollectionsMetadata'
+
+import PaginationsMetadata, {
+    PaginationMetadataHandler
+} from './PaginationsMetadata'
 
 import { EntityToJSONProcessMetadata } from '../ProcessMetadata'
 
@@ -120,7 +126,7 @@ export default class EntityMetadata {
     public joinTables?: JoinTableMetadata[]
     public hooks?: HooksMetadata = HooksMetadata.find(this.target)
     public scopes?: ScopesMetadata = ScopesMetadata.find(this.target)
-    public repository!: Repository<any>
+    public repository!: typeof Repository<any>
     public computedProperties?: ComputedPropertiesMetadata = (
         ComputedPropertiesMetadata.find(this.target)
     )
@@ -173,6 +179,18 @@ export default class EntityMetadata {
     // Publics ----------------------------------------------------------------
     public defineConnection(connection: MySQLConnection) {
         this.connection = connection
+    }
+
+    // ------------------------------------------------------------------------
+
+    public defineRepository(repository: typeof Repository<any>): void {
+        this.repository = repository
+    }
+
+    // ------------------------------------------------------------------------
+
+    public getRepository(): Repository<any> {
+        return new this.repository(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -251,12 +269,10 @@ export default class EntityMetadata {
     // ------------------------------------------------------------------------
 
     private loadRepository() {
-        const repo: typeof Repository<any> = Reflect.getOwnMetadata(
+        this.repository = Reflect.getOwnMetadata(
             'repository', this.target
         )
             ?? Repository
-
-        this.repository = new repo(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -308,15 +324,6 @@ export default class EntityMetadata {
     ): ColumnMetadata | undefined {
         return this.find(target)?.columns.findColumn(name)
     }
-
-    // ------------------------------------------------------------------------
-
-    public static defineRepository(
-        target: EntityTarget,
-        repository: typeof Repository<any>
-    ): void {
-        Reflect.defineMetadata('repository', repository, target)
-    }
 }
 
 export {
@@ -330,11 +337,14 @@ export {
     JoinColumnMetadata,
     HooksMetadata,
     ScopesMetadata,
+    ScopeMetadata,
     ScopeMetadataHandler,
     TriggersMetadata,
     ComputedPropertiesMetadata,
     CollectionsMetadata,
     CollectionsMetadataHandler,
+    PaginationsMetadata,
+    PaginationMetadataHandler,
 
     type JoinTableRelated,
 

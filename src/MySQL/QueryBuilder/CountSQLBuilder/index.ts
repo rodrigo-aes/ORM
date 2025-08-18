@@ -59,17 +59,20 @@ export default class CountSQLBuilder<
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static count<T extends EntityTarget>(
+    public static count<T extends EntityTarget | PolymorphicEntityTarget>(
         target: T,
         options?: ConditionalQueryOptions<InstanceType<T>>,
-        alias?: string
+        as?: string,
+        alias?: string,
+        isolated?: boolean
     ): string {
         return SQLStringHelper.normalizeSQL(
             new CountSQL(
                 target,
                 options,
-                undefined,
-                alias
+                as,
+                alias,
+                isolated
             )
                 .SQL()
         )

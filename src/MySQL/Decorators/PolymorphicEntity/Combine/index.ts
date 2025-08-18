@@ -11,12 +11,14 @@ export default function Combine(options: CombinedColumnOptions) {
         target: Entity,
         name: string
     ) {
-        const meta = PolymorphicEntityMetadata.find(target.constructor as (
-            PolymorphicEntityTarget
-        ))
-        if (!meta) throw new Error
-
-        meta.combineColumn(name, options)
+        Reflect.defineMetadata(
+            'combined-columns',
+            {
+                ...Reflect.getOwnMetadata('combined-columns', target),
+                [name]: options
+            },
+            target
+        )
     }
 }
 

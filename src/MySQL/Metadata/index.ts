@@ -13,6 +13,8 @@ import EntityMetadata, {
     TriggersMetadata,
     CollectionsMetadata,
     CollectionsMetadataHandler,
+    PaginationsMetadata,
+    PaginationMetadataHandler,
     ComputedPropertiesMetadata,
 
     type JoinTableRelated,
@@ -103,12 +105,14 @@ export {
     ScopesMetadata,
     TriggersMetadata,
     CollectionsMetadata,
+    PaginationsMetadata,
     ComputedPropertiesMetadata,
 
     TempMetadata,
     MetadataHandler,
     ScopeMetadataHandler,
     CollectionsMetadataHandler,
+    PaginationMetadataHandler,
 
     type JoinTableRelated,
 

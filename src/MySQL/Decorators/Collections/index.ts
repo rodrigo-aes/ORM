@@ -9,7 +9,7 @@ import type { Collection } from "../../BaseEntity"
 
 export default function Collections(...collections: (typeof Collection)[]) {
     return function (target: EntityTarget | PolymorphicEntityTarget) {
-        CollectionsMetadata.findOrBuild(target).addCollections(
+        CollectionsMetadata.findOrBuild(target).add(
             ...collections
         )
     }

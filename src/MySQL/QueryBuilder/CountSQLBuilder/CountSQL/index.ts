@@ -57,12 +57,14 @@ export default class CountSQL<T extends EntityTarget | PolymorphicEntityTarget> 
     // Privates ---------------------------------------------------------------
     private countSQL(): string {
         if (typeof this.option === 'string') return this.commonCountSQL()
-
-        else if (Object.getOwnPropertySymbols(this.option).includes(Case)) {
+        else if (
+            typeof this.option === 'object' &&
+            Object.getOwnPropertySymbols(this.option).includes(Case)
+        ) {
             return this.commonCountSQL()
         }
 
-        else return this.isolated
+        return this.isolated
             ? `(${this.selectCountSQL()})`
             : this.selectCountSQL()
     }

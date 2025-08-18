@@ -33,6 +33,7 @@ export default abstract class RelationHandlerSQLBuilder<
             this.target.constructor as EntityTarget | PolymorphicEntityTarget
         )
     )
+
     protected relatedMetadata: EntityMetadata | PolymorphicEntityMetadata = (
         MetadataHandler.loadMetadata(this.related)
     )

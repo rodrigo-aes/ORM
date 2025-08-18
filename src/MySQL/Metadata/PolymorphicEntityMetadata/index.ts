@@ -27,6 +27,7 @@ import type {
     SourcesMetadata,
     PolymorphicEntityMetadataJSON
 } from "./types"
+import PolymorphicRepository from "../../PolymorphicRepository"
 
 export default class PolymorphicEntityMetadata {
     public connection?: MySQLConnection
@@ -39,6 +40,7 @@ export default class PolymorphicEntityMetadata {
 
     public hooks?: HooksMetadata
     public scopes?: ScopesMetadata
+    public repository!: typeof PolymorphicRepository<any>
     public exclude?: string[] = []
     public combined?: CombinedColumns
     public computedProperties?: ComputedPropertiesMetadata
@@ -52,7 +54,6 @@ export default class PolymorphicEntityMetadata {
         this.loadEntities()
         this.loadSourcesMetadata()
         this.loadColumns()
-        this.mergeCombined()
         this.loadRelations()
 
         if (target) {
@@ -60,9 +61,13 @@ export default class PolymorphicEntityMetadata {
             this.loadScopes()
             this.loadComputedProperties()
             this.loadCollections()
+            this.loadCombined()
+            this.mergeCombined()
         }
 
         this.register()
+        this.loadRepository()
+
     }
 
     // Getters ================================================================
@@ -141,6 +146,20 @@ export default class PolymorphicEntityMetadata {
     // Publics ----------------------------------------------------------------
     public defineConnection(connection: MySQLConnection) {
         this.connection = connection
+    }
+
+    // ------------------------------------------------------------------------
+
+    public defineRepository(repository: typeof PolymorphicRepository<any>): (
+        void
+    ) {
+        this.repository = repository
+    }
+
+    // ------------------------------------------------------------------------
+
+    public getRepository(): PolymorphicRepository<any> {
+        return new this.repository(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -238,6 +257,15 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
+    private loadRepository() {
+        this.repository = Reflect.getOwnMetadata(
+            'repository', this.target!
+        )
+            ?? PolymorphicRepository
+    }
+
+    // ------------------------------------------------------------------------
+
     private mergeCombined(): void {
         if (this.combined) this._columns!.combine(this.combined)
     }
@@ -278,6 +306,15 @@ export default class PolymorphicEntityMetadata {
 
     private loadCollections() {
         this.collections = CollectionsMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private loadCombined() {
+        this.combined = Reflect.getOwnMetadata(
+            'combined-column',
+            this.target!
+        )
     }
 
     // ------------------------------------------------------------------------

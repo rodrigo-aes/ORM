@@ -2,14 +2,38 @@ import BasePolymorphicEntity, {
     InternalPolymorphicEntities
 } from "../../BasePolymorphicEntity"
 
-import type { PolymorphicEntityMetadata } from "../../Metadata"
-import type { PolymorphicEntityTarget } from "../../../types/General"
+import { MetadataHandler } from "../../Metadata"
+
+import type { PolymorphicEntityMetadata, EntityMetadata } from "../../Metadata"
+import type { PolymorphicEntityTarget, EntityTarget } from "../../../types/General"
 
 export default class PolymorphicEntityBuilder {
     public static readonly entityNameRegExp = /^[A-Z][A-Za-z0-9]*$/
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
+    public static buildSourceEntity<
+        Source extends EntityTarget,
+        T extends BasePolymorphicEntity<any>
+    >(
+        source: Source,
+        target: T
+    ): InstanceType<Source> {
+        const meta = MetadataHandler.loadMetadata(source)
+        const primary = meta.columns.primary.name
+
+        return new source({
+            ...(Object.fromEntries(Object.entries(target).flatMap(
+                ([key, value]) => meta.columns.findColumn(key)
+                    ? [[key, value]]
+                    : []
+            ))),
+            [primary]: target.primaryKey
+        }) as InstanceType<Source>
+    }
+
+    // ------------------------------------------------------------------------
+
     public static buildInternalEntityUnion(
         metadata: PolymorphicEntityMetadata
     ): PolymorphicEntityTarget {

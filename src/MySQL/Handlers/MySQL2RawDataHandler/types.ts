@@ -6,7 +6,7 @@ import type {
 } from "../../QueryBuilder"
 
 export type MySQL2RawData = any
-export type DataFillMethod = 'One' | 'Many'
+export type DataFillMethod = 'One' | 'Many' | 'Paginate'
 
 export type RawData<T extends EntityTarget | PolymorphicEntityTarget> = (
     EntityProperties<InstanceType<T>> &

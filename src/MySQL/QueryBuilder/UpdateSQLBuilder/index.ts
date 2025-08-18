@@ -73,11 +73,26 @@ export default class UpdateSQLBuilder<
         return this._values ?? this.getValues()
     }
 
+    // Protecteds -------------------------------------------------------------
+    protected get targetMetadata(): EntityMetadata {
+        return this.metadata instanceof PolymorphicEntityMetadata
+            ? this.metadata.sourcesMetadata[
+            (this.attributes as BasePolymorphicEntity<any>).entityType
+            ]
+            : this.metadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get tableName(): string {
+        return this.targetMetadata.tableName
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            UPDATE ${this.handleTableName()} ${this.alias}
+            UPDATE ${this.tableName} ${this.alias}
             ${this.joinsSQL()}
             ${this.setSQL()}
             ${this.whereSQL()}
@@ -124,19 +139,6 @@ export default class UpdateSQLBuilder<
     }
 
     // Privates ---------------------------------------------------------------
-    private handleTableName(): string {
-        if (this.metadata instanceof PolymorphicEntityMetadata) return (
-            this.metadata.sourcesMetadata[
-                (this.attributes as BaseEntity).constructor.name
-            ]
-                .tableName
-        )
-
-        else return this.metadata.tableName
-    }
-
-    // ------------------------------------------------------------------------
-
     private getFields(): AttributesNames<InstanceType<T>> {
         this._propertiesNames = new Set([...this.propertyNames()]) as (
             AttributesNames<InstanceType<T>>

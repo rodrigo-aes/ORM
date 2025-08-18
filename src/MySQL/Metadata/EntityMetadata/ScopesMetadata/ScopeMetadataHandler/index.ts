@@ -3,6 +3,7 @@ import MetadataHandler from "../../../MetadataHandler"
 import TempMetadata from "../../../TempMetadata"
 
 // Types
+import type ScopeMetadata from "../ScopeMetadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
@@ -35,33 +36,28 @@ export default class ScopeMetadataHandler {
         type: Type,
         options: Options
     ): Options {
-        const current: FindQueryOptions<InstanceType<T>> | undefined = (
+        const current: ScopeMetadata | undefined = (
             TempMetadata.getScope(target)
             ?? MetadataHandler.loadMetadata(target).scopes?.default
         )
 
         if (current) switch (type) {
-            case 'find': return {
-                ...current,
-                ...options
-            }
+            case 'find': return current.mergeOptions(
+                options as FindQueryOptions<InstanceType<T>>,
+                true
+            ) as Options
 
-            case 'findOne':
-                const { order, limit, offset, ...rest } = current
-                return {
-                    ...rest,
-                    ...options
-                }
+            case 'findOne': return current.mergeOptions(
+                options as FindQueryOptions<InstanceType<T>>
+            ) as Options
 
-            case 'conditional': return {
-                ...current.where,
-                ...options
-            }
+            case 'conditional': return current.mergeWhereOptions(options) as (
+                Options
+            )
 
-            case 'relations': return {
-                ...current.relations,
-                ...options
-            }
+            case 'relations': return current.mergeRelationsOptions(
+                options as RelationsOptions<InstanceType<T>>
+            ) as Options
         }
 
         return options

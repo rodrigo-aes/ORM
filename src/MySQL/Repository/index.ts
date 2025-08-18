@@ -1,10 +1,13 @@
-import BaseEntity from "../BaseEntity"
+import BaseEntity, {
+    type Pagination
+} from "../BaseEntity"
 
 // SQL Builders
 import {
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
     FindSQLBuilder,
+    PaginationSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
@@ -12,6 +15,7 @@ import {
 
     type FindOneQueryOptions,
     type FindQueryOptions,
+    type PaginationQueryOptions,
     type CreationAttributes,
     type UpdateAttributes,
     type UpdateOrCreateAttibutes,
@@ -80,16 +84,30 @@ export default class Repository<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public create(attributes: CreationAttributes<InstanceType<T>>): (
-        Promise<InstanceType<T>>
+    public paginate(options: PaginationQueryOptions<InstanceType<T>>): (
+        Promise<Pagination<InstanceType<T>>>
     ) {
+        return new MySQL2QueryExecutionHandler(
+            this.target,
+            new PaginationSQLBuilder(this.target, options),
+            'entity'
+        )
+            .exec() as Promise<Pagination<InstanceType<T>>>
+    }
+
+    // ------------------------------------------------------------------------
+
+    public create(
+        attributes: CreationAttributes<InstanceType<T>>,
+        mapTo: ResultMapOption = 'entity'
+    ): Promise<InstanceType<T>> {
         return new MySQL2QueryExecutionHandler(
             this.target,
             new CreateSQLBuilder<AsEntityTarget<T>>(
                 this.target as AsEntityTarget<T>,
                 attributes
             ),
-            'entity'
+            mapTo
         )
             .exec() as (
                 Promise<InstanceType<T>>
@@ -98,16 +116,17 @@ export default class Repository<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public createMany(attributes: CreationAttributes<InstanceType<T>>[]): (
-        Promise<InstanceType<T>[]>
-    ) {
+    public createMany(
+        attributes: CreationAttributes<InstanceType<T>>[],
+        mapTo: ResultMapOption = 'entity'
+    ): Promise<InstanceType<T>[]> {
         return new MySQL2QueryExecutionHandler(
             this.target,
             new CreateSQLBuilder<AsEntityTarget<T>>(
                 this.target as AsEntityTarget<T>,
                 attributes
             ),
-            'entity'
+            mapTo
         )
             .exec() as (
                 Promise<InstanceType<T>[]>
@@ -121,15 +140,11 @@ export default class Repository<T extends EntityTarget> {
         UpdateAttributes<InstanceType<T>>
     )>(
         attributes: Data,
-        where: ConditionalQueryOptions<InstanceType<T>>
+        where: ConditionalQueryOptions<InstanceType<T>>,
     ): Promise<UpdateQueryResult<T, Data>> {
         const header: ResultSetHeader = await new MySQL2QueryExecutionHandler(
             this.target,
-            new UpdateSQLBuilder(
-                this.target,
-                attributes,
-                where
-            ),
+            new UpdateSQLBuilder(this.target, attributes, where),
             'raw'
         )
             .exec() as any
@@ -146,7 +161,8 @@ export default class Repository<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public updateOrCreate(
-        attributes: UpdateOrCreateAttibutes<InstanceType<T>>
+        attributes: UpdateOrCreateAttibutes<InstanceType<T>>,
+        mapTo: ResultMapOption = 'entity'
     ): Promise<InstanceType<T>> {
         return new MySQL2QueryExecutionHandler(
             this.target,
@@ -154,7 +170,7 @@ export default class Repository<T extends EntityTarget> {
                 this.target as AsEntityTarget<T>,
                 attributes as UpdateOrCreateAttibutes<EntityTarget>
             ),
-            'entity'
+            mapTo
         )
             .exec() as (
                 Promise<InstanceType<T>>

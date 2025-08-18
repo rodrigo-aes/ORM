@@ -1,8 +1,9 @@
 import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
-import BaseEntity from "../../BaseEntity"
-import BasePolymorphicEntity from "../../BasePolymorphicEntity"
-
+import BaseEntity, {
+    type Collection,
+    type PaginationInitMap
+} from "../../BaseEntity"
 import RelationQueryExecutionHandler from "./RelationQueryExecutionHandler"
 
 // SQL Builders
@@ -10,6 +11,7 @@ import {
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
     FindSQLBuilder,
+    PaginationSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
@@ -41,6 +43,7 @@ import type {
     ResultMapOption,
     FindOneResult,
     FindResult,
+    PaginateResult,
     CreateResult,
     UpdateResult,
     UpdateOrCreateResult,
@@ -53,6 +56,8 @@ export default class MySQL2QueryExecutionHandler<
     MapTo extends ResultMapOption
 > {
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
+
+    private pagination?: PaginationInitMap
 
     constructor(
         public target: T,
@@ -74,11 +79,12 @@ export default class MySQL2QueryExecutionHandler<
 
             // ----------------------------------------------------------------
 
-            case this.sqlBuilder instanceof FindOneSQLBuilder: return (
-                this.executeFindOne() as (
+            case this.sqlBuilder instanceof PaginationSQLBuilder: return (
+                this.executePaginate() as (
                     Promise<ExecResult<T, Builder, MapTo>>
                 )
             )
+
 
             // ----------------------------------------------------------------
 
@@ -89,7 +95,9 @@ export default class MySQL2QueryExecutionHandler<
             // ----------------------------------------------------------------
 
             case this.sqlBuilder instanceof FindOneSQLBuilder: return (
-                this.executeFind() as Promise<ExecResult<T, Builder, MapTo>>
+                this.executeFindOne() as (
+                    Promise<ExecResult<T, Builder, MapTo>>
+                )
             )
 
             // ----------------------------------------------------------------
@@ -159,6 +167,32 @@ export default class MySQL2QueryExecutionHandler<
         const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
         const result = this.handleDataMapTo(mySQL2RawData, 'Many') as (
             FindResult<T, MapTo>
+        )
+
+        await this.callAfterBulkFindHook(result)
+
+        return result
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async executePaginate(): Promise<PaginateResult<T>> {
+        await this.callBeforeBulkFindHook()
+
+        const connection = this.getConnection()
+        const [{ total }] = await connection.query(
+            (this.sqlBuilder as PaginationSQLBuilder<T>).totalSQL()
+        )
+        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
+
+        this.pagination = {
+            page: (this.sqlBuilder as PaginationSQLBuilder<T>).page,
+            perPage: (this.sqlBuilder as PaginationSQLBuilder<T>).perPage,
+            total
+        }
+
+        const result = this.handleDataMapTo(mySQL2RawData, 'Paginate') as (
+            PaginateResult<T>
         )
 
         await this.callAfterBulkFindHook(result)
@@ -275,9 +309,12 @@ export default class MySQL2QueryExecutionHandler<
                 )
 
                 switch (this.mapTo) {
-                    case 'entity': return handler.parseEntity() as (
-                        ExecResult<T, Builder, MapTo>
-                    )
+                    case 'entity': return handler.parseEntity(
+                        undefined,
+                        this.pagination
+                    ) as (
+                            ExecResult<T, Builder, MapTo>
+                        )
 
                     case 'json': return handler.parseRaw() as (
                         ExecResult<T, Builder, MapTo>
@@ -323,7 +360,7 @@ export default class MySQL2QueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    private async callAfterBulkFindHook(result: FindResult<T, MapTo>): (
+    private async callAfterBulkFindHook(result: any[]): (
         Promise<void>
     ) {
         if (result) await this.metadata.hooks?.callAfterBulkFind(result)

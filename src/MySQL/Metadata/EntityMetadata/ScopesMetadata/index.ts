@@ -1,3 +1,4 @@
+import ScopeMetadata from "./ScopeMetadata"
 import ScopeMetadataHandler from "./ScopeMetadataHandler"
 
 // Types
@@ -9,8 +10,11 @@ import type {
 import type { FindQueryOptions } from "../../../QueryBuilder"
 import type { Scope, ScopeFunction } from "./types"
 
-export default class ScopesMetadata extends Map<string, Scope> {
-    public default?: FindQueryOptions<any>
+export default class ScopesMetadata extends Map<
+    string,
+    ScopeMetadata | ScopeFunction
+> {
+    public default?: ScopeMetadata
 
     constructor(
         public target: EntityTarget | PolymorphicEntityTarget,
@@ -23,43 +27,33 @@ export default class ScopesMetadata extends Map<string, Scope> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public getScopeOptions<T extends EntityTarget | PolymorphicEntityTarget = any>(
-        name: string,
-        ...args: any[]
-    ): FindQueryOptions<InstanceType<T>> {
-        const scope = this.get(name)
-        if (!scope) throw new Error
+    public getScope(name: string, ...args: any[]): ScopeMetadata | undefined {
+        const value = this.get(name)
+        if (!value) return
 
-        switch (typeof scope) {
-            case "object": return scope
-            case "function": return scope(...args)
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    public apply<T extends EntityTarget | PolymorphicEntityTarget = any>(
-        options: FindQueryOptions<InstanceType<T>>,
-        name: string,
-        ...args: any[]
-    ): FindQueryOptions<InstanceType<T>> {
-        return { ...this.getScopeOptions(name, ...args), ...options }
+        return typeof value === 'object'
+            ? value
+            : new ScopeMetadata(value(...args))
     }
 
     // ------------------------------------------------------------------------
 
     public setDefault<T extends EntityTarget | PolymorphicEntityTarget = any>(
-        findOptions: FindQueryOptions<InstanceType<T>>
+        scope: FindQueryOptions<InstanceType<T>>
     ): void {
-        this.default = findOptions
+        this.default = new ScopeMetadata(scope)
     }
 
     // ------------------------------------------------------------------------
 
     public registerScopes(scopes: { [K: string]: Scope }): void {
-        for (const [name, scope] of Object.entries(scopes)) (
-            this.set(name, scope)
+        for (const [name, scope] of Object.entries(scopes)) this.set(
+            name,
+            typeof scope === 'object'
+                ? new ScopeMetadata(scope)
+                : scope
         )
+
     }
 
     // Privates ---------------------------------------------------------------
@@ -89,6 +83,7 @@ export default class ScopesMetadata extends Map<string, Scope> {
 }
 
 export {
+    ScopeMetadata,
     ScopeMetadataHandler,
 
     type Scope,

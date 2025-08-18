@@ -4,24 +4,23 @@ import FindSQLBuilder, { type FindQueryOptions } from "../FindSQLBuilder"
 import CountSQLBuilder from "../CountSQLBuilder"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
-import type { PaginationOptions } from "./types"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
+import type { PaginationQueryOptions } from "./types"
 
 export default class PaginationSQLBuilder<
-    T extends EntityTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > extends FindSQLBuilder<T> {
     public page: number = 1
     public perPage: number = 26
 
     constructor(
         target: T,
-        options: FindQueryOptions<InstanceType<T>>,
-        pagination?: PaginationOptions
+        { page, perPage, ...options }: PaginationQueryOptions<InstanceType<T>>
     ) {
         super(target, options)
 
-        if (pagination?.page) this.page = pagination.page
-        if (pagination?.perPage) this.perPage = pagination.perPage
+        if (page) this.page = page
+        if (perPage) this.perPage = perPage
 
         this.setLimit()
         this.setOffset()
@@ -30,11 +29,7 @@ export default class PaginationSQLBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public totalSQL(): string {
-        return CountSQLBuilder.count(
-            this.target,
-            this.options.where,
-            this.alias
-        )
+        return `SELECT COUNT(*) AS total FROM ${this.metadata.tableName}`
     }
 
     // Privates ---------------------------------------------------------------
@@ -48,5 +43,5 @@ export default class PaginationSQLBuilder<
 }
 
 export {
-    type PaginationOptions
+    type PaginationQueryOptions
 }

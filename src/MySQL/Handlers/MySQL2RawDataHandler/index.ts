@@ -1,24 +1,33 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
+import {
+    EntityMetadata,
+    PolymorphicEntityMetadata,
+    RelationMetadata,
+    MetadataHandler,
+    CollectionsMetadataHandler,
+    PaginationMetadataHandler,
 
-// Metadata
-import { RelationMetadata } from "../../Metadata"
+    type RelationMetadataType
+} from "../../Metadata"
 
 // Base Entity
-import BaseEntity, { Collection } from "../../BaseEntity"
+import BaseEntity, {
+    Collection,
+    type PaginationInitMap
+} from "../../BaseEntity"
 import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 
-// Handlers
-import { MetadataHandler, CollectionsMetadataHandler } from "../../Metadata"
-
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../types/General"
+
 import type {
     MySQL2RawData,
     MappedDataType,
     RawData,
     DataFillMethod
 } from "./types"
-import type { RelationMetadataType } from "../../Metadata"
 
 export default class MySQL2RawDataHandler<
     T extends EntityTarget | PolymorphicEntityTarget
@@ -26,7 +35,6 @@ export default class MySQL2RawDataHandler<
     private metadata: EntityMetadata | PolymorphicEntityMetadata
     private mySQL2RawData!: MySQL2RawData[]
     private _raw?: RawData<T> | RawData<T>[]
-    private _entity?: InstanceType<T> | Collection<InstanceType<T>>
 
     constructor(
         public target: T,
@@ -41,12 +49,6 @@ export default class MySQL2RawDataHandler<
     // Publics ----------------------------------------------------------------
     public get raw(): RawData<T> | RawData<T>[] {
         return this._raw ?? this.parseRaw()
-    }
-
-    // ------------------------------------------------------------------------
-
-    public get entity(): InstanceType<T> | InstanceType<T>[] {
-        return this._entity ?? this.parseEntity()
     }
 
     // Instance Methods =======================================================
@@ -71,7 +73,8 @@ export default class MySQL2RawDataHandler<
     public parseEntity<
         Target extends EntityTarget | PolymorphicEntityTarget = T
     >(
-        mapToEntity?: Target
+        mapToEntity?: Target,
+        pagination?: PaginationInitMap
     ): InstanceType<Target> | Collection<InstanceType<Target>> {
         if (!this.mySQL2RawData) throw new Error
 
@@ -83,13 +86,20 @@ export default class MySQL2RawDataHandler<
             mapToEntity
         ) as InstanceType<T>[]
 
-        this._entity = this.fillMethod === 'Many'
-            ? CollectionsMetadataHandler.build(this.target, reduced)
-            : reduced[0]
+        switch (this.fillMethod) {
+            case "One": return reduced[0] as any
+            case "Many": return CollectionsMetadataHandler.build(
+                mapToEntity ?? this.target,
+                reduced
+            ) as any
 
-        return this._entity as (
-            InstanceType<Target> | Collection<InstanceType<Target>>
-        )
+
+            case "Paginate": return PaginationMetadataHandler.build(
+                mapToEntity ?? this.target,
+                pagination!,
+                reduced
+            ) as any
+        }
     }
 
     // Privates ---------------------------------------------------------------
@@ -108,9 +118,10 @@ export default class MySQL2RawDataHandler<
             rd, this.firstAlias(rawData)
         ))
 
-        const reduced: MappedDataType<Target, typeof method>[] = method === 'raw'
-            ? []
-            : new Collection<InstanceType<Target>>
+        const reduced: MappedDataType<Target, typeof method>[] =
+            method === 'raw'
+                ? []
+                : new Collection<InstanceType<Target>>
 
         const mapped = new Set
         const primaryName = metadata.columns.primary.name

@@ -6,18 +6,20 @@ import type {
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
     FindSQLBuilder,
+    PaginationSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
     DeleteSQLBuilder
 } from "../../QueryBuilder"
 
-import type { Collection } from "../../BaseEntity"
+import type { Collection, Pagination } from "../../BaseEntity"
 
 export type SQLBuilder<T extends EntityTarget | PolymorphicEntityTarget> = (
     FindByPkSQLBuilder<T> |
     FindSQLBuilder<T> |
     FindOneSQLBuilder<T> |
+    PaginationSQLBuilder<T> |
     CreateSQLBuilder<AsEntityTarget<T>> |
     UpdateOrCreateSQLBuilder<AsEntityTarget<T>> |
     UpdateSQLBuilder<T> |
@@ -61,7 +63,9 @@ export type ExecResult<
     MapTo extends ResultMapOption
 > = T extends EntityTarget
     ? (
-        Builder extends FindSQLBuilder<T>
+        Builder extends PaginationSQLBuilder<T>
+        ? PaginateResult<T>
+        : Builder extends FindSQLBuilder<T>
         ? FindResult<T, MapTo>
         : Builder extends FindOneSQLBuilder<T>
         ? FindOneResult<T, MapTo>
@@ -122,6 +126,10 @@ export type FindResult<
         ? Collection<InstanceType<MapTo>>
         : Collection<InstanceType<T>>
     )
+
+export type PaginateResult<
+    T extends EntityTarget | PolymorphicEntityTarget
+> = Pagination<InstanceType<T>>
 
 export type CreateResult<
     T extends EntityTarget | PolymorphicEntityTarget

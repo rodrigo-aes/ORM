@@ -26,7 +26,7 @@ import type { RelationOptions, RelationsOptions } from "../JoinSQLBuilder/types"
 export default class FindOneSQLBuilder<
     T extends EntityTarget | PolymorphicEntityTarget
 > {
-    private metadata: EntityMetadata | PolymorphicEntityMetadata
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 

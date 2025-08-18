@@ -1,4 +1,4 @@
-import DataType from ".."
+import DataType from "../DataType"
 import type { ComputedConfig, ComputedType } from "./types"
 
 export default class COMPUTED extends DataType {
