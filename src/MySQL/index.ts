@@ -87,6 +87,8 @@ import {
     Triggers,
     Collections,
     DefaultCollection,
+    Paginations,
+    DefaultPagination,
 } from './Decorators'
 
 export {
@@ -158,6 +160,8 @@ export {
     Triggers,
     Collections,
     DefaultCollection,
+    Paginations,
+    DefaultPagination,
 
     Case,
     Exists,

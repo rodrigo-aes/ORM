@@ -1,150 +1,106 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../../Metadata"
+// SQL Builder
+import ConditionalSQLBuilder from "../../ConditionalSQLBuilder"
 
-// Query Builders
-import ConditionalSQLBuilder, {
-    Case,
-    type ConditionalQueryOptions,
-    type CaseQueryOptions,
+// Handlers
+import {
+    MetadataHandler,
 
-} from "../../ConditionalSQLBuilder"
+    type EntityMetadata,
+    type PolymorphicEntityMetadata
+} from "../../../Metadata"
 
-// Handler
-import { MetadataHandler } from "../../../Metadata"
-
-// Helpers
-import { PropertySQLHelper } from "../../../Helpers"
+// Symbols
+import { Case } from "../../ConditionalSQLBuilder"
 
 // Types
 import type {
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../../../types/General"
-import type { CountQueryOption, CountCaseOptions } from "../types"
 
-export default class CountSQL<T extends EntityTarget | PolymorphicEntityTarget> {
-    private metadata: EntityMetadata | PolymorphicEntityMetadata
+import type { CountQueryOption, CountCaseOptions } from "./types"
+import CaseSQLBuilder, { CaseQueryOptions } from "../../ConditionalSQLBuilder/CaseSQLBuilder"
+
+export default class CountSQL<
+    T extends EntityTarget | PolymorphicEntityTarget
+> {
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     public alias: string
 
     constructor(
         public target: T,
-        public option?: CountQueryOption<InstanceType<T>>,
+        public options: CountQueryOption<InstanceType<T>>,
         public as?: string,
         alias?: string,
-        public isolated?: boolean
     ) {
-        this.alias = alias ?? this.targetName
+        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
-    // Getters ================================================================
-    // Privates ---------------------------------------------------------------
-    private get targetName(): string {
-        return this.target.name.toLowerCase()
-    }
-
-    // ------------------------------------------------------------------------
-
-    private get table(): string {
-        return `${this.metadata.tableName} ${this.targetName}`
-    }
-
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
     public SQL(): string {
         return `${this.countSQL()} ${this.asSQL()}`
     }
 
     // Privates ---------------------------------------------------------------
     private countSQL(): string {
-        if (typeof this.option === 'string') return this.commonCountSQL()
-        else if (
-            typeof this.option === 'object' &&
-            Object.getOwnPropertySymbols(this.option).includes(Case)
-        ) {
-            return this.commonCountSQL()
-        }
+        switch (true) {
+            case typeof this.options === 'string': return (
+                `COUNT(${this.propertyOptionSQL()})`
+            )
 
-        return this.isolated
-            ? `(${this.selectCountSQL()})`
-            : this.selectCountSQL()
+            case Object
+                .getOwnPropertySymbols(this.options)
+                .includes(Case): return (
+                    `CAST(SUM(${this.caseOptionSQL()}) AS SIGNED)`
+                )
+
+            default: return `COUNT(${this.conditionalOptionSQL()})`
+        }
     }
 
     // ------------------------------------------------------------------------
 
     private asSQL(): string {
-        return this.as
-            ? `AS ${this.as}`
-            : ''
+        return this.as ? `AS ${this.as}` : ''
     }
 
     // ------------------------------------------------------------------------
 
-    private commonCountSQL(): string {
-        return `COUNT(${this.optionSQL()})`
+    private propertyOptionSQL(): string {
+        return `${this.alias}.${this.options as string}`
     }
 
     // ------------------------------------------------------------------------
 
-    private selectCountSQL(): string {
-        return `SELECT COUNT(*) FROM ${this.table} ${this.optionSQL()}`
+    private caseOptionSQL(): string {
+        return this.caseClauseSQL(this.options as (
+            CaseQueryOptions<InstanceType<T>>
+        ))
     }
 
     // ------------------------------------------------------------------------
 
-    private optionSQL(): string {
-        switch (typeof this.option) {
-            case "string": return this.propertySQL()
-            case "object": return this.objectOptionSQL()
-
-            default: return ''
-        }
+    private conditionalOptionSQL(): string {
+        return this.caseClauseSQL([[this.options, 1]])
     }
 
     // ------------------------------------------------------------------------
 
-    private propertySQL(): string {
-        return PropertySQLHelper.pathToAlias(
-            this.option as string,
-            this.alias
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private objectOptionSQL(): string {
-        if (Object.getOwnPropertySymbols(this.option).includes(Case)) return (
-            this.caseSQL(
-                (this.option as CountCaseOptions<InstanceType<T>>)[Case]
-            )
-        )
-
-        return this.whereSQL(
-            this.option as ConditionalQueryOptions<InstanceType<T>>
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private caseSQL(caseOptions: CaseQueryOptions<InstanceType<T>>): string {
-        return ConditionalSQLBuilder.case(
+    private caseClauseSQL(options: CaseQueryOptions<InstanceType<T>>): string {
+        return new CaseSQLBuilder(
             this.target,
-            caseOptions,
+            options,
             undefined,
             this.alias
         )
             .SQL()
     }
+}
 
-    // ------------------------------------------------------------------------
-
-    private whereSQL(
-        whereOptions: ConditionalQueryOptions<InstanceType<T>>
-    ): string {
-        return ConditionalSQLBuilder.where(
-            this.target,
-            whereOptions,
-            this.alias
-        )
-            .SQL()
-    }
+export {
+    type CountQueryOption,
+    type CountCaseOptions
 }

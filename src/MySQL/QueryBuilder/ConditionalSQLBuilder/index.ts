@@ -3,6 +3,7 @@ import OnSQLBuilder from "./OnSQLBuilder"
 import CaseSQLBuilder, {
     Case,
     type CaseQueryOptions,
+    type CaseQueryTuple
 } from "./CaseSQLBuilder"
 
 import {
@@ -80,6 +81,7 @@ export {
 
     Case,
     type CaseQueryOptions,
+    type CaseQueryTuple,
 
     Exists,
     Cross,

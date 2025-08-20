@@ -8,6 +8,7 @@ import {
     FindOneSQLBuilder,
     FindSQLBuilder,
     PaginationSQLBuilder,
+    CountSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
@@ -16,6 +17,8 @@ import {
     type FindOneQueryOptions,
     type FindQueryOptions,
     type PaginationQueryOptions,
+    type CountQueryOption,
+    type CountQueryOptions,
     type CreationAttributes,
     type UpdateAttributes,
     type UpdateOrCreateAttibutes,
@@ -32,7 +35,7 @@ import {
 
 // Types 
 import type { EntityTarget, AsEntityTarget } from "../../types/General"
-import type { UpdateQueryResult } from "./types"
+import type { UpdateQueryResult, CountManyQueryResult } from "./types"
 import type { ResultSetHeader } from "mysql2"
 
 export default class Repository<T extends EntityTarget> {
@@ -93,6 +96,41 @@ export default class Repository<T extends EntityTarget> {
             'entity'
         )
             .exec() as Promise<Pagination<InstanceType<T>>>
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async count(options: CountQueryOption<InstanceType<T>>): (
+        Promise<number>
+    ) {
+        return (
+            await new MySQL2QueryExecutionHandler(
+                this.target,
+                CountSQLBuilder.countBuilder(
+                    this.target,
+                    options
+                ),
+                'json'
+            )
+                .exec()
+        )
+            .result
+    }
+
+    // ------------------------------------------------------------------------
+
+    public countMany<Opts extends CountQueryOptions<InstanceType<T>>>(
+        options: Opts
+    ): Promise<CountManyQueryResult<T, Opts>> {
+        return new MySQL2QueryExecutionHandler(
+            this.target,
+            CountSQLBuilder.countManyBuilder(
+                this.target,
+                options
+            ),
+            'json'
+        )
+            .exec() as Promise<CountManyQueryResult<T, Opts>>
     }
 
     // ------------------------------------------------------------------------
@@ -196,6 +234,7 @@ export default class Repository<T extends EntityTarget> {
 export {
     type FindQueryOptions,
     type FindOneQueryOptions,
+    type CountManyQueryResult,
     type CreationAttributes,
     type UpdateAttributes,
     type UpdateOrCreateAttibutes,

@@ -29,6 +29,7 @@ import ComputedProperty from "./ComputedProperty"
 import Scopes, { DefaultScope } from "./Scopes"
 import Triggers from "./Triggers"
 import Collections, { DefaultCollection } from "./Collections"
+import Paginations, { DefaultPagination } from "./Paginations"
 
 import {
     HasOne,
@@ -126,6 +127,8 @@ export {
     Triggers,
     Collections,
     DefaultCollection,
+    Paginations,
+    DefaultPagination,
 
     type CombinedColumnOptions
 }

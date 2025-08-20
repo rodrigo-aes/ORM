@@ -102,6 +102,7 @@ export default class CaseSQLBuilder<
                 this.alias
             )
                 .SQL()
+
             : new AndSQLBuilder(
                 this.target,
                 when,

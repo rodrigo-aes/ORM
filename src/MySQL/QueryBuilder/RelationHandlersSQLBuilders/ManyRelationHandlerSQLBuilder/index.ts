@@ -50,6 +50,10 @@ export default abstract class ManyRelationHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+
+
+    // ------------------------------------------------------------------------
+
     public createSQL(attributes: CreationAttributes<InstanceType<Related>>): (
         [string, any[]]
     ) {

@@ -13,6 +13,12 @@ import PaginationSQLBuilder, {
     type PaginationQueryOptions
 } from "./PaginationSQLBuilder"
 
+import CountSQLBuilder, {
+    type CountQueryOption,
+    type CountQueryOptions,
+    type CountCaseOptions
+} from "./CountSQLBuilder"
+
 import CreateSQLBuilder, {
     type CreationAttributes,
     type CreationAttributesOptions
@@ -73,11 +79,12 @@ import type { RelationsOptions } from "./JoinSQLBuilder"
 export {
     QueryBuilder,
     ConnectionQueryBuilder,
-
+    CountSQLBuilder,
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
     FindSQLBuilder,
     PaginationSQLBuilder,
+
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
@@ -110,6 +117,9 @@ export {
     type FindOneQueryOptions,
     type FindQueryOptions,
     type PaginationQueryOptions,
+    type CountQueryOption,
+    type CountQueryOptions,
+    type CountCaseOptions,
     type CreationAttributes,
     type CreationAttributesOptions,
     type UpdateAttributes,

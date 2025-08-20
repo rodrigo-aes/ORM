@@ -19,9 +19,12 @@ import { MetadataHandler, TempMetadata } from "../Metadata"
 // Query Builder
 import {
     QueryBuilder,
+
     type FindQueryOptions,
     type FindOneQueryOptions,
     type PaginationQueryOptions,
+    type CountQueryOption,
+    type CountQueryOptions,
     type CreationAttributes,
     type UpdateAttributes,
     type UpdateOrCreateAttibutes,
@@ -39,6 +42,7 @@ import {
 
 // Repository
 import Repository, {
+    type CountManyQueryResult,
     type ResultMapOption,
     type DeleteResult
 } from "../Repository"
@@ -426,6 +430,27 @@ export default abstract class BaseEntity {
         attributes: CreationAttributes<InstanceType<T>>
     ): Promise<InstanceType<T>> {
         return this.getRepository().create(attributes)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static count<T extends EntityTarget>(
+        this: T & typeof BaseEntity,
+        options: CountQueryOption<InstanceType<T>>
+    ): Promise<number> {
+        return this.getRepository().count(options)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static countMany<
+        T extends EntityTarget,
+        Opts extends CountQueryOptions<InstanceType<T>>
+    >(
+        this: T & typeof BaseEntity,
+        options: Opts
+    ): Promise<CountManyQueryResult<T, Opts>> {
+        return this.getRepository().countMany(options)
     }
 
     // ------------------------------------------------------------------------

@@ -7,6 +7,7 @@ import type {
     FindOneSQLBuilder,
     FindSQLBuilder,
     PaginationSQLBuilder,
+    CountSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
@@ -20,6 +21,7 @@ export type SQLBuilder<T extends EntityTarget | PolymorphicEntityTarget> = (
     FindSQLBuilder<T> |
     FindOneSQLBuilder<T> |
     PaginationSQLBuilder<T> |
+    CountSQLBuilder<T> |
     CreateSQLBuilder<AsEntityTarget<T>> |
     UpdateOrCreateSQLBuilder<AsEntityTarget<T>> |
     UpdateSQLBuilder<T> |
@@ -71,6 +73,8 @@ export type ExecResult<
         ? FindOneResult<T, MapTo>
         : Builder extends FindByPkSQLBuilder<T>
         ? FindOneResult<T, MapTo>
+        : Builder extends CountSQLBuilder<T>
+        ? CountResult<T>
         : Builder extends FindByPkSQLBuilder<T>
         ? FindOneResult<T, MapTo>
         : Builder extends CreateSQLBuilder<T>
@@ -130,6 +134,10 @@ export type FindResult<
 export type PaginateResult<
     T extends EntityTarget | PolymorphicEntityTarget
 > = Pagination<InstanceType<T>>
+
+export type CountResult<
+    T extends EntityTarget | PolymorphicEntityTarget
+> = { [Key: string]: number }
 
 export type CreateResult<
     T extends EntityTarget | PolymorphicEntityTarget

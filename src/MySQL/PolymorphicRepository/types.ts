@@ -2,7 +2,7 @@ import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
 import type BaseEntity from "../BaseEntity"
 import type BasePolymorphicEntity from "../BasePolymorphicEntity"
 import type { ResultSetHeader } from "mysql2"
-import type { UpdateAttributes } from "../QueryBuilder"
+import type { UpdateAttributes, CountQueryOptions } from "../QueryBuilder"
 
 export type UpdateQueryResult<
     T extends PolymorphicEntityTarget,
@@ -35,3 +35,8 @@ export type UpdateOrCreateQueryResult<
     Source extends EntityTarget,
     MapTo extends 'this' | 'source'
 > = CreateQueryResult<T, Source, MapTo>
+
+export type CountManyQueryResult<
+    T extends EntityTarget | PolymorphicEntityTarget,
+    Opts extends CountQueryOptions<InstanceType<T>>
+> = { [K in keyof Opts]: number }

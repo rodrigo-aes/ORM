@@ -88,8 +88,8 @@ export default class FindOneSQLBuilder<
         return this.unions
             .filter(({ name }) => {
                 if (included.has(name)) return false
-
                 included.add(name)
+
                 return true
             })
             .map(union => union.SQL())
@@ -170,10 +170,10 @@ export default class FindOneSQLBuilder<
             this.joins.push(join)
 
             if (this.group) if (
-                Object.keys(this.options.group ?? {}).length === 0
-            ) this.group.merge(
-                selectBuilder.groupQueryBuilder()
-            )
+                Object
+                    .keys(this.options.group ?? {})
+                    .length === 0
+            ) this.group.merge(selectBuilder.groupQueryBuilder())
 
             if (join.hasTableUnion()) this.unions.push(
                 join.tableUnionQueryBuilder()!
@@ -199,42 +199,11 @@ export default class FindOneSQLBuilder<
     // ------------------------------------------------------------------------
 
     private buildGroup(): GroupSQLBuilder<T> | undefined {
-        const shouldBuild = (
-            this.options.group ||
-            this.options.select?.count ||
-            this.hasRelationCount()
-        )
-
-        const options = shouldBuild
-            ? this.options.group ?? [...this.metadata.columns].map(
-                ({ name }) => name
-            )
-            : undefined
-
-        if (shouldBuild) return new GroupSQLBuilder(
+        if (this.options.group) return new GroupSQLBuilder(
             this.target,
-            options!,
+            this.options.group,
             this.alias
         )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public hasRelationCount(options?: RelationsOptions<any>): boolean {
-        options = options ?? this.options.relations
-
-        for (const value of Object.values(options ?? {})) {
-            if (typeof value === 'boolean') return false
-            if (Object.values(value.select?.count ?? {}).length > 0) return (
-                true
-            )
-
-            if (value.relations) if (
-                this.hasRelationCount(value.relations)
-            ) return true
-        }
-
-        return false
     }
 }
 

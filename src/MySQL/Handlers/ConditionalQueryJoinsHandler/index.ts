@@ -23,7 +23,7 @@ export default class ConditionalQueryJoinsHandler<
 
     constructor(
         public target: T,
-        public conditional: ConditionalQueryOptions<InstanceType<T>>,
+        public conditional?: ConditionalQueryOptions<InstanceType<T>>,
         public auxiliarData?: any,
         alias?: string
     ) {
@@ -36,6 +36,20 @@ export default class ConditionalQueryJoinsHandler<
         return Object.entries(this.extractConditionalRelations()).flatMap(
             ([key]) => this.handleJoin(key)
         )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public joinsByKeys(keys: string[]): JoinSQLBuilder<any>[] {
+        return keys.flatMap(key => this.handleJoin(key))
+    }
+
+    // ------------------------------------------------------------------------
+
+    public joinByKey(key: string): (
+        JoinSQLBuilder<any> | JoinSQLBuilder<any>[]
+    ) {
+        return this.handleJoin(key)
     }
 
     // Privates ---------------------------------------------------------------

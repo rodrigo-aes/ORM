@@ -1,9 +1,7 @@
 import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
+import BaseEntity, { type PaginationInitMap } from "../../BaseEntity"
 
-import BaseEntity, {
-    type Collection,
-    type PaginationInitMap
-} from "../../BaseEntity"
+// Childs
 import RelationQueryExecutionHandler from "./RelationQueryExecutionHandler"
 
 // SQL Builders
@@ -12,6 +10,7 @@ import {
     FindOneSQLBuilder,
     FindSQLBuilder,
     PaginationSQLBuilder,
+    CountSQLBuilder,
     CreateSQLBuilder,
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
@@ -44,6 +43,7 @@ import type {
     FindOneResult,
     FindResult,
     PaginateResult,
+    CountResult,
     CreateResult,
     UpdateResult,
     UpdateOrCreateResult,
@@ -98,6 +98,12 @@ export default class MySQL2QueryExecutionHandler<
                 this.executeFindOne() as (
                     Promise<ExecResult<T, Builder, MapTo>>
                 )
+            )
+
+            // ----------------------------------------------------------------
+
+            case this.sqlBuilder instanceof CountSQLBuilder: return (
+                this.executeCount() as Promise<ExecResult<T, Builder, MapTo>>
             )
 
             // ----------------------------------------------------------------
@@ -202,6 +208,14 @@ export default class MySQL2QueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
+    private async executeCount(): Promise<CountResult<T>> {
+        const connection = this.getConnection()
+        const [result] = await connection.query(this.sqlBuilder.SQL())
+        return result
+    }
+
+    // ------------------------------------------------------------------------
+
     private async executeCreate(): (
         Promise<CreateResult<Extract<T, EntityTarget>>>
     ) {
@@ -298,9 +312,7 @@ export default class MySQL2QueryExecutionHandler<
     private handleDataMapTo(
         rawData: MySQL2RawData,
         fillMethod: DataFillMethod
-    ): (
-            ExecResult<T, Builder, MapTo>
-        ) {
+    ): ExecResult<T, Builder, MapTo> {
         switch (this.mapTo) {
             case 'entity':
             case 'json':
@@ -312,9 +324,7 @@ export default class MySQL2QueryExecutionHandler<
                     case 'entity': return handler.parseEntity(
                         undefined,
                         this.pagination
-                    ) as (
-                            ExecResult<T, Builder, MapTo>
-                        )
+                    ) as ExecResult<T, Builder, MapTo>
 
                     case 'json': return handler.parseRaw() as (
                         ExecResult<T, Builder, MapTo>

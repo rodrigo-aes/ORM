@@ -11,12 +11,13 @@ export type RelationOptions<Entity extends object> = {
     relations?: RelationsOptions<Entity>
 }
 
-export type RelationsOptions<Entity extends object> = {
+export type RelationsOptions<Entity extends object> = Partial<{
     [K in EntityRelationsKeys<Entity>]: (
         boolean |
         RelationOptions<Extract<Entity[K], object>>
     )
-}
+}>
+
 
 export type EntityRelationMap = {
     select: SelectSQLBuilder<any>,

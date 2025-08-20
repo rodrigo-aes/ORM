@@ -21,7 +21,9 @@ import { InternalPolymorphicEntities } from "./Components"
 import { ColumnsSnapshots, Collection } from "../BaseEntity"
 
 // Repository
-import PolymorphicRepository from "../PolymorphicRepository"
+import PolymorphicRepository, {
+    type CountManyQueryResult
+} from "../PolymorphicRepository"
 
 // Relations
 import {
@@ -60,6 +62,8 @@ import type {
     FindQueryOptions,
     FindOneQueryOptions,
     PaginationQueryOptions,
+    CountQueryOption,
+    CountQueryOptions,
     CreationAttributes,
     UpdateAttributes,
     UpdateOrCreateAttibutes,
@@ -476,6 +480,27 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     }
 
     // ------------------------------------------------------------------------
+
+    // ------------------------------------------------------------------------
+
+    public static count<T extends EntityTarget>(
+        this: T & typeof BaseEntity,
+        options: CountQueryOption<InstanceType<T>>
+    ): Promise<number> {
+        return this.getRepository().count(options)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static countMany<
+        T extends EntityTarget,
+        Opts extends CountQueryOptions<InstanceType<T>>
+    >(
+        this: T & typeof BaseEntity,
+        options: Opts
+    ): Promise<CountManyQueryResult<T, Opts>> {
+        return this.getRepository().countMany(options)
+    }
 
     public static create<
         T extends PolymorphicEntityTarget,

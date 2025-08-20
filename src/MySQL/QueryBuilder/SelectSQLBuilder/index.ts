@@ -46,10 +46,15 @@ export default class SelectSQLBuilder<
     // ------------------------------------------------------------------------
 
     public get properties(): string {
-        if (this.options?.properties === '1') return '1'
+        if (this.options?.properties === '1') return this.options?.properties
 
         return [
             this.propertiesSQL(),
+            ...(
+                Object.keys(this.options?.count ?? {}).length > 0
+                    ? [this.countsSQL()]
+                    : []
+            ),
             ...this.mergedProperties
         ]
             .join(', ')
@@ -79,11 +84,8 @@ export default class SelectSQLBuilder<
     // ------------------------------------------------------------------------
 
     public SQL(): string {
-        let counts = this.countsSQL()
-        counts = counts ? `, ${counts}` : ''
-
         return SQLStringHelper.normalizeSQL(`
-            SELECT ${this.properties} ${counts} ${this.fromSQL()}
+            SELECT ${this.properties} ${this.fromSQL()}
         `)
     }
 
@@ -102,12 +104,11 @@ export default class SelectSQLBuilder<
 
     public countsSQL(): string {
         return this.options?.count
-            ? new CountSQLBuilder(
+            ? CountSQLBuilder.inline(
                 this.target,
                 this.options.count,
                 this.alias
             )
-                .SQL()
             : ''
     }
 
@@ -161,14 +162,16 @@ export default class SelectSQLBuilder<
             .flatMap(
                 prop => Object.getOwnPropertySymbols(prop).map(
                     symbol => {
-                        if (symbol === Case) return ConditionalSQLBuilder
-                            .case(
-                                this.target,
-                                prop[symbol],
-                                prop.as,
-                                this.alias
-                            )
-                            .SQL()
+                        switch (symbol) {
+                            case Case: return ConditionalSQLBuilder
+                                .case(
+                                    this.target,
+                                    prop[symbol],
+                                    prop.as,
+                                    this.alias
+                                )
+                                .SQL()
+                        }
 
                         throw new Error
                     }
