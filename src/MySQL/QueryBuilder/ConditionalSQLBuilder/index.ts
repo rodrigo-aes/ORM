@@ -1,5 +1,6 @@
 import WhereSQLBuilder from "./WhereSQLBuilder"
 import OnSQLBuilder from "./OnSQLBuilder"
+import { Op } from "./Operator"
 import CaseSQLBuilder, {
     Case,
     type CaseQueryOptions,
@@ -9,7 +10,9 @@ import CaseSQLBuilder, {
 import {
     Exists,
     Cross,
-    type ExistsQueryOptions
+
+    type ExistsQueryOptions,
+    type CrossExistsQueryOptions,
 } from "./ExistsSQLBuilder"
 
 // Types
@@ -19,6 +22,7 @@ import type {
     AndQueryOptions,
     OrQueryOptions
 } from "./types"
+
 import type { RelationMetadataType } from "../../Metadata"
 
 export default class ConditionalSQLBuilder {
@@ -74,6 +78,7 @@ export default class ConditionalSQLBuilder {
 export {
     WhereSQLBuilder,
     OnSQLBuilder,
+    Op,
 
     type ConditionalQueryOptions,
     type AndQueryOptions,
@@ -85,5 +90,7 @@ export {
 
     Exists,
     Cross,
-    type ExistsQueryOptions
+    type ExistsQueryOptions,
+    type CrossExistsQueryOptions,
+
 }

@@ -1,10 +1,11 @@
 import { EntityMetadata } from "../../../Metadata"
 
-// Query Builders
+// SQL Builders
 import { Op } from "../../ConditionalSQLBuilder/Operator"
 
-// Query Handlers
+// Query Builders
 import OperatorQueryBuilder from "../OperatorQueryBuilder"
+import ExistsQueryBuilder from "../ExistsQueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
@@ -14,10 +15,12 @@ import type {
     EntityPropertiesKeys,
 } from "../../types"
 import type { CompatibleOperators, OperatorType } from "../OperatorQueryBuilder"
+import type { WhereQueryFunction } from "../FindOneQueryBuilder/types"
 
 export default class AndQueryBuilder<T extends EntityTarget> {
     protected metadata: EntityMetadata
-    public options: AndQueryOptions<InstanceType<T>> = {}
+    public _options: AndQueryOptions<InstanceType<T>> = {}
+    private exists?: ExistsQueryBuilder<T>
 
     constructor(
         public target: T,
@@ -25,6 +28,16 @@ export default class AndQueryBuilder<T extends EntityTarget> {
     ) {
         this.metadata = this.loadMetadata()
     }
+
+    // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get options(): AndQueryOptions<InstanceType<T>> {
+        return {
+            ...this._options,
+            ...this.exists?.options
+        }
+    }
+
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
@@ -41,7 +54,7 @@ export default class AndQueryBuilder<T extends EntityTarget> {
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        this.options[propertie] = (
+        this._options[propertie] = (
             OperatorQueryBuilder.isOperator(
                 conditional as string
             )
@@ -59,6 +72,24 @@ export default class AndQueryBuilder<T extends EntityTarget> {
                 }
                 : conditional as any
         )
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public whereExists<Source extends EntityTarget | WhereQueryFunction<T>>(
+        exists: Source,
+        conditional: typeof exists extends EntityTarget
+            ? WhereQueryFunction<Source>
+            : never
+    ): this {
+        if (!this.exists) this.exists = new ExistsQueryBuilder(
+            this.target,
+            this.alias
+        )
+
+        this.exists.exists(exists, conditional)
 
         return this
     }
@@ -94,7 +125,7 @@ export default class AndQueryBuilder<T extends EntityTarget> {
             }
         )
 
-        this.options[propertie] = {
+        this._options[propertie] = {
             [Op.Or]: orValue
         } as any
 
@@ -108,7 +139,7 @@ export default class AndQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public toQueryOptions(): AndQueryOptions<InstanceType<T>> {
-        return this.options
+        return this._options
     }
 
     // Privates ---------------------------------------------------------------

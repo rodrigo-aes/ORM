@@ -308,5 +308,7 @@ export default class ExistsSQLBuilder<
 export {
     Exists,
     Cross,
-    type ExistsQueryOptions
+
+    type ExistsQueryOptions,
+    type CrossExistsQueryOptions
 }
