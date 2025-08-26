@@ -20,8 +20,6 @@ export type OperatorType = {
     'REGEXP': RegExp | string
     'NOT REGEXP': RegExp | string
     'NOT': any
-    'EXISTS': string | object
-    'NOT EXISTS': string | object
     'ANY': Primitive[] | string
     'ALL': Primitive[] | string
 }

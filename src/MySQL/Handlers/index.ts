@@ -3,6 +3,8 @@ import MySQL2QueryExecutionHandler, {
     type ExecResult,
     type FindOneResult,
     type FindResult,
+    type PaginateResult,
+    type CountResult,
     type CreateResult,
     type DeleteResult,
 
@@ -25,6 +27,8 @@ export {
     type ResultMapOption,
     type FindOneResult,
     type FindResult,
+    type PaginateResult,
+    type CountResult,
     type CreateResult,
     type DeleteResult,
 

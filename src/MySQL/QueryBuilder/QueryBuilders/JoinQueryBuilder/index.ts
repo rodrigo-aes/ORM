@@ -1,22 +1,38 @@
-import { EntityMetadata } from "../../../Metadata"
+import {
+    MetadataHandler,
+
+    type EntityMetadata,
+    type PolymorphicEntityMetadata
+} from "../../../Metadata"
 
 // Query Handlers
 import SelectQueryBuilder from "../SelectQueryBuilder"
 import WhereQueryBuilder from "../WhereQueryBuilder"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
-import type { RelationOptions, RelationsOptions } from "../../JoinSQLBuilder/types"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
+import type {
+    RelationOptions,
+    RelationsOptions
+} from "../../JoinSQLBuilder/types"
 import type {
     JoinQueryOptions,
     JoinQueryClause,
-    SelectQueryFunction,
-    OnQueryFunction,
-    JoinQueryFunction,
 } from "./types"
 
-export default class JoinQueryBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+import type {
+    SelectQueryHandler,
+    WhereQueryHandler,
+    JoinQueryHandler
+} from "../types"
+
+export default class JoinQueryBuilder<
+    T extends EntityTarget | PolymorphicEntityTarget
+> {
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     private _options: JoinQueryClause<T> = {
         relations: {}
@@ -27,7 +43,7 @@ export default class JoinQueryBuilder<T extends EntityTarget> {
         public alias?: string,
         required?: boolean
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
         this._options.required = required
     }
 
@@ -35,7 +51,7 @@ export default class JoinQueryBuilder<T extends EntityTarget> {
     // Publics ----------------------------------------------------------------
     public innerJoin<T extends EntityTarget>(
         related: T,
-        joinClause?: JoinQueryFunction<T>
+        joinClause?: JoinQueryHandler<T>
     ): this {
         const [name, target] = this.handleRelated(related)
         const handler = new JoinQueryBuilder(
@@ -54,7 +70,7 @@ export default class JoinQueryBuilder<T extends EntityTarget> {
 
     public leftJoin<T extends EntityTarget>(
         related: T,
-        joinClause?: JoinQueryFunction<T>
+        joinClause?: JoinQueryHandler<T>
     ): this {
         const [name, target] = this.handleRelated(related)
         const handler = new JoinQueryBuilder(
@@ -71,7 +87,7 @@ export default class JoinQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public select(selectClause: SelectQueryFunction<T>): this {
+    public select(selectClause: SelectQueryHandler<T>): this {
         this._options.select = new SelectQueryBuilder(
             this.target,
             this.alias
@@ -84,7 +100,7 @@ export default class JoinQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public on(onClause: OnQueryFunction<T>): this {
+    public on(onClause: WhereQueryHandler<T>): this {
         this._options.on = new WhereQueryBuilder(
             this.target,
             this.alias
@@ -109,12 +125,6 @@ export default class JoinQueryBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private handleRelated<Target extends EntityTarget>(
         related: Target
     ): [keyof JoinQueryOptions<T>, Target] {

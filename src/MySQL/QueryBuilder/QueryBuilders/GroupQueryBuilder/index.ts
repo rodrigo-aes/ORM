@@ -1,8 +1,13 @@
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type { GroupQueryOptions } from "../../GroupSQLBuilder"
 
-export default class GroupQueryBuilder<T extends EntityTarget> {
+export default class GroupQueryBuilder<
+    T extends EntityTarget | PolymorphicEntityTarget
+> {
     private _options: GroupQueryOptions<InstanceType<T>> = []
 
     constructor(

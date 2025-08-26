@@ -1,20 +1,29 @@
-import { EntityMetadata } from "../../../Metadata"
+import {
+    MetadataHandler,
+
+    type EntityMetadata,
+    type PolymorphicEntityMetadata
+} from "../../../Metadata"
 
 // Query Handlers
 import WhereQueryBuilder from "../WhereQueryBuilder"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type {
     CaseQueryOptions,
     ElseQueryOption
 } from "../../ConditionalSQLBuilder/CaseSQLBuilder"
 
-import type { CaseQueryFunction, CaseQueryTuple } from "./types"
-import type { WhereQueryFunction } from "../WhereQueryBuilder"
+import type { CaseQueryTuple } from "./types"
+import type { WhereQueryHandler } from "../types"
 
-export default class CaseQueryBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class CaseQueryBuilder<
+    T extends EntityTarget | PolymorphicEntityTarget> {
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     private _whens!: CaseQueryTuple<T>[]
     private _else?: ElseQueryOption
@@ -24,12 +33,12 @@ export default class CaseQueryBuilder<T extends EntityTarget> {
         public target: T,
         public alias?: string
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public when(caseClause: CaseQueryFunction<T>, then: any): this {
+    public when(caseClause: WhereQueryHandler<T>, then: any): this {
         const where = new WhereQueryBuilder(
             this.target,
             this.alias
@@ -47,7 +56,7 @@ export default class CaseQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public else(value: any): this {
+    public else(value: any): Omit<this, 'when'> {
         this._else = value
         return this
     }
@@ -70,10 +79,5 @@ export default class CaseQueryBuilder<T extends EntityTarget> {
         ] as (
                 CaseQueryOptions<InstanceType<T>>
             )
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
     }
 }

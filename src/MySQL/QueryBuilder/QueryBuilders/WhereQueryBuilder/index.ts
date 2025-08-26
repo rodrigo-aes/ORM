@@ -1,22 +1,38 @@
-import { EntityMetadata } from "../../../Metadata"
+import {
+    MetadataHandler,
+
+    type EntityMetadata,
+    type PolymorphicEntityMetadata
+} from "../../../Metadata"
 
 // Query Handlers
 import AndQueryBuilder from "../AndQueryBuilder"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type {
     AndQueryOptions,
     OrQueryOptions
 } from "../../ConditionalSQLBuilder"
 
-import type { WhereQueryFunction } from "./types"
+import type {
+    AndQueryHandler,
+    WhereQueryHandler
+} from "../types"
 
 import type { EntityProperties, EntityPropertiesKeys } from "../../types"
-import type { CompatibleOperators, OperatorType } from "../OperatorQueryBuilder"
+import type {
+    CompatibleOperators,
+    OperatorType
+} from "../OperatorQueryBuilder"
 
-export default class WhereQueryBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class WhereQueryBuilder<
+    T extends EntityTarget | PolymorphicEntityTarget
+> {
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     private currentAnd!: AndQueryBuilder<T>
     private orOpts?: AndQueryBuilder<T>[]
@@ -25,7 +41,7 @@ export default class WhereQueryBuilder<T extends EntityTarget> {
         public target: T,
         public alias?: string,
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
         this.addAndClause()
     }
 
@@ -50,7 +66,33 @@ export default class WhereQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    public whereExists<
+        Source extends (
+            EntityTarget |
+            PolymorphicEntityTarget |
+            WhereQueryHandler<T>
+        )
+    >(
+        exists: Source,
+        conditional: typeof exists extends (
+            EntityTarget |
+            PolymorphicEntityTarget
+        )
+            ? WhereQueryHandler<Source>
+            : never
+    ): this {
+        this.currentAnd.whereExists(exists, conditional)
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
     public and = this.where
+
+    // ------------------------------------------------------------------------
+
+    public andExists = this.whereExists
 
     // ------------------------------------------------------------------------
 
@@ -100,12 +142,6 @@ export default class WhereQueryBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
     private addAndClause(): void {
         this.currentAnd = new AndQueryBuilder(
             this.target,
@@ -131,18 +167,11 @@ export default class WhereQueryBuilder<T extends EntityTarget> {
             ? OperatorType[typeof conditional]
             : never
     ) {
-        return new WhereQueryBuilder(
-            target,
-            alias
-        )
+        return new WhereQueryBuilder(target, alias)
             .where(
                 propertie,
                 conditional,
                 value
             )
     }
-}
-
-export {
-    type WhereQueryFunction
 }

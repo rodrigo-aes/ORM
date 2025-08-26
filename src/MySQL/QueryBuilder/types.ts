@@ -1,5 +1,6 @@
 import type BaseEntity from "../BaseEntity"
 import type BasePolymorphicEntity from "../BasePolymorphicEntity"
+
 export type EntityPropertiesKeys<Entity extends object> = {
     [K in keyof Entity]: (
         Entity[K] extends (

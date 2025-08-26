@@ -1,4 +1,9 @@
-import { EntityMetadata } from "../../../Metadata"
+import {
+    MetadataHandler,
+
+    type EntityMetadata,
+    type PolymorphicEntityMetadata
+} from "../../../Metadata"
 import { Case } from "../../ConditionalSQLBuilder"
 
 // Query Handlers
@@ -6,7 +11,10 @@ import CaseQueryBuilder from "../CaseQueryBuilder"
 import CountQueryBuilder from "../CountQueryBuilder"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type {
     SelectOptions,
     SelectPropertyOptions,
@@ -19,13 +27,15 @@ import type {
 
 import type {
     SelectPropertyType,
-    SelectPropertiesOptions,
-    SelectCaseFunction,
-    SelectCountFunction
+    SelectPropertiesOptions
 } from "./types"
 
-export default class SelectQueryBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+import type { CountQueryHandler, CaseQueryHandler } from "../types"
+
+export default class SelectQueryBuilder<
+    T extends EntityTarget | PolymorphicEntityTarget
+> {
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     private _properties: SelectPropertyType<T>[] = []
     private _count: CountQueryBuilder<T>[] = []
@@ -34,7 +44,7 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
         public target: T,
         public alias?: string
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -54,15 +64,14 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public count(
-        countClause: SelectCountFunction<T> | string,
+        countClause: CountQueryHandler<T> | string,
         as?: string
     ): this {
         const handler = new CountQueryBuilder(this.target, this.alias)
 
-        if (typeof countClause === 'string') handler.count(countClause)
+        if (typeof countClause === 'string') handler.property(countClause)
         else countClause(handler)
 
-        if (as) handler._as = as
         this._count.push(handler)
 
         return this
@@ -75,11 +84,6 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
             properties: this.propertiesToOptions(),
             count: this.countToOptions()
         }
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
     }
 
     // ------------------------------------------------------------------------
@@ -116,7 +120,7 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private handleProperty(
-        property: SelectPropertyKey<InstanceType<T>> | SelectCaseFunction<T>
+        property: SelectPropertyKey<InstanceType<T>> | CaseQueryHandler<T>
     ): SelectPropertyKey<InstanceType<T>> | CaseQueryBuilder<T> {
         switch (typeof property) {
             case "string": return property
@@ -136,6 +140,5 @@ export default class SelectQueryBuilder<T extends EntityTarget> {
 
 
 export {
-    type SelectPropertiesOptions,
-    type SelectCountFunction
+    type SelectPropertiesOptions
 }

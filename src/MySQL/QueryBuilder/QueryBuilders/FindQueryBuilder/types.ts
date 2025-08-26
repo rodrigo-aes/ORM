@@ -1,9 +1,12 @@
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type { FindOneQueryOptions } from "../FindOneQueryBuilder"
 import type OrderQueryBuilder from "../OrderQueryBuilder"
 
 export interface FindQueryOptions<
-    T extends EntityTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > extends FindOneQueryOptions<T> {
     order?: OrderQueryBuilder<T>
     limit?: number

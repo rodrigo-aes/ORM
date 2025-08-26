@@ -4,16 +4,30 @@ import CreateQueryBuilder from "../CreateQueryBuilder"
 import { MySQL2QueryExecutionHandler } from "../../../../Handlers"
 
 // Types
-import type { EntityTarget, AsEntityTarget } from "../../../../../types/General"
+import type {
+    EntityTarget,
+    AsEntityTarget
+} from "../../../../../types/General"
+
 import type CreateSQLBuilder from "../../../CreateSQLBuilder"
+import type { CreationAttributes } from "../../../CreateSQLBuilder"
 
 export default class InsertQueryBuilder<
     T extends EntityTarget
 > extends CreateQueryBuilder<T> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public values(...values: any[]): this {
+    public values(...values: any[]): Omit<this, 'data'> {
         this.sqlBuilder.values(...values)
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public data(attributes: CreationAttributes<InstanceType<T>>): (
+        Omit<this, 'fields' | 'values'>
+    ) {
+        this.sqlBuilder.setData(attributes)
         return this
     }
 

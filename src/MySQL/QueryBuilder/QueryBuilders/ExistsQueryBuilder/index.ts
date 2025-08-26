@@ -1,4 +1,9 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../../Metadata"
+import {
+    MetadataHandler,
+
+    type EntityMetadata,
+    type PolymorphicEntityMetadata
+} from "../../../Metadata"
 import BaseEntity from "../../../BaseEntity"
 import BasePolymorphicEntity from "../../../BasePolymorphicEntity"
 
@@ -15,18 +20,16 @@ import {
 // Query Builders
 import WhereQueryBuilder from "../WhereQueryBuilder"
 
-// Handlers
-import { MetadataHandler } from "../../../Metadata"
-
 // Types
 import type {
-    EntityTarget
+    EntityTarget,
+    PolymorphicEntityTarget
 } from "../../../../types/General"
 
-import type { WhereQueryFunction } from "../FindOneQueryBuilder/types"
+import type { WhereQueryHandler } from "../types"
 
 export default class ExistsQueryBuilder<
-    T extends EntityTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > {
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
     private _options!: string | (
@@ -49,10 +52,22 @@ export default class ExistsQueryBuilder<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public exists<Source extends EntityTarget | WhereQueryFunction<T>>(
+    public exists<
+        Source extends (
+            EntityTarget |
+            PolymorphicEntityTarget |
+            WhereQueryHandler<T>
+        )
+    >(
         exists: Source,
-        conditional: typeof exists extends EntityTarget
-            ? WhereQueryFunction<Source>
+        conditional: typeof exists extends (
+            EntityTarget |
+            PolymorphicEntityTarget
+        )
+            ? WhereQueryHandler<Extract<Source, (
+                EntityTarget |
+                PolymorphicEntityTarget
+            )>>
             : never
     ): this {
         if (
@@ -60,11 +75,15 @@ export default class ExistsQueryBuilder<
             BasePolymorphicEntity.prototype.isPrototypeOf(exists.prototype)
         ) {
             const where = new WhereQueryBuilder(
-                exists as EntityTarget,
+                exists as EntityTarget | PolymorphicEntityTarget,
                 this.alias
-            )
+            );
 
-            conditional(where)
+            (conditional as WhereQueryHandler<(
+                EntityTarget |
+                PolymorphicEntityTarget
+            )>)(where)
+
             const opt = {
                 target: exists,
                 where: where.toQueryOptions()
@@ -80,7 +99,7 @@ export default class ExistsQueryBuilder<
         }
 
         const where = new WhereQueryBuilder(this.target, this.alias);
-        (exists as WhereQueryFunction<T>)(where)
+        (exists as WhereQueryHandler<T>)(where)
 
         this._options = {
             ...(this._options as ExistsQueryOptions<T>),

@@ -1,22 +1,23 @@
-import { Case, CaseQueryOptions } from "../../ConditionalSQLBuilder"
-
 // SQL Builders
 import CountSQLBuilder, {
     type CountQueryOption
 } from "../../CountSQLBuilder"
 
 // Query Builders
-import WhereQueryBuilder from "../WhereQueryBuilder"
-import CaseQueryBuilder from "../CaseQueryBuilder"
+import CountQueryBuilder from "../CountQueryBuilder"
 
 // Handlers
-import { MySQL2QueryExecutionHandler } from "../../../Handlers"
+import {
+    MySQL2QueryExecutionHandler,
+    type CountResult
+} from "../../../Handlers"
 
 // Types
 import type {
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../../../types/General"
+import type { CountQueryOptions } from "../../CountSQLBuilder"
 import type { CaseQueryHandler, WhereQueryHandler } from "../types"
 import type { EntityProperties, EntityPropertiesKeys } from "../../types"
 import type {
@@ -28,17 +29,11 @@ type WhereMethods = 'where' | 'whereExists' | 'and' | 'andExists' | 'orWhere'
 type CaseMethods = 'case'
 type CountMethods = 'count'
 
-export default class CountQueryBuilder<
+export default class CountManyQueryBuilder<
     T extends EntityTarget | PolymorphicEntityTarget
 > {
-    public _as?: string
-    private _conditional?: (
-        string |
-        WhereQueryBuilder<T> |
-        CaseQueryBuilder<T>
-    )
-
-    public type!: 'prop' | 'where' | 'case'
+    protected _options: CountQueryBuilder<T>[] = []
+    protected currentCount?: CountQueryBuilder<T>
 
     constructor(
         public target: T,
@@ -48,8 +43,8 @@ export default class CountQueryBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public property(name: string): Omit<this, WhereMethods | CaseMethods> {
-        this._conditional = name
-        this.type = 'prop'
+        this.handleCurrentCount()
+        this.currentCount!.property(name)
 
         return this
     }
@@ -69,14 +64,8 @@ export default class CountQueryBuilder<
             ? OperatorType[typeof conditional]
             : never
     ): Omit<this, CaseMethods | CountMethods> {
-        this.verifyWhere();
-        (this._conditional as WhereQueryBuilder<T>).where(
-            propertie,
-            conditional,
-            value
-        )
-
-        this.type = 'where'
+        this.handleCurrentCount()
+        this.currentCount!.where(propertie, conditional, value)
 
         return this
     }
@@ -98,10 +87,8 @@ export default class CountQueryBuilder<
             ? WhereQueryHandler<Source>
             : never
     ): this {
-        (this._conditional as WhereQueryBuilder<T>).whereExists(
-            exists,
-            conditional
-        )
+        this.handleCurrentCount()
+        this.currentCount!.whereExists(exists, conditional)
 
         return this
     }
@@ -129,12 +116,8 @@ export default class CountQueryBuilder<
             ? OperatorType[typeof conditional]
             : never
     ): Omit<this, CaseMethods | CountMethods> {
-        this.verifyWhere();
-        (this._conditional as WhereQueryBuilder<T>).orWhere(
-            propertie,
-            conditional,
-            value
-        )
+        this.handleCurrentCount()
+        this.orWhere(propertie, conditional, value)
 
         return this
     }
@@ -144,33 +127,32 @@ export default class CountQueryBuilder<
     public case(caseClause: CaseQueryHandler<T>): (
         Omit<this, WhereMethods | CountMethods>
     ) {
-        const handler = new CaseQueryBuilder(this.target, this.alias)
-
-        caseClause(handler)
-        this._conditional = handler
-        this.type = 'case'
+        this.handleCurrentCount()
+        this.case(caseClause)
 
         return this
     }
 
     // ------------------------------------------------------------------------
 
-    public as(name: string): void {
-        this._as = name
+    public as(name: string): this {
+        this.handleCurrentCount()
+        this.currentCount!.as(name)
+
+        this._options.push(this.currentCount!)
+
+        return this
     }
 
     // ------------------------------------------------------------------------
 
-    public async exec(): Promise<number> {
-        return (
-            await new MySQL2QueryExecutionHandler(
-                this.target,
-                this.toSQLBuilder(),
-                'json'
-            )
-                .exec()
+    public exec<T extends CountResult = CountResult>(): Promise<T> {
+        return new MySQL2QueryExecutionHandler(
+            this.target,
+            this.toSQLBuilder(),
+            'json'
         )
-            .result
+            .exec() as unknown as Promise<T>
     }
 
     // ------------------------------------------------------------------------
@@ -182,7 +164,7 @@ export default class CountQueryBuilder<
     // ------------------------------------------------------------------------
 
     public toSQLBuilder(): CountSQLBuilder<T> {
-        return CountSQLBuilder.countBuilder(
+        return CountSQLBuilder.countManyBuilder(
             this.target,
             this.toQueryOptions(),
             this.alias
@@ -191,31 +173,21 @@ export default class CountQueryBuilder<
 
     // ------------------------------------------------------------------------
 
-    public toQueryOptions(): CountQueryOption<InstanceType<T>> {
-        if (typeof this._conditional === 'string') return this._conditional
+    public toQueryOptions(): CountQueryOptions<InstanceType<T>> {
+        return Object.fromEntries(
+            this._options.map(count => {
+                if (!count._as) throw new Error
 
-        switch (this.type) {
-            case "where": return this._conditional!.toQueryOptions()
-            case "case": return {
-                [Case]: this._conditional!.toQueryOptions() as (
-                    CaseQueryOptions<InstanceType<T>>
-                )
-            }
-        }
-
-        throw new Error
+                return [count._as, count.toQueryOptions()]
+            })
+        )
     }
 
-    // Privates ---------------------------------------------------------------
-    private verifyWhere(): void {
-        if (!this._conditional) this._conditional = new WhereQueryBuilder(
+    // Protecteds -------------------------------------------------------------
+    protected handleCurrentCount(): void {
+        if (!this.currentCount) this.currentCount = new CountQueryBuilder(
             this.target,
             this.alias
         )
-
-        if (
-            this._conditional &&
-            !(this._conditional instanceof WhereQueryBuilder)
-        ) throw new Error
     }
 }

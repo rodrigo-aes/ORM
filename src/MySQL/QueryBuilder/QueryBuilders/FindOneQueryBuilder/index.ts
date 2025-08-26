@@ -1,4 +1,9 @@
-import { EntityMetadata } from "../../../Metadata"
+import {
+    MetadataHandler,
+
+    type EntityMetadata,
+    type PolymorphicEntityMetadata
+} from "../../../Metadata"
 
 // SQL Builders
 import FindOneSQLBuilder from "../../FindOneSQLBuilder"
@@ -17,18 +22,21 @@ import {
 } from "../../../Handlers"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type { FindOneQueryOptions as SQLBuilderOptions } from "../../FindOneSQLBuilder"
 import type { RelationsOptions } from "../../JoinSQLBuilder/types"
 import type { JoinQueryOptions } from "../JoinQueryBuilder"
 import type { GroupQueryOptions } from "../../GroupSQLBuilder"
 
+import type { FindOneQueryOptions } from "./types"
 import type {
-    FindOneQueryOptions,
-    SelectQueryFunction,
-    JoinQueryFunction
-} from "./types"
-
+    SelectQueryHandler,
+    CountQueryHandler,
+    JoinQueryHandler
+} from "../types"
 import type { EntityProperties, EntityPropertiesKeys } from "../../types"
 
 import type {
@@ -36,13 +44,12 @@ import type {
     OperatorType
 } from "../OperatorQueryBuilder"
 
-import type {
-    SelectPropertiesOptions,
-    SelectCountFunction
-} from "../SelectQueryBuilder"
+import type { SelectPropertiesOptions } from "../SelectQueryBuilder"
 
-export default class FindOneQueryBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+export default class FindOneQueryBuilder<
+    T extends EntityTarget | PolymorphicEntityTarget
+> {
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     protected _options: FindOneQueryOptions<T> = {}
 
@@ -50,12 +57,12 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
         public target: T,
         public alias?: string,
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public select(selectClause: SelectQueryFunction<T>): this {
+    public select(selectClause: SelectQueryHandler<T>): this {
         this._options.select = new SelectQueryBuilder(
             this.target,
             this.alias
@@ -81,7 +88,7 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public count(
-        countClause: SelectCountFunction<T> | string,
+        countClause: CountQueryHandler<T> | string,
         as?: string
     ): this {
         if (!this._options.select) this._options.select = (
@@ -160,7 +167,7 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
 
     public innerJoin<T extends EntityTarget>(
         related: T,
-        joinClause?: JoinQueryFunction<T>
+        joinClause?: JoinQueryHandler<T>
     ): this {
         const [name, target] = this.handleRelated(related)
         const handler = new JoinQueryBuilder(
@@ -179,7 +186,7 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
 
     public leftJoin<T extends EntityTarget>(
         related: T,
-        joinClause?: JoinQueryFunction<T>
+        joinClause?: JoinQueryHandler<T>
     ): this {
         const [name, target] = this.handleRelated(related)
         const handler = new JoinQueryBuilder(
@@ -236,6 +243,16 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
     }
 
     // Protecteds -------------------------------------------------------------
+    protected toSQLBuilder(): FindOneSQLBuilder<T> {
+        return new FindOneSQLBuilder(
+            this.target,
+            this.toQueryOptions(),
+            this.alias
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     protected relationsToOptions(): (
         RelationsOptions<InstanceType<T>> | undefined
     ) {
@@ -256,22 +273,6 @@ export default class FindOneQueryBuilder<T extends EntityTarget> {
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
-    private toSQLBuilder(): FindOneSQLBuilder<T> {
-        return new FindOneSQLBuilder(
-            this.target,
-            this.toQueryOptions(),
-            this.alias
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
     private handleRelated<Target extends EntityTarget>(
         related: Target
     ): [keyof JoinQueryOptions<T>, Target] {

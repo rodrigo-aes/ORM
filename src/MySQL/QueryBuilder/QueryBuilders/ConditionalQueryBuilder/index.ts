@@ -6,7 +6,6 @@ import CaseQueryBuilder from "../CaseQueryBuilder"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { WhereQueryFunction } from "../WhereQueryBuilder/types"
 import type { CaseQueryFunction } from "./types"
 
 import type { ConditionalQueryOptions } from "../../ConditionalSQLBuilder"

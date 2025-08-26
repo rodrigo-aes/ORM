@@ -62,6 +62,17 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    public setData(attributes: UpdateOrCreateAttibutes<InstanceType<T>>): (
+        this
+    ) {
+        this.attributes = attributes
+        this.mergeAttributes()
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
     public SQL(): string {
         return UpdateOrCreate.SQL(...this.arguments())
     }

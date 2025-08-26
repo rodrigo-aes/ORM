@@ -1,6 +1,6 @@
 import FindOneQueryBuilder from "../FindOneQueryBuilder"
 
-
+// SQL Builers
 import FindSQLBuilder, {
     FindQueryOptions as SQLBuilderOptions
 } from "../../FindSQLBuilder"
@@ -9,13 +9,16 @@ import FindSQLBuilder, {
 import OrderQueryBuilder from "../OrderQueryBuilder"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
+import type { CaseQueryHandler } from "../types"
 import type { OrderQueryOption } from "../../OrderSQLBuilder"
-import type { CaseQueryFunction } from "../ConditionalQueryBuilder"
 import type { FindQueryOptions } from "./types"
 
 export default class FindQueryBuilder<
-    T extends EntityTarget
+    T extends EntityTarget | PolymorphicEntityTarget
 > extends FindOneQueryBuilder<T> {
     protected override _options: FindQueryOptions<T> = {
         relations: {}
@@ -26,7 +29,7 @@ export default class FindQueryBuilder<
     public orderBy<
         OrderClause extends (
             OrderQueryOption<InstanceType<T>> |
-            CaseQueryFunction<T>
+            CaseQueryHandler<T>
         )
     >(
         order: OrderClause,
@@ -57,6 +60,8 @@ export default class FindQueryBuilder<
         return this
     }
 
+    // ------------------------------------------------------------------------
+
     public override toQueryOptions(): SQLBuilderOptions<InstanceType<T>> {
         const { select, where, group, order, limit, offset } = this._options
 
@@ -69,5 +74,14 @@ export default class FindQueryBuilder<
             limit,
             offset
         }
+    }
+
+    // Protecteds -------------------------------------------------------------
+    protected override toSQLBuilder(): FindSQLBuilder<T> {
+        return new FindSQLBuilder(
+            this.target,
+            this.toQueryOptions(),
+            this.alias
+        )
     }
 }

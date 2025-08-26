@@ -3,7 +3,6 @@ import { EntityMetadata } from "../../../Metadata"
 // SQL Builders
 import CreateSQLBuilder, {
     type CreationAttributesOptions,
-    type CreationAttributes,
     type CreationAttibutesKey
 } from "../../CreateSQLBuilder"
 
@@ -24,10 +23,22 @@ export default abstract class CreateQueryBuilder<T extends EntityTarget> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public fields(...names: CreationAttibutesKey<InstanceType<T>>[]): this {
+    public fields(...names: CreationAttibutesKey<InstanceType<T>>[]): (
+        Omit<this, 'data'>
+    ) {
         this.sqlBuilder.fields(...names)
         return this
     }
+
+    // ------------------------------------------------------------------------
+
+    public abstract values(...values: any[]): Omit<this, 'data'>
+
+    // ------------------------------------------------------------------------
+
+    public abstract data(
+        attributes: CreationAttributesOptions<InstanceType<T>>
+    ): Omit<this, 'fields' | 'values'>
 
     // ------------------------------------------------------------------------
 

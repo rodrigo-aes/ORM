@@ -1,4 +1,8 @@
-import { EntityMetadata } from "../../../Metadata"
+import {
+    MetadataHandler,
+    type EntityMetadata,
+    type PolymorphicEntityMetadata
+} from "../../../Metadata"
 
 // SQL Builders
 import { Op } from "../../ConditionalSQLBuilder/Operator"
@@ -8,17 +12,27 @@ import OperatorQueryBuilder from "../OperatorQueryBuilder"
 import ExistsQueryBuilder from "../ExistsQueryBuilder"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type { AndQueryOptions } from "../../ConditionalSQLBuilder"
 import type {
     EntityProperties,
     EntityPropertiesKeys,
 } from "../../types"
-import type { CompatibleOperators, OperatorType } from "../OperatorQueryBuilder"
-import type { WhereQueryFunction } from "../FindOneQueryBuilder/types"
 
-export default class AndQueryBuilder<T extends EntityTarget> {
-    protected metadata: EntityMetadata
+import type {
+    CompatibleOperators,
+    OperatorType
+} from "../OperatorQueryBuilder"
+
+import { WhereQueryHandler } from "../types"
+
+export default class AndQueryBuilder<
+    T extends EntityTarget | PolymorphicEntityTarget
+> {
+    protected metadata: EntityMetadata | PolymorphicEntityMetadata
     public _options: AndQueryOptions<InstanceType<T>> = {}
     private exists?: ExistsQueryBuilder<T>
 
@@ -26,7 +40,7 @@ export default class AndQueryBuilder<T extends EntityTarget> {
         public target: T,
         public alias?: string
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
     // Getters ================================================================
@@ -37,7 +51,6 @@ export default class AndQueryBuilder<T extends EntityTarget> {
             ...this.exists?.options
         }
     }
-
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
@@ -61,12 +74,9 @@ export default class AndQueryBuilder<T extends EntityTarget> {
                 ? {
                     [
                         OperatorQueryBuilder[(
-                            conditional as (
-                                CompatibleOperators<
-                                    // EntityProperties<InstanceType<T>>[K]
-                                    any
-                                >
-                            )
+                            conditional as CompatibleOperators<(
+                                EntityProperties<InstanceType<T>>[K]
+                            )>
                         )]
                     ]: value
                 }
@@ -78,10 +88,19 @@ export default class AndQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    public whereExists<Source extends EntityTarget | WhereQueryFunction<T>>(
+    public whereExists<
+        Source extends (
+            EntityTarget |
+            PolymorphicEntityTarget |
+            WhereQueryHandler<T>
+        )
+    >(
         exists: Source,
-        conditional: typeof exists extends EntityTarget
-            ? WhereQueryFunction<Source>
+        conditional: typeof exists extends (
+            EntityTarget |
+            PolymorphicEntityTarget
+        )
+            ? WhereQueryHandler<Source>
             : never
     ): this {
         if (!this.exists) this.exists = new ExistsQueryBuilder(
@@ -111,23 +130,17 @@ export default class AndQueryBuilder<T extends EntityTarget> {
         propertie: K,
         conditional: Cond
     ): this {
-        const orValue = conditional.map(
-            cond => {
-                if (Array.isArray(cond)) {
-                    const [operator, value] = cond
+        const orValue = conditional.map(cond => {
+            if (Array.isArray(cond)) {
+                const [operator, value] = cond
 
-                    return {
-                        [OperatorQueryBuilder[operator]]: value
-                    }
-                }
-
-                return cond
+                return { [OperatorQueryBuilder[operator]]: value }
             }
-        )
 
-        this._options[propertie] = {
-            [Op.Or]: orValue
-        } as any
+            return cond
+        })
+
+        this._options[propertie] = { [Op.Or]: orValue } as any
 
         return this
     }
@@ -138,12 +151,11 @@ export default class AndQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    public andExists = this.whereExists
+
+    // ------------------------------------------------------------------------
+
     public toQueryOptions(): AndQueryOptions<InstanceType<T>> {
         return this._options
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
     }
 }

@@ -7,9 +7,7 @@ import { MySQL2QueryExecutionHandler } from "../../../Handlers"
 // Types
 import type { EntityTarget, AsEntityTarget } from "../../../../types/General"
 import type { EntityPropertiesKeys } from "../../types"
-import type {
-    UpdateOrCreateAttibutes
-} from "../../UpdateOrCreateSQLBuilder/types"
+import type { UpdateOrCreateAttibutes } from "../../UpdateOrCreateSQLBuilder"
 export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
     private sqlBuilder: UpdateOrCreateSQLBuilder<T>
 
@@ -22,27 +20,26 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public fields(...names: EntityPropertiesKeys<InstanceType<T>>[]): this {
+    public fields(...names: EntityPropertiesKeys<InstanceType<T>>[]): (
+        Omit<this, 'data'>
+    ) {
         this.sqlBuilder.fields(...names)
         return this
     }
 
     // ------------------------------------------------------------------------
 
-    public values(...values: any[]): this {
+    public values(...values: any[]): Omit<this, 'data'> {
         this.sqlBuilder.values(...values)
         return this
     }
 
     // ------------------------------------------------------------------------
 
-    public data(data: UpdateOrCreateAttibutes<InstanceType<T>>): this {
-        this.sqlBuilder.fields(...Object.keys(data) as (
-            EntityPropertiesKeys<InstanceType<T>>[]
-        ))
-
-        this.sqlBuilder.values(...Object.values(data))
-
+    public data(attributes: UpdateOrCreateAttibutes<InstanceType<T>>): (
+        Omit<this, 'fields' | 'values'>
+    ) {
+        this.sqlBuilder.setData(attributes)
         return this
     }
 

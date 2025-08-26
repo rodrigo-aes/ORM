@@ -4,14 +4,19 @@ import { Case } from "../../ConditionalSQLBuilder"
 import CaseQueryBuilder from "../CaseQueryBuilder"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 import type {
     OrderQueryOptions,
     OrderQueryOption,
 } from "../../OrderSQLBuilder"
-import type { CaseQueryFunction } from "../ConditionalQueryBuilder"
+import type { CaseQueryHandler } from "../types"
 
-export default class OrderQueryBuilder<T extends EntityTarget> {
+export default class OrderQueryBuilder<
+    T extends EntityTarget | PolymorphicEntityTarget
+> {
     private _options!: (
         OrderQueryOption<InstanceType<T>>[] |
         CaseQueryBuilder<T>
@@ -27,7 +32,7 @@ export default class OrderQueryBuilder<T extends EntityTarget> {
     public orderBy<
         OrderClause extends (
             OrderQueryOption<InstanceType<T>> |
-            CaseQueryFunction<T>
+            CaseQueryHandler<T>
         )
     >(
         order: OrderClause,
@@ -67,7 +72,7 @@ export default class OrderQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
-    private handleCaseOptions(clause: CaseQueryFunction<T>) {
+    private handleCaseOptions(clause: CaseQueryHandler<T>) {
         this._options = new CaseQueryBuilder(
             this.target,
             this.alias

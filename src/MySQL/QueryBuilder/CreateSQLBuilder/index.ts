@@ -63,7 +63,10 @@ export default class CreateSQLBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
-        return SQLStringHelper.normalizeSQL(this.handleSQLType())
+        return SQLStringHelper.normalizeSQL(`
+            INSERT INTO ${this.metadata.tableName} (${this.columnsSQL()})
+            VALUES ${this.valuesSQL()}
+        `)
     }
 
     // ------------------------------------------------------------------------
@@ -85,6 +88,18 @@ export default class CreateSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    public setData(attributes: CreationAttributesOptions<InstanceType<T>>): (
+        this
+    ) {
+        this.attributes = attributes
+        this._propertiesNames = undefined
+        this._values = undefined
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
     public mapAttributes(): CreationAttributesOptions<InstanceType<T>> {
         const [first] = this.columnsValues
 
@@ -96,27 +111,6 @@ export default class CreateSQLBuilder<
     }
 
     // Privates ---------------------------------------------------------------
-    private handleSQLType(): string {
-        return this.entitySQL()
-    }
-
-    // ------------------------------------------------------------------------
-
-    private entitySQL(): string {
-        return `
-            INSERT INTO ${this.metadata.tableName} (${this.columnsSQL()})
-            VALUES ${this.valuesSQL()}
-        `
-    }
-
-    // ------------------------------------------------------------------------
-
-    private unionSQL(): string {
-        return ''
-    }
-
-    // ------------------------------------------------------------------------
-
     private columnsSQL(): string {
         return this.columnsNames.join(', ')
     }

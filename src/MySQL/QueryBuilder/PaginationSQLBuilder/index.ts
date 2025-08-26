@@ -15,9 +15,10 @@ export default class PaginationSQLBuilder<
 
     constructor(
         target: T,
-        { page, perPage, ...options }: PaginationQueryOptions<InstanceType<T>>
+        { page, perPage, ...options }: PaginationQueryOptions<InstanceType<T>>,
+        alias?: string
     ) {
-        super(target, options)
+        super(target, options, alias)
 
         if (page) this.page = page
         if (perPage) this.perPage = perPage

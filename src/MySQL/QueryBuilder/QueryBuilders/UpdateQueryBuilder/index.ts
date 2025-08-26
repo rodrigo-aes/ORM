@@ -12,8 +12,8 @@ import type { ResultSetHeader } from "mysql2"
 import type { EntityTarget } from "../../../../types/General"
 import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 import type { EntityProperties, EntityPropertiesKeys } from "../../types"
-import type { WhereQueryFunction } from "./types"
 import type { OperatorType, CompatibleOperators } from "../OperatorQueryBuilder"
+import type { WhereQueryHandler } from "../types"
 
 export default class UpdateQueryBuilder<T extends EntityTarget> {
     private _where?: WhereQueryBuilder<T>
@@ -65,7 +65,34 @@ export default class UpdateQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    public whereExists<
+        Source extends (
+            EntityTarget |
+            WhereQueryHandler<T>
+        )
+    >(
+        exists: Source,
+        conditional: typeof exists extends (
+            EntityTarget
+        )
+            ? WhereQueryHandler<Source>
+            : never
+    ): this {
+        (this._where as WhereQueryBuilder<T>).whereExists(
+            exists as EntityTarget,
+            conditional as WhereQueryHandler<EntityTarget>
+        )
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
     public and = this.where
+
+    // ------------------------------------------------------------------------
+
+    public andExists = this.whereExists
 
     // ------------------------------------------------------------------------
 

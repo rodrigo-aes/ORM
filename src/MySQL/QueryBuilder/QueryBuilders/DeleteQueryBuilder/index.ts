@@ -11,8 +11,8 @@ import { MySQL2QueryExecutionHandler } from "../../../Handlers"
 import type { EntityTarget } from "../../../../types/General"
 import type { DeleteResult } from "../../../Handlers"
 import type { EntityProperties, EntityPropertiesKeys } from "../../types"
-import type { WhereQueryFunction } from "./types"
 import type { OperatorType, CompatibleOperators } from "../OperatorQueryBuilder"
+import type { WhereQueryHandler } from "../types"
 
 export default class DeleteQueryBuilder<T extends EntityTarget> {
     private _sqlBuilder?: DeleteSQLBuilder<T>
@@ -56,7 +56,34 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    public whereExists<
+        Source extends (
+            EntityTarget |
+            WhereQueryHandler<T>
+        )
+    >(
+        exists: Source,
+        conditional: typeof exists extends (
+            EntityTarget
+        )
+            ? WhereQueryHandler<Source>
+            : never
+    ): this {
+        (this._where as WhereQueryBuilder<T>).whereExists(
+            exists as EntityTarget,
+            conditional as WhereQueryHandler<EntityTarget>
+        )
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
     public and = this.where
+
+    // ------------------------------------------------------------------------
+
+    public andExists = this.whereExists
 
     // ------------------------------------------------------------------------
 

@@ -1,23 +1,22 @@
-import type { EntityTarget } from "../../../../types/General"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../types/General"
 
 import type { SelectPropertyKey } from "../../SelectSQLBuilder"
 import type CaseQueryBuilder from "../CaseQueryBuilder"
-import type CountQueryBuilder from "../CountQueryBuilder"
+import type { CaseQueryHandler } from "../types"
 
-export type SelectCaseFunction<T extends EntityTarget> = (
-    (queryBuilder: CaseQueryBuilder<T>) => void
-)
+export type SelectPropertyType<
+    T extends EntityTarget | PolymorphicEntityTarget
+> = (
+        SelectPropertyKey<InstanceType<T>> |
+        CaseQueryBuilder<T>
+    )
 
-export type SelectPropertyType<T extends EntityTarget> = (
-    SelectPropertyKey<InstanceType<T>> |
-    CaseQueryBuilder<T>
-)
-
-export type SelectPropertiesOptions<T extends EntityTarget> = (
-    SelectPropertyKey<InstanceType<T>> |
-    SelectCaseFunction<T>
-)
-
-export type SelectCountFunction<T extends EntityTarget> = (
-    (queryBuilder: CountQueryBuilder<T>) => void
-)
+export type SelectPropertiesOptions<
+    T extends EntityTarget | PolymorphicEntityTarget
+> = (
+        SelectPropertyKey<InstanceType<T>> |
+        CaseQueryHandler<T>
+    )

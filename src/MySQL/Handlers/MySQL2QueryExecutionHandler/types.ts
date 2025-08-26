@@ -74,7 +74,7 @@ export type ExecResult<
         : Builder extends FindByPkSQLBuilder<T>
         ? FindOneResult<T, MapTo>
         : Builder extends CountSQLBuilder<T>
-        ? CountResult<T>
+        ? CountResult
         : Builder extends FindByPkSQLBuilder<T>
         ? FindOneResult<T, MapTo>
         : Builder extends CreateSQLBuilder<T>
@@ -135,9 +135,7 @@ export type PaginateResult<
     T extends EntityTarget | PolymorphicEntityTarget
 > = Pagination<InstanceType<T>>
 
-export type CountResult<
-    T extends EntityTarget | PolymorphicEntityTarget
-> = { [Key: string]: number }
+export type CountResult = { [Key: string]: number }
 
 export type CreateResult<
     T extends EntityTarget | PolymorphicEntityTarget

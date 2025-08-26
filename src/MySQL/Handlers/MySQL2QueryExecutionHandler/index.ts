@@ -208,7 +208,7 @@ export default class MySQL2QueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    private async executeCount(): Promise<CountResult<T>> {
+    private async executeCount(): Promise<CountResult> {
         const connection = this.getConnection()
         const [result] = await connection.query(this.sqlBuilder.SQL())
         return result
@@ -497,6 +497,8 @@ export {
     type ResultMapOption,
     type FindOneResult,
     type FindResult,
+    type PaginateResult,
+    type CountResult,
     type CreateResult,
     type DeleteResult,
 

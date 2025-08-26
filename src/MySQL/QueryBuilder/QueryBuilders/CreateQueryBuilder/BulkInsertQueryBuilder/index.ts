@@ -6,6 +6,7 @@ import { MySQL2QueryExecutionHandler } from "../../../../Handlers"
 // Types
 import type { EntityTarget, AsEntityTarget } from "../../../../../types/General"
 import type CreateSQLBuilder from "../../../CreateSQLBuilder"
+import type { CreationAttributes } from "../../../CreateSQLBuilder"
 
 export default class BulkInsertQueryBuilder<
     T extends EntityTarget
@@ -14,6 +15,15 @@ export default class BulkInsertQueryBuilder<
     // Publics ----------------------------------------------------------------
     public values(...values: any[][]): this {
         this.sqlBuilder.values(...values)
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public data(attributes: CreationAttributes<InstanceType<T>>[]): (
+        Omit<this, "fields" | "values">
+    ) {
+        this.sqlBuilder.setData(attributes)
         return this
     }
 
