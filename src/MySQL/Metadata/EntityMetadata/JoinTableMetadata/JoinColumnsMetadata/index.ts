@@ -16,6 +16,10 @@ export default class JoinColumnsMetadata<
         super(...columns)
     }
 
+    static get [Symbol.species]() {
+        return Array
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public registerColumn(initMap: JoinColumnInitMap) {

@@ -1,159 +1,105 @@
-// Helpers
-import { SQLStringHelper } from "../../../Helpers"
+import { Trigger } from "../../../Triggers"
+import TriggerSchema, { type TriggerSchemaInitMap } from "./TriggerSchema"
+
+// Static
+import { triggersSchemaQuery } from "./static"
 
 // Types
-import type MySQLConnection from "../../../Connection"
 import type { TriggersMetadata } from "../../../Metadata"
-import type { TriggerSchema, AlterTriggerAction } from "./types"
-import type { Trigger } from "../../../Triggers"
+import type MySQLConnection from "../../../Connection"
 
 export default class TriggersSchema extends Array<TriggerSchema> {
+    private previous?: TriggersSchema
+
     constructor(
-        private connection: MySQLConnection,
-        private triggers: Trigger[]
+        public connection: MySQLConnection,
+        ...triggers: (Trigger | TriggerSchemaInitMap)[]
     ) {
-        super()
+        super(...triggers.map(trigger => trigger instanceof Trigger
+            ? TriggerSchema.buildFromTrigger(trigger)
+            : new TriggerSchema(trigger)
+        ))
     }
 
-    // Instance Methods =======================================================
+    static get [Symbol.species]() {
+        return Array
+    }
+
+    // Intance Methods ========================================================
     // Publics ----------------------------------------------------------------
     public async reset(): Promise<void> {
-        await this.loadSchema()
-        await this.dropAll()
+        (await this.previousSchemas()).dropAll()
         await this.createAll()
     }
 
     // ------------------------------------------------------------------------
 
     public async alter(): Promise<void> {
-        await this.loadSchema()
+        await this.dropInexistents()
 
-        for (const [action, source] of this.compare()) switch (action) {
-            case 'ADD': await (source as Trigger).register()
-                break
-
-            case 'MODIFY': await (source as Trigger).alter()
-                break
-
-            case 'DROP': await this.drop(
-                (source as TriggerSchema).TRIGGER_NAME
-            )
-                break
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    public compare(): (
-        [AlterTriggerAction, Trigger | TriggerSchema]
-    )[] {
-        return [
-            ...this.toAdd(),
-            ...this.toModify(),
-            ...this.toDrop()
-        ]
-    }
-
-    // ------------------------------------------------------------------------
-
-    public toAdd(): ([AlterTriggerAction, Trigger | TriggerSchema])[] {
-        return this.triggers.flatMap(
-            trigger => this.some(({ TRIGGER_NAME, EVENT_OBJECT_TABLE }) => (
-                trigger.name === TRIGGER_NAME &&
-                trigger.tableName === EVENT_OBJECT_TABLE
-            ))
-                ? []
-                : [['ADD', trigger]]
+        for (const trigger of this) await trigger.executeAction(
+            this.connection,
+            (await this.previousSchemas()).findTrigger(trigger.name)
         )
     }
 
     // ------------------------------------------------------------------------
 
-    public toModify(): ([AlterTriggerAction, Trigger | TriggerSchema])[] {
-        return this.triggers.flatMap(
-            trigger => this.shouldModify(trigger)
-                ? [['MODIFY', trigger]]
-                : []
+    public async createAll(): Promise<void> {
+        for (const trigger of this) await trigger.create(this.connection)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async dropAll(): Promise<void> {
+        for (const trigger of (await this.previousSchemas())) (
+            await trigger.drop(this.connection)
         )
     }
 
     // ------------------------------------------------------------------------
 
-    public toDrop(): ([AlterTriggerAction, Trigger | TriggerSchema])[] {
-        return this.flatMap(
-            schema => this.triggers.some(
-                ({ name, tableName }) => (
-                    name === schema.TRIGGER_NAME &&
-                    tableName === schema.EVENT_OBJECT_TABLE
-                )
-            )
-                ? []
-                : [['DROP', schema]]
-        )
+    public findTrigger(name: string): TriggerSchema | undefined {
+        return this.find(t => t.name === name)
     }
 
     // Privates ---------------------------------------------------------------
-    private async loadSchema(): Promise<void> {
-        this.push(
-            ...(await this.connection.query(this.schemaSQL()))
+    private async previousSchemas(): (
+        Promise<TriggersSchema>
+    ) {
+        if (this.previous) return this.previous
+
+        this.previous = new TriggersSchema(
+            this.connection,
+            ...(await this.connection.query(
+                triggersSchemaQuery(this.connection.config.database)
+            ))
+        )
+
+        return this.previous
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async dropInexistents(): Promise<void> {
+        for (const trigger of ((await this.previousSchemas()).filter(
+            ({ name }) => !this.findTrigger(name)
+        ))) (
+            await trigger.drop(this.connection)
         )
     }
 
-    // ------------------------------------------------------------------------
-
-    private async createAll(): Promise<void> {
-        for (const trigger of this.triggers) await trigger.register()
-    }
-
-    // ------------------------------------------------------------------------
-
-    private async dropAll(): Promise<void> {
-        for (const { TRIGGER_NAME } of this) await this.drop(TRIGGER_NAME)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private async drop(triggerName: string): Promise<void> {
-        await this.connection.query(`DROP TRIGGER ${triggerName}`)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private shouldModify(trigger: Trigger): boolean {
-        const { name, tableName, event, timing } = trigger
-
-        return this.some(({
-            TRIGGER_NAME,
-            EVENT_OBJECT_TABLE,
-            EVENT_MANIPULATION,
-            ACTION_TIMING,
-            ACTION_STATEMENT
-        }) => {
-            return (
-                name === TRIGGER_NAME &&
-                tableName === EVENT_OBJECT_TABLE && (
-                    event !== EVENT_MANIPULATION ||
-                    timing !== ACTION_TIMING ||
-                    trigger.actionBody() !== ACTION_STATEMENT
-                )
-            )
-        })
-    }
-
-    // ------------------------------------------------------------------------
-
-    private schemaSQL(): string {
-        return SQLStringHelper.normalizeSQL(`
-            SELECT 
-                TRIGGER_NAME,
-                EVENT_MANIPULATION,
-                EVENT_OBJECT_TABLE,
-                ACTION_STATEMENT,
-                ACTION_TIMING,
-                CREATED,
-                SQL_MODE
-            FROM information_schema.TRIGGERS
-            WHERE TRIGGER_SCHEMA = '${this.connection.config.database}'    
-        `)
+    // Static Meethods ========================================================
+    // Publics ----------------------------------------------------------------
+    public static buildFromMetadatas(
+        connection: MySQLConnection,
+        ...metadatas: TriggersMetadata[]
+    ): TriggersSchema {
+        return new TriggersSchema(
+            connection,
+            ...metadatas.flatMap(metadata => metadata.map(
+                constructor => new constructor(metadata.target)
+            ))
+        )
     }
 }

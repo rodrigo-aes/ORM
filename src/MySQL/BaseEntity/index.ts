@@ -18,7 +18,7 @@ import { MetadataHandler, TempMetadata } from "../Metadata"
 
 // Query Builder
 import {
-    QueryBuilder,
+    EntityQueryBuilder,
 
     type FindQueryOptions,
     type FindOneQueryOptions,
@@ -327,9 +327,9 @@ export default abstract class BaseEntity {
     // ------------------------------------------------------------------------
 
     public static getQueryBuilder<T extends EntityTarget>(this: T): (
-        QueryBuilder<T>
+        EntityQueryBuilder<T>
     ) {
-        return new QueryBuilder(this)
+        return new EntityQueryBuilder(this)
     }
 
     // ------------------------------------------------------------------------

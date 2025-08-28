@@ -34,6 +34,12 @@ export default abstract class DataType extends AbstractDataType {
     }
 
     // Static Methods =========================================================
+    public static isDataType(object: any): boolean {
+        return object instanceof AbstractDataType
+    }
+
+    // ------------------------------------------------------------------------
+
     public static CHAR(length?: number): CHAR {
         return new CHAR(length)
     }

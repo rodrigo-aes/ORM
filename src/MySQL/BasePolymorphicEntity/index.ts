@@ -17,8 +17,25 @@ import {
     type RelationMetadataType
 } from "../Metadata"
 
+// Childs
 import { InternalPolymorphicEntities } from "./Components"
 import { ColumnsSnapshots, Collection } from "../BaseEntity"
+
+// Query Builder
+import {
+    PolymorphicEntityQueryBuilder,
+
+    type EntityProperties,
+    type FindQueryOptions,
+    type FindOneQueryOptions,
+    type PaginationQueryOptions,
+    type CountQueryOption,
+    type CountQueryOptions,
+    type CreationAttributes,
+    type UpdateAttributes,
+    type UpdateOrCreateAttibutes,
+    type ConditionalQueryOptions,
+} from "../QueryBuilder"
 
 // Repository
 import PolymorphicRepository, {
@@ -57,21 +74,8 @@ import type {
 import type BaseEntity from "../BaseEntity"
 import type { SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
-import type {
-    EntityProperties,
-    FindQueryOptions,
-    FindOneQueryOptions,
-    PaginationQueryOptions,
-    CountQueryOption,
-    CountQueryOptions,
-    CreationAttributes,
-    UpdateAttributes,
-    UpdateOrCreateAttibutes,
-    ConditionalQueryOptions,
-} from "../QueryBuilder"
-
-import { ResultSetHeader } from "mysql2"
-import { ResultMapOption, DeleteResult } from "../Handlers"
+import type { ResultSetHeader } from "mysql2"
+import type { ResultMapOption, DeleteResult } from "../Handlers"
 
 export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     protected hidden: string[] = []
@@ -102,6 +106,14 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         return MetadataHandler.loadMetadata(
             this.entities[this.entityType]
         ) as EntityMetadata
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static getQueryBuilder<T extends PolymorphicEntityTarget>(
+        this: T
+    ): PolymorphicEntityQueryBuilder<T> {
+        return new PolymorphicEntityQueryBuilder(this)
     }
 
     // ------------------------------------------------------------------------

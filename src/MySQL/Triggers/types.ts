@@ -8,7 +8,7 @@ import type {
 
 export type TriggerTiming = 'BEFORE' | 'AFTER' | 'INSTEAD OF'
 export type TriggerEvent = 'INSERT' | 'UPDATE' | 'DELETE'
-export type TriggerForEachScope = 'ROW' | 'STATEMENT'
+export type TriggerOrientation = 'ROW' | 'STATEMENT'
 
 export type TriggerActionType = (
     'SET' |

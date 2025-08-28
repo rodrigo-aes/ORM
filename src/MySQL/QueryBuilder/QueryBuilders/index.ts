@@ -1,21 +1,29 @@
-import FindOneQueryBuilder from "./FindOneQueryBuilder"
-import FindQueryBuilder from "./FindQueryBuilder"
+import EntityQueryBuilder from "./EntityQueryBuilder"
+import PolymorphicEntityQueryBuilder from "./PolymorphicEntityQueryBuilder"
+import ConnectionQueryBuilder from "./ConnectionQueryBuilder"
 
-import {
+import type FindOneQueryBuilder from "./FindOneQueryBuilder"
+import type FindQueryBuilder from "./FindQueryBuilder"
+
+import type {
     BulkInsertQueryBuilder,
     InsertQueryBuilder
 } from "./CreateQueryBuilder"
 
-import UpdateQueryBuilder from "./UpdateQueryBuilder"
-import UpdateOrCreateQueryBuilder from "./UpdateOrCreateQueryBuilder"
-import DeleteQueryBuilder from "./DeleteQueryBuilder"
+import type UpdateQueryBuilder from "./UpdateQueryBuilder"
+import type UpdateOrCreateQueryBuilder from "./UpdateOrCreateQueryBuilder"
+import type DeleteQueryBuilder from "./DeleteQueryBuilder"
 
 export {
-    FindOneQueryBuilder,
-    FindQueryBuilder,
-    BulkInsertQueryBuilder,
-    InsertQueryBuilder,
-    UpdateQueryBuilder,
-    UpdateOrCreateQueryBuilder,
-    DeleteQueryBuilder
+    EntityQueryBuilder,
+    PolymorphicEntityQueryBuilder,
+    ConnectionQueryBuilder,
+
+    type FindOneQueryBuilder,
+    type FindQueryBuilder,
+    type BulkInsertQueryBuilder,
+    type InsertQueryBuilder,
+    type UpdateQueryBuilder,
+    type UpdateOrCreateQueryBuilder,
+    type DeleteQueryBuilder
 }

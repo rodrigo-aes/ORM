@@ -20,7 +20,7 @@ import type { EntityTarget, Constructor } from "../../types/General"
 import type {
     TriggerTiming,
     TriggerEvent,
-    TriggerForEachScope,
+    TriggerOrientation,
     TriggerAction,
     TriggerActionOptions,
     SetAction,
@@ -40,7 +40,7 @@ export default abstract class Trigger<T extends BaseEntity = any> {
 
     public abstract timing: TriggerTiming
     public abstract event: TriggerEvent
-    public abstract forEach: TriggerForEachScope
+    public abstract orientation: TriggerOrientation
 
     constructor(public target: Constructor<T>) {
         this.metadata = MetadataHandler.loadMetadata(this.target) as (
@@ -98,7 +98,7 @@ export default abstract class Trigger<T extends BaseEntity = any> {
         return SQLStringHelper.normalizeSQL(`
             CREATE TRIGGER ${this.name}
             ${this.timing} ${this.event} ON ${this.tableName}
-            FOR EACH ${this.forEach}
+            FOR EACH ${this.orientation}
             ${this.actionBody()}
         `)
     }

@@ -50,6 +50,12 @@ export default class ColumnMetadata {
         return EntityMetadata.findOrBuild(this.target)
     }
 
+    // ------------------------------------------------------------------------
+
+    public get tableName(): string {
+        return this.targetMetadata.tableName
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public defineForeignKey(initMap: ForeignKeyReferencesInitMap) {

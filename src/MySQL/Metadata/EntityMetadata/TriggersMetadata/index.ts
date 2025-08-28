@@ -16,6 +16,10 @@ export default class TriggersMetadata extends Array<Constructor<Trigger>> {
         this.register()
     }
 
+    static get [Symbol.species]() {
+        return Array
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public addTrigger(trigger: Constructor<Trigger>): void {

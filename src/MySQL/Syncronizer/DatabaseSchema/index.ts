@@ -1,7 +1,8 @@
+import { EntityMetadata } from "../../Metadata"
+
 import TableSchema, {
     ColumnSchema,
-    ColumnSchemaInitMap,
-    TableColumnAction,
+    ColumnSchemaInitMap
 } from "./TableSchema"
 
 import TriggersSchema from "./TriggersSchema"
@@ -11,76 +12,143 @@ import { databaseSchemaQuery } from "./static"
 
 // Types
 import type MySQLConnection from "../../Connection"
-import type { SyncronizerTable } from "../types"
-import type {
-    DatabaseSchemaMap,
-    AlterTable,
-    SyncTableData
-} from "./types"
+import type { TableSchemaInitMap } from "./types"
 
-export default class DatabaseSchema {
-    public dbSchema!: DatabaseSchemaMap
-    public tables!: TableSchema[]
+export default class DatabaseSchema extends Array<TableSchema> {
+    private previous?: DatabaseSchema
+    private triggers?: TriggersSchema
 
     constructor(
-        private connection: MySQLConnection
-    ) { }
+        public connection: MySQLConnection,
+        ...tables: (TableSchema | TableSchemaInitMap)[]
+    ) {
+        super(...tables.map(table => table instanceof TableSchema
+            ? table
+            : new TableSchema(
+                table.tableName,
+                ...table.columns
+            )
+        ))
+
+        this.orderByDependencies()
+    }
+
+    static get [Symbol.species]() {
+        return Array
+    }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async loadDatabaseSchema(): Promise<this> {
-        this.dbSchema = await this.connection.query(databaseSchemaQuery)
-        this.tables = this.dbSchema.map(
-            ({ tableName, columns }) => new TableSchema(tableName, ...columns)
+    public async reset(): Promise<void> {
+        (await this.previuosSchema()).dropAll()
+        await this.crateAll()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async alter(): Promise<void> {
+        await this.dropInexistents()
+
+        for (const table of this) await table.executeAction(
+            this.connection,
+            (await this.previuosSchema()).findTable(table.name)
         )
 
-        return this
+        await this.triggersSchema().alter()
     }
 
     // ------------------------------------------------------------------------
 
-    public findTableSchema(tableName: string): TableSchema | undefined {
-        return this.tables.find(({ name }) => tableName === name)
+    public async crateAll(): Promise<void> {
+        for (const table of this) await table.create(this.connection)
+        await this.triggersSchema().createAll()
     }
 
     // ------------------------------------------------------------------------
 
-    public toSyncTablesActions(tables: SyncronizerTable[]): AlterTable[] {
-        return this.syncTablesActions(tables).filter(
-            ([action]) => action !== 'NONE'
+    public async dropAll(): Promise<void> {
+        await this.triggersSchema().dropAll()
+
+        for (const table of (await this.previuosSchema()).reverse()) (
+            await table.drop(this.connection)
         )
     }
 
     // ------------------------------------------------------------------------
 
-    public syncTablesActions(tables: SyncronizerTable[]): AlterTable[] {
-        return [
-            ...this.tableSchemasToDrop(tables),
-            ...tables.map(table => this.syncTableAction(table))
-        ]
+    public findTable(name: string): TableSchema | undefined {
+        return this.find(t => t.name === name)
+    }
+
+    // Privates ---------------------------------------------------------------
+    private orderByDependencies(): this {
+        return this.sort((a, b) => a.dependencies.includes(b.name) ? 1 : -1)
     }
 
     // ------------------------------------------------------------------------
 
-    public tableSchemasToDrop(tables: SyncronizerTable[]): AlterTable[] {
-        return this.tables.filter(
-            ({ name }) => !tables.some(({ tableName }) => name === tableName)
+    private async previuosSchema(): Promise<DatabaseSchema> {
+        if (this.previous) return this.previous
+
+        this.previous = new DatabaseSchema(
+            this.connection,
+            ...(await this.connection.query(databaseSchemaQuery))
         )
-            .map(schema => ['DROP', schema as SyncTableData, undefined])
+
+        return this.previous
     }
 
     // ------------------------------------------------------------------------
 
-    public syncTableAction(table: SyncronizerTable): AlterTable {
-        const schema = this.findTableSchema(table.tableName)
-        if (!schema) return ['CREATE', table, undefined]
+    private triggersSchema(): TriggersSchema {
+        if (this.triggers) return this.triggers
 
-        const columnsActions = schema.compare(table)
-        if (columnsActions.some(([action]) => action !== 'NONE')) {
-            return ['ALTER', table, columnsActions]
-        }
+        this.triggers = TriggersSchema.buildFromMetadatas(
+            this.connection,
+            ...this.connection.entities.flatMap(
+                target => {
+                    const meta = EntityMetadata.findOrBuild(target)
+                    return meta.triggers ? [meta.triggers] : []
+                }
+            )
+        )
 
-        return ['NONE', table, undefined]
+        return this.triggers
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async dropInexistents(): Promise<void> {
+        for (const table of (await this.previuosSchema()).filter(
+            ({ name }) => !this.findTable(name)
+        )) (
+            await table.drop(this.connection)
+        )
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static buildFromConnectionMetadata(connection: MySQLConnection) {
+        const included = new Set<string>()
+
+        return new DatabaseSchema(
+            connection,
+            ...connection.entities.flatMap(target => {
+                const meta = EntityMetadata.find(target)
+                if (!meta) throw new Error
+
+                return [
+                    TableSchema.buildFromMetadata(meta),
+                    ...TableSchema.buildJoinTablesFromMetadata(meta)
+                ]
+            })
+                .filter(({ name }) => {
+                    if (included.has(name)) return false
+
+                    included.add(name)
+                    return true
+                }),
+        )
     }
 }
 
@@ -89,7 +157,5 @@ export {
     ColumnSchema,
     TriggersSchema,
 
-    type AlterTable,
-    type ColumnSchemaInitMap,
-    type TableColumnAction,
+    type ColumnSchemaInitMap
 }

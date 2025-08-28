@@ -8,7 +8,7 @@ import { Old, New } from "./Symbols"
 import type {
     TriggerTiming,
     TriggerEvent,
-    TriggerForEachScope,
+    TriggerOrientation,
     TriggerActionType,
     TriggerAction,
     InsertIntoTableAction,
@@ -25,7 +25,7 @@ export {
 
     type TriggerTiming,
     type TriggerEvent,
-    type TriggerForEachScope,
+    type TriggerOrientation,
     type TriggerActionType,
     type TriggerAction,
     type InsertIntoTableAction,

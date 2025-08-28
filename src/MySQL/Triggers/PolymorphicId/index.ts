@@ -4,7 +4,7 @@ import Trigger from "../Trigger"
 import type { EntityTarget } from "../../../types/General"
 import type {
     TriggerEvent,
-    TriggerForEachScope,
+    TriggerOrientation,
     TriggerTiming
 } from "../types"
 
@@ -13,7 +13,7 @@ export default class PolymorphicId<
 > extends Trigger {
     public timing: TriggerTiming = 'BEFORE'
     public event: TriggerEvent = 'INSERT'
-    public forEach: TriggerForEachScope = 'ROW'
+    public orientation: TriggerOrientation = 'ROW'
 
     constructor(
         public target: T,
@@ -43,18 +43,22 @@ export default class PolymorphicId<
     public action(): string {
         return `
             DECLARE existent INT DEFAULT 1;
-
-            SET NEW.${this.primary} = CONCAT('${this.prefix}_', UUID());
             
-            WHILE existent > 0 DO
-                SELECT COUNT(*) INTO existent
-                FROM ${this.tableName}
-                WHERE ${this.primary} = NEW.${this.primary};
+            IF NEW.${this.primary} = NULL THEN    
+                SET NEW.${this.primary} = CONCAT('${this.prefix}_', UUID());
+                
+                WHILE existent > 0 DO
+                    SELECT COUNT(*) INTO existent
+                    FROM ${this.tableName}
+                    WHERE ${this.primary} = NEW.${this.primary};
 
-                IF existent > 0 THEN
-                    SET NEW.${this.primary} = CONCAT('${this.prefix}_', UUID());
-                END IF;
-            END WHILE;
+                    IF existent > 0 THEN
+                        SET NEW.${this.primary} = CONCAT(
+                            '${this.prefix}_', UUID()
+                        );
+                    END IF;
+                END WHILE;
+            END IF;
         `
     }
 }

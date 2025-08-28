@@ -1,11 +1,4 @@
-import { EntityMetadata, JoinTableMetadata } from "../Metadata"
-import { EntityTableBuilder, JoinTableBuilder } from "./TableBuilder"
-
-import DatabaseSchema, {
-    TriggersSchema,
-    type TableSchema,
-    type TableColumnAction
-} from "./DatabaseSchema"
+import DatabaseSchema from "./DatabaseSchema"
 
 // Utils
 import Log from "../../utils/Log"
@@ -15,160 +8,37 @@ import { defaultConfig } from "./static"
 
 // Types
 import type MySQLConnection from "../Connection"
-import type { SyncronizerConfig, SyncronizerTables } from "./types"
-import type { Trigger } from "../Triggers"
+import type { SyncronizerConfig } from "./types"
 
 export default class Syncronizer {
-    private tables: SyncronizerTables
     private config: SyncronizerConfig
+    private database: DatabaseSchema
 
     constructor(
         private connection: MySQLConnection,
         config: SyncronizerConfig = {}
     ) {
-        this.tables = this.orderedTables()
         this.config = { ...defaultConfig, ...config }
+
+        this.database = DatabaseSchema.buildFromConnectionMetadata(
+            this.connection
+        )
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async reset() {
-        await this.dropTables()
-        await this.createTables()
-
-        await new TriggersSchema(this.connection, this.loadTriggers()).reset()
+    public async alter(): Promise<void> {
+        await this.database.alter()
+        console.log('finished')
     }
 
     // ------------------------------------------------------------------------
 
-    public async alter() {
-        const actions = (
-            (await new DatabaseSchema(this.connection).loadDatabaseSchema())
-                .toSyncTablesActions(this.tables)
-        )
-
-        for (const [action, table, columns] of actions) switch (action) {
-            case "CREATE":
-                await (table as (EntityTableBuilder)).create(this.connection)
-                break
-
-            // ----------------------------------------------------------------
-
-            case "ALTER":
-                await (table as (EntityTableBuilder)).alter(
-                    this.connection,
-                    columns as TableColumnAction[]
-                )
-                break
-
-            // ----------------------------------------------------------------
-
-            case "DROP":
-                await (table as TableSchema).drop(this.connection)
-                break
-        }
-
-        await new TriggersSchema(this.connection, this.loadTriggers()).alter()
+    public async reset(): Promise<void> {
+        await this.database.reset()
+        console.log('finished')
     }
 
-    // Privates ---------------------------------------------------------------
-    private orderedTables() {
-        return this.loadTables().sort(
-            (a, b) => {
-                if (a instanceof JoinTableBuilder) return 1
-                if (b instanceof JoinTableBuilder) return -1
-
-                return a.dependencies.includes(b.target) ? -1 : 1
-            }
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadTables(): SyncronizerTables {
-        return [
-            ...this.loadEntityTables(),
-            ...this.loadJoinTables()
-        ]
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadTriggers(): Trigger[] {
-        return this.connection.entities.flatMap(
-            entity => {
-                const meta = EntityMetadata.findOrBuild(entity)
-
-                return [...meta.triggers].map(
-                    trigger => new trigger(entity)
-                )
-                    ?? []
-            }
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadEntityTables() {
-        return this.connection.entities.map(
-            target => new EntityTableBuilder(
-                EntityMetadata.findOrBuild(target)
-            )
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadJoinTables(): SyncronizerTables {
-        return this.uniqueJoinTablesMetadata()
-            .map(metadata => new JoinTableBuilder(metadata))
-    }
-
-    // ------------------------------------------------------------------------
-
-    private uniqueJoinTablesMetadata() {
-        return [
-            ...new Set<JoinTableMetadata>(
-                this.connection.entities.flatMap(
-                    target => JoinTableMetadata.findByTarget(target)
-                )
-            )
-        ]
-    }
-
-    // ------------------------------------------------------------------------
-
-    private async createTables() {
-        this.createTablesLog()
-
-        for (const entity of this.tables) await entity.create(
-            this.connection
-        )
-
-        this.createdTablesLog()
-    }
-
-    // ------------------------------------------------------------------------
-
-    private async dropTables() {
-        this.dropAllTablesLog()
-        await this.foreignKeysCheck(false)
-
-        for (const { tableName } of this.tables) await this.dropTable(
-            tableName
-        )
-
-        await this.foreignKeysCheck(true)
-        this.droppedAllTablesLog()
-    }
-
-    // ------------------------------------------------------------------------
-
-    private async dropTable(tableName: string) {
-        this.droppingTableLog(tableName)
-        await this.connection.query(`DROP TABLE IF EXISTS \`${tableName}\``)
-        this.droppedTableLog(tableName)
-    }
     // ------------------------------------------------------------------------
 
     private foreignKeysCheck(active: boolean) {

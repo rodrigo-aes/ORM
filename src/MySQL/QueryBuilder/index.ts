@@ -1,5 +1,16 @@
-import QueryBuilder from "./QueryBuilder"
-import ConnectionQueryBuilder from "./ConnectionQueryBuilder"
+import {
+    EntityQueryBuilder,
+    PolymorphicEntityQueryBuilder,
+    ConnectionQueryBuilder,
+
+    type FindOneQueryBuilder,
+    type FindQueryBuilder,
+    type BulkInsertQueryBuilder,
+    type InsertQueryBuilder,
+    type UpdateQueryBuilder,
+    type UpdateOrCreateQueryBuilder,
+    type DeleteQueryBuilder
+} from "./QueryBuilders"
 
 // SQL Builders
 import FindByPkSQLBuilder from "./FindByPkSQLBuilder"
@@ -77,8 +88,10 @@ import type {
 import type { RelationsOptions } from "./JoinSQLBuilder"
 
 export {
-    QueryBuilder,
+    EntityQueryBuilder,
+    PolymorphicEntityQueryBuilder,
     ConnectionQueryBuilder,
+
     CountSQLBuilder,
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
@@ -108,6 +121,14 @@ export {
     Case,
     Exists,
     Cross,
+
+    type FindOneQueryBuilder,
+    type FindQueryBuilder,
+    type BulkInsertQueryBuilder,
+    type InsertQueryBuilder,
+    type UpdateQueryBuilder,
+    type UpdateOrCreateQueryBuilder,
+    type DeleteQueryBuilder,
 
     type EntityProperties,
     type EntityRelations,

@@ -17,6 +17,12 @@ export default class JoinColumnMetadata {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
+    public get tableName(): string {
+        return this.table.tableName
+    }
+
+    // ------------------------------------------------------------------------
+
     public get name(): string {
         return `${this.references.referenced().name.toLowerCase()}Id`
     }

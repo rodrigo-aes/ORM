@@ -53,6 +53,12 @@ export default class ColumnsMetadata<
         )
     }
 
+    // Static Getters =========================================================
+    // Publics ----------------------------------------------------------------
+    public static override get [Symbol.species]() {
+        return Array;
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public registerColumn(name: string, dataType: DataType) {
