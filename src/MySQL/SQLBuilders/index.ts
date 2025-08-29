@@ -86,6 +86,8 @@ import type {
 
 import type { RelationsOptions, RelationOptions } from "./JoinSQLBuilder"
 
+import { TableSQLBuilder, ColumnSQLBuilder } from "./DatabaseSQLBuilders"
+
 export {
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
@@ -112,6 +114,9 @@ export {
     PolymorphicBelongsToHandlerSQLBuilder,
 
     RegisterProcedures,
+
+    TableSQLBuilder,
+    ColumnSQLBuilder,
 
     Op,
     Case,

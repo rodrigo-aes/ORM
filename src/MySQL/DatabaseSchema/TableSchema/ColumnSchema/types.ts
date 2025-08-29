@@ -1,6 +1,6 @@
 import type { DataType, ForeignKeyActionListener } from "../../../Metadata"
 
-export type ForeignKeyReferences = {
+export type ForeignKeyReferencesSchema = {
     constrained?: boolean
     name?: string
     tableName: string | null
@@ -20,7 +20,6 @@ export type ColumnSchemaInitMap = {
     unsigned?: boolean
     unique?: boolean
     isForeignKey?: boolean
-    references?: ForeignKeyReferences
+    references?: ForeignKeyReferencesSchema
 }
 
-export type ColumnSchemaAction = 'ADD' | 'ALTER' | 'DROP' | 'NONE'

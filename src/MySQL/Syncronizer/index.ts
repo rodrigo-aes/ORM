@@ -1,4 +1,4 @@
-import DatabaseSchema from "../DatabaseSchema"
+import DatabaseSyncronizer from "./DatabaseSyncronizer"
 
 // Utils
 import Log from "../../utils/Log"
@@ -12,7 +12,7 @@ import type { SyncronizerConfig } from "./types"
 
 export default class Syncronizer {
     private config: SyncronizerConfig
-    private database: DatabaseSchema
+    private database: DatabaseSyncronizer
 
     constructor(
         private connection: MySQLConnection,
@@ -20,7 +20,7 @@ export default class Syncronizer {
     ) {
         this.config = { ...defaultConfig, ...config }
 
-        this.database = DatabaseSchema.buildFromConnectionMetadata(
+        this.database = DatabaseSyncronizer.buildFromConnectionMetadata(
             this.connection
         )
     }

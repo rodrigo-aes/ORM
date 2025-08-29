@@ -1,1 +1,0 @@
-export type TableSchemaAction = 'ADD' | 'ALTER' | 'DROP' | 'NONE'
