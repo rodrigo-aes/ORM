@@ -12,7 +12,7 @@ import type {
     UpdateSQLBuilder,
     UpdateOrCreateSQLBuilder,
     DeleteSQLBuilder
-} from "../../QueryBuilder"
+} from "../../SQLBuilders"
 
 import type { Collection, Pagination } from "../../BaseEntity"
 

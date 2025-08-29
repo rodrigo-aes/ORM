@@ -11,7 +11,7 @@ import type {
 import type {
     CreationAttributes,
     UpdateOrCreateAttibutes
-} from "../../../QueryBuilder"
+} from "../../../SQLBuilders"
 
 export default abstract class HasManyRelation<
     Target extends object,

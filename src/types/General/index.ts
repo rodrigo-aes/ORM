@@ -31,3 +31,4 @@ type InstancesOf<T extends (EntityTarget | PolymorphicEntityTarget)[]> = {
     [K in keyof T]: InstanceType<T[K]>
 }
 
+export type Primitive = string | number | boolean | Date | null

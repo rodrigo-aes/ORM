@@ -10,7 +10,7 @@ import type {
 import type {
     CreationAttributes,
     UpdateOrCreateAttibutes
-} from "../../../QueryBuilder"
+} from "../../../SQLBuilders"
 
 export default abstract class HasOneRelation<
     Target extends object,

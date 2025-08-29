@@ -5,7 +5,7 @@ import type { EntityTarget } from "../../../../types/General"
 import type {
     UpdateAttributes,
     ConditionalQueryOptions
-} from "../../../QueryBuilder"
+} from "../../../SQLBuilders"
 
 export default function BeforeBulkUpdate<Entity extends object>(
     target: Entity,

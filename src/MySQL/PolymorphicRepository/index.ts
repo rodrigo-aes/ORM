@@ -22,7 +22,7 @@ import {
     type UpdateAttributes,
     type UpdateOrCreateAttibutes,
     type ConditionalQueryOptions,
-} from "../QueryBuilder"
+} from "../SQLBuilders"
 
 // Handlers
 import {

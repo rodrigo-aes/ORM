@@ -3,7 +3,7 @@ import type {
     PolymorphicEntityTarget
 } from "../../../../types/General"
 
-import type { FindQueryOptions } from "../../../QueryBuilder"
+import type { FindQueryOptions } from "../../../SQLBuilders"
 
 export type ScopeFunction<
     T extends EntityTarget | PolymorphicEntityTarget = any

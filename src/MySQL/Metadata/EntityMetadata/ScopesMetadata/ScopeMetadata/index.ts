@@ -5,7 +5,7 @@ import type {
     RelationsOptions,
     GroupQueryOptions,
     OrderQueryOptions
-} from "../../../../QueryBuilder"
+} from "../../../../SQLBuilders"
 
 export default class ScopeMetadata {
     public select?: SelectOptions<any>

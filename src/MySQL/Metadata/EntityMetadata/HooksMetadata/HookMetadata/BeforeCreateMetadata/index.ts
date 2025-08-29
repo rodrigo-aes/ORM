@@ -1,7 +1,7 @@
 import HookMetadata from "../HookMetadata"
 
 // Types
-import type { CreationAttributes } from "../../../../../QueryBuilder"
+import type { CreationAttributes } from "../../../../../SQLBuilders"
 
 export default class BeforeCreateMetadata extends HookMetadata {
     // Getters ================================================================

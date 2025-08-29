@@ -1,7 +1,7 @@
 import HookMetadata from "../HookMetadata"
 
 // Types
-import type { FindQueryOptions } from "../../../../../QueryBuilder"
+import type { FindQueryOptions } from "../../../../../SQLBuilders"
 
 export default class BeforeBulkFindMetadata extends HookMetadata {
     // Getters ================================================================

@@ -2,7 +2,7 @@ import { HooksMetadata } from "../../../Metadata"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { FindQueryOptions } from "../../../QueryBuilder"
+import type { FindQueryOptions } from "../../../SQLBuilders"
 
 export default function BeforeFind<Entity extends object>(
     target: Entity,

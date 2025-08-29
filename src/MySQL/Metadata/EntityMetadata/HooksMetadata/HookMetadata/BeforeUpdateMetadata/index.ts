@@ -4,7 +4,7 @@ import HookMetadata from "../HookMetadata"
 import type {
     ConditionalQueryOptions,
     UpdateAttributes,
-} from "../../../../../QueryBuilder"
+} from "../../../../../SQLBuilders"
 
 export default class BeforeUpdateMetadata extends HookMetadata {
     // Getters ================================================================

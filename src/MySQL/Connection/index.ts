@@ -5,10 +5,18 @@ import Syncronizer from '../Syncronizer'
 
 // Handlers
 import { MetadataHandler } from '../Metadata'
-import { RegisterProcedures } from '../QueryBuilder'
+import { RegisterProcedures } from '../SQLBuilders'
+
+// Utils
+import Log from '../../utils/Log'
 
 // Types
-import type { MySQLConnectionConfig } from './types'
+import type {
+    MySQLConnectionConfig,
+    QueryOptions,
+    LogginOptions,
+    LogginConfig
+} from './types'
 import type { EntityTarget } from '../../types/General'
 
 export default class MySQLConnection {
@@ -16,17 +24,33 @@ export default class MySQLConnection {
     public entities: EntityTarget[] = []
 
     public config: MySQLConnectionConfig
+    private static defaultConfig: Partial<MySQLConnectionConfig> = {
+        logging: true
+    }
+
+    private logging?: LogginOptions
 
     private constructor(config: MySQLConnectionConfig) {
-        const { entities, ...rest } = config
+        const { entities, logging, ...rest } = {
+            ...config,
+            ...MySQLConnection.defaultConfig
+        }
+
         this.config = rest
+        this.logging = logging
 
         if (entities) this.entities = entities
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
+    public async query<T = any>(
+        sql: string,
+        params?: any[],
+        options?: QueryOptions
+    ): Promise<T[]> {
+        this.sqlLogging(sql, options?.logging)
+
         const [rows] = await this.pool.query(sql, params)
         return rows as T[];
     }
@@ -82,6 +106,29 @@ export default class MySQLConnection {
         MetadataHandler.normalizeMetadata()
         MetadataHandler.registerEntitiesConnection(this, ...this.entities)
         await RegisterProcedures.register(this)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private sqlLogging(
+        sql: string,
+        logging: LogginOptions | undefined = this.logging,
+    ) {
+        if (!logging) return
+
+        switch (typeof logging) {
+            case 'boolean': if (logging) Log.out(
+                `#[warning]SQL: #[success]${sql}`
+            )
+                break
+
+            case 'object': if ((logging as LogginConfig).sql) Log.out(
+                `#[warning]SQL: #[success]${sql}`
+            )
+                break
+        }
+
+        Log.out('\n')
     }
 
     // Static Methods =========================================================

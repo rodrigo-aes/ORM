@@ -11,7 +11,7 @@ import BaseEntity from './BaseEntity'
 import BasePolymorphicEntity from './BasePolymorphicEntity'
 
 // Symbols
-import { Case, Exists, Cross } from './QueryBuilder'
+import { Case, Exists, Cross } from './SQLBuilders'
 
 // Trigger
 import {
@@ -19,7 +19,7 @@ import {
 
     type TriggerTiming,
     type TriggerEvent,
-    type TriggerForEachScope,
+    type TriggerOrientation,
     type TriggerActionType,
     type TriggerAction,
     type InsertIntoTableAction,
@@ -169,7 +169,7 @@ export {
 
     type TriggerTiming,
     type TriggerEvent,
-    type TriggerForEachScope,
+    type TriggerOrientation,
     type TriggerActionType,
     type TriggerAction,
     type InsertIntoTableAction,

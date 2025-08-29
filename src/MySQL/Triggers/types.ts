@@ -4,7 +4,7 @@ import type {
     CreationAttributesOptions,
     UpdateAttributes,
     ConditionalQueryOptions
-} from "../QueryBuilder"
+} from "../SQLBuilders"
 
 export type TriggerTiming = 'BEFORE' | 'AFTER' | 'INSTEAD OF'
 export type TriggerEvent = 'INSERT' | 'UPDATE' | 'DELETE'

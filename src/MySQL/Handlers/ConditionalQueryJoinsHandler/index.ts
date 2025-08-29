@@ -1,7 +1,7 @@
 import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 
 // SQL Builders
-import { JoinSQLBuilder } from "../../QueryBuilder"
+import { JoinSQLBuilder } from "../../SQLBuilders"
 
 // Handlers
 import { MetadataHandler } from "../../Metadata"
@@ -12,7 +12,7 @@ import type {
     PolymorphicEntityTarget
 } from "../../../types/General"
 
-import type { ConditionalQueryOptions } from "../../QueryBuilder"
+import type { ConditionalQueryOptions } from "../../SQLBuilders"
 
 export default class ConditionalQueryJoinsHandler<
     T extends EntityTarget | PolymorphicEntityTarget

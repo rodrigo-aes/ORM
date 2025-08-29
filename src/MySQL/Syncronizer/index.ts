@@ -1,4 +1,4 @@
-import DatabaseSchema from "./DatabaseSchema"
+import DatabaseSchema from "../DatabaseSchema"
 
 // Utils
 import Log from "../../utils/Log"

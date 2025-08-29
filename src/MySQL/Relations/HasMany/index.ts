@@ -1,7 +1,7 @@
 import HasManyRelation from "../ManyRelation/HasManyRelation"
 
 // SQL Builders
-import { HasManyHandlerSQLBuilder } from "../../QueryBuilder"
+import { HasManyHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Types
 import type { EntityTarget } from "../../../types/General"

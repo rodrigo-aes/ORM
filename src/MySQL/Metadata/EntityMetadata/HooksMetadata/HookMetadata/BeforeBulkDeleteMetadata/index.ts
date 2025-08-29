@@ -1,7 +1,7 @@
 import HookMetadata from "../HookMetadata"
 
 // Types
-import type { ConditionalQueryOptions } from "../../../../../QueryBuilder"
+import type { ConditionalQueryOptions } from "../../../../../SQLBuilders"
 
 export default class BeforeBulkDeleteMetadata extends HookMetadata {
     // Getters ================================================================

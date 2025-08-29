@@ -1,7 +1,7 @@
 import HookMetadata from "../HookMetadata"
 
 import type { DeleteResult } from "../../../../../Handlers"
-import type { ConditionalQueryOptions } from "../../../../../QueryBuilder"
+import type { ConditionalQueryOptions } from "../../../../../SQLBuilders"
 
 export default class AfterBulkDeleteMetadata extends HookMetadata {
     // Getters ================================================================

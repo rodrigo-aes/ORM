@@ -1,7 +1,7 @@
 import HasOneRelation from "../OneRelation/HasOneRelation"
 
 // SQL Builders
-import { PolymorphicHasOneHandlerSQLBuilder } from "../../QueryBuilder"
+import { PolymorphicHasOneHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Types
 import type { EntityTarget } from "../../../types/General"

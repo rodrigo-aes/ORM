@@ -22,20 +22,7 @@ import { InternalPolymorphicEntities } from "./Components"
 import { ColumnsSnapshots, Collection } from "../BaseEntity"
 
 // Query Builder
-import {
-    PolymorphicEntityQueryBuilder,
-
-    type EntityProperties,
-    type FindQueryOptions,
-    type FindOneQueryOptions,
-    type PaginationQueryOptions,
-    type CountQueryOption,
-    type CountQueryOptions,
-    type CreationAttributes,
-    type UpdateAttributes,
-    type UpdateOrCreateAttibutes,
-    type ConditionalQueryOptions,
-} from "../QueryBuilder"
+import { PolymorphicEntityQueryBuilder } from "../QueryBuilder"
 
 // Repository
 import PolymorphicRepository, {
@@ -76,6 +63,18 @@ import type { SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
 import type { ResultSetHeader } from "mysql2"
 import type { ResultMapOption, DeleteResult } from "../Handlers"
+import type {
+    EntityProperties,
+    FindQueryOptions,
+    FindOneQueryOptions,
+    PaginationQueryOptions,
+    CountQueryOption,
+    CountQueryOptions,
+    CreationAttributes,
+    UpdateAttributes,
+    UpdateOrCreateAttibutes,
+    ConditionalQueryOptions,
+} from "../SQLBuilders"
 
 export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     protected hidden: string[] = []
@@ -221,129 +220,165 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     }
 
     // Protecteds -------------------------------------------------------------
-    protected hasOne<Related extends EntityTarget>(
+    protected hasOne<
+        T extends PolymorphicEntityTarget,
+        Related extends EntityTarget
+    >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
-    ): HasOne<this, Related> {
+    ): HasOne<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
         if (!(metadata instanceof HasOneMetadata)) throw new Error
 
-        return new HasOne(metadata, target, related) as HasOne<this, Related>
+        return new HasOne(metadata, target, related) as HasOne<T, Related>
     }
 
     // ------------------------------------------------------------------------
 
-    protected hasMany<Related extends EntityTarget>(
+    protected hasMany<
+        T extends PolymorphicEntityTarget,
+        Related extends EntityTarget
+    >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
-    ): HasMany<this, Related> {
+    ): HasMany<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
         if (!(metadata instanceof HasManyMetadata)) throw new Error
 
-        return new HasMany(metadata, target, related) as HasMany<this, Related>
+        return new HasMany(metadata, target, related) as HasMany<T, Related>
     }
 
     // ------------------------------------------------------------------------
 
-    protected belongsTo<Related extends EntityTarget>(
+    protected belongsTo<
+        T extends PolymorphicEntityTarget,
+        Related extends EntityTarget
+    >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
-    ): BelongsTo<this, Related> {
+    ): BelongsTo<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
         if (!(metadata instanceof BelongsToMetadata)) throw new Error
 
         return new BelongsTo(metadata, target, related) as BelongsTo<
-            this,
+            T,
             Related
         >
     }
 
     // ------------------------------------------------------------------------
 
-    protected hasOneThrough<Related extends EntityTarget>(
+    protected hasOneThrough<
+        T extends PolymorphicEntityTarget,
+        Related extends EntityTarget
+    >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
-    ): HasOneThrough<this, Related> {
-        const [metadata, target] = this.getRelationMetadata(name)
+    ): HasOneThrough<T, Related> {
+        const [metadata] = this.getRelationMetadata(name)
         if (!(metadata instanceof HasOneThroughMetadata)) throw new Error
 
         return new HasOneThrough(metadata, this, related) as HasOneThrough<
-            this,
+            T,
             Related
         >
     }
 
     // ------------------------------------------------------------------------
 
-    protected hasManyThrough<Related extends EntityTarget>(
+    protected hasManyThrough<
+        T extends PolymorphicEntityTarget,
+        Related extends EntityTarget
+    >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
-    ): HasManyThrough<this, Related> {
+    ): HasManyThrough<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
         if (!(metadata instanceof HasManyThroughMetadata)) throw new Error
 
         return new HasManyThrough(metadata, target, related) as HasManyThrough<
-            this,
+            T,
             Related
         >
     }
 
     // ------------------------------------------------------------------------
 
-    protected belongsToMany<Related extends EntityTarget>(
+    protected belongsToMany<
+        T extends PolymorphicEntityTarget,
+        Related extends EntityTarget
+    >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
-    ): BelongsToMany<this, Related> {
+    ): BelongsToMany<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
         if (!(metadata instanceof BelongsToManyMetadata)) throw new Error
 
         return new BelongsToMany(metadata, target, related) as BelongsToMany<
-            this,
+            T,
             Related
         >
     }
 
     // ------------------------------------------------------------------------
 
-    protected polymorphicHasOne<Related extends EntityTarget>(
+    protected polymorphicHasOne<
+        T extends PolymorphicEntityTarget,
+        Related extends EntityTarget
+    >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
-    ): PolymorphicHasOne<this, Related> {
+    ): PolymorphicHasOne<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
         if (!(metadata instanceof PolymorphicHasOneMetadata)) throw new Error
 
         return new PolymorphicHasOne(metadata, target, related) as (
-            PolymorphicHasOne<this, Related>
+            PolymorphicHasOne<T, Related>
         )
     }
 
     // ------------------------------------------------------------------------
 
-    protected polymorphicHasMany<Related extends EntityTarget>(
+    protected polymorphicHasMany<
+        T extends PolymorphicEntityTarget,
+        Related extends EntityTarget
+    >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
-    ): PolymorphicHasMany<this, Related> {
+    ): PolymorphicHasMany<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
         if (!(metadata instanceof PolymorphicHasManyMetadata)) throw new Error
 
         return new PolymorphicHasMany(metadata, target, related) as (
-            PolymorphicHasMany<this, Related>
+            PolymorphicHasMany<T, Related>
         )
     }
 
     // ------------------------------------------------------------------------
 
     protected polymorphicBelongsTo<
+        T extends PolymorphicEntityTarget,
         Related extends PolymorphicEntityTarget | EntityTarget[]
     >(
+        this: T & BasePolymorphicEntity<any>,
         name: string,
         related: Related
     ): PolymorphicBelongsTo<
-        this,
+        T,
         LocalOrInternalPolymorphicEntityTarget<Related>
     > {
         const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw new Error
+        if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw (
+            new Error
+        )
 
         return new PolymorphicBelongsTo(
             metadata,
@@ -355,7 +390,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
             ) as LocalOrInternalPolymorphicEntityTarget<Related>
         ) as (
                 PolymorphicBelongsTo<
-                    this,
+                    T,
                     LocalOrInternalPolymorphicEntityTarget<Related>
                 >
             )

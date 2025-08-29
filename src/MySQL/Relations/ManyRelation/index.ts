@@ -15,11 +15,11 @@ import {
 import type { ResultSetHeader } from "mysql2"
 import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { ManyRelationMetadatatype } from "../../Metadata"
-import type { ManyRelationHandlerSQLBuilder } from "../../QueryBuilder"
+import type { ManyRelationHandlerSQLBuilder } from "../../SQLBuilders"
 import type {
     ConditionalQueryOptions,
     UpdateAttributes
-} from "../../QueryBuilder"
+} from "../../SQLBuilders"
 
 export default abstract class ManyRelation<
     Target extends object,

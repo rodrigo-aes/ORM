@@ -9,8 +9,8 @@ import {
 import type { ResultSetHeader } from "mysql2"
 import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
 import type { OneRelationMetadataType } from "../../Metadata"
-import type { OneRelationHandlerSQLBuilder } from "../../QueryBuilder"
-import type { UpdateAttributes } from "../../QueryBuilder"
+import type { OneRelationHandlerSQLBuilder } from "../../SQLBuilders"
+import type { UpdateAttributes } from "../../SQLBuilders"
 
 export default abstract class OneRelation<
     Target extends object,

@@ -10,7 +10,7 @@ import type {
     PolymorphicEntityTarget
 } from "../../../types/General"
 import type { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
-import type { CreationAttributesOptions } from "../../QueryBuilder"
+import type { CreationAttributesOptions } from "../../SQLBuilders"
 
 export default class EntityBuilder<
     T extends EntityTarget | PolymorphicEntityTarget

@@ -9,4 +9,15 @@ export type MySQLConnectionConfig = {
     connectionLimit?: number
     entities?: EntityTarget[]
     lazyConnection?: boolean
+    logging?: LogginOptions
+}
+
+export type LogginConfig = {
+    sql?: boolean
+}
+
+export type LogginOptions = boolean | LogginConfig
+
+export type QueryOptions = {
+    logging: LogginOptions
 }

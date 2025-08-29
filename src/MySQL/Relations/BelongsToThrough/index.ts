@@ -1,7 +1,7 @@
 import OneRelation from "../OneRelation"
 
 // SQL Builders
-import { BelongsToThroughHandlerSQLBuilder } from "../../QueryBuilder"
+import { BelongsToThroughHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Handlers
 import {

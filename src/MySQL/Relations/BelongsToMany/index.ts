@@ -4,7 +4,7 @@ import HasManyRelation from "../ManyRelation/HasManyRelation"
 import {
     BelongsToManyHandlerSQLBuilder,
     type CreationAttributes
-} from "../../QueryBuilder"
+} from "../../SQLBuilders"
 
 // Types
 import type { EntityTarget } from "../../../types/General"

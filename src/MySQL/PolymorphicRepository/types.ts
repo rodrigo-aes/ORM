@@ -2,7 +2,7 @@ import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
 import type BaseEntity from "../BaseEntity"
 import type BasePolymorphicEntity from "../BasePolymorphicEntity"
 import type { ResultSetHeader } from "mysql2"
-import type { UpdateAttributes, CountQueryOptions } from "../QueryBuilder"
+import type { UpdateAttributes, CountQueryOptions } from "../SQLBuilders"
 
 export type UpdateQueryResult<
     T extends PolymorphicEntityTarget,

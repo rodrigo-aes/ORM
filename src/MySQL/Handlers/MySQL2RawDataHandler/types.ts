@@ -3,7 +3,7 @@ import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/Gener
 import type {
     EntityProperties,
     EntityRelations
-} from "../../QueryBuilder"
+} from "../../SQLBuilders"
 
 export type MySQL2RawData = any
 export type DataFillMethod = 'One' | 'Many' | 'Paginate'

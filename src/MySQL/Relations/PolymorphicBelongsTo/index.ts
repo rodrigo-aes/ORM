@@ -1,7 +1,7 @@
 import OneRelation from "../OneRelation"
 
 // SQL Builders
-import { PolymorphicBelongsToHandlerSQLBuilder } from "../../QueryBuilder"
+import { PolymorphicBelongsToHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Handlers
 import {

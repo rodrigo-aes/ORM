@@ -1,7 +1,7 @@
 import HookMetadata from "../HookMetadata"
 
 import type { ResultSetHeader } from "mysql2"
-import type { ConditionalQueryOptions } from "../../../../../QueryBuilder"
+import type { ConditionalQueryOptions } from "../../../../../SQLBuilders"
 
 export default class AfterBulkUpdateMetadata extends HookMetadata {
     // Getters ================================================================

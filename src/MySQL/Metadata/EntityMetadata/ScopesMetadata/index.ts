@@ -7,7 +7,7 @@ import type {
     PolymorphicEntityTarget
 } from "../../../../types/General"
 
-import type { FindQueryOptions } from "../../../QueryBuilder"
+import type { FindQueryOptions } from "../../../SQLBuilders"
 import type { Scope, ScopeFunction } from "./types"
 
 export default class ScopesMetadata extends Map<

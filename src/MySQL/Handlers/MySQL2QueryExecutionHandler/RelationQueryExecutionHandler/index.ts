@@ -25,7 +25,7 @@ import type { Collection } from "../../../BaseEntity"
 import type {
     CreationAttributes,
     CreationAttributesOptions
-} from "../../../QueryBuilder"
+} from "../../../SQLBuilders"
 
 import type { MySQL2RawData } from "../../MySQL2RawDataHandler"
 import type { DeleteResult } from "../types"

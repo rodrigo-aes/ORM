@@ -14,7 +14,7 @@ import type {
     FindOneQueryOptions,
     ConditionalQueryOptions,
     RelationsOptions
-} from "../../../../QueryBuilder"
+} from "../../../../SQLBuilders"
 
 export default class ScopeMetadataHandler {
     public static applyScope<

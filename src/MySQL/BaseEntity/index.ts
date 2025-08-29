@@ -19,16 +19,6 @@ import { MetadataHandler, TempMetadata } from "../Metadata"
 // Query Builder
 import {
     EntityQueryBuilder,
-
-    type FindQueryOptions,
-    type FindOneQueryOptions,
-    type PaginationQueryOptions,
-    type CountQueryOption,
-    type CountQueryOptions,
-    type CreationAttributes,
-    type UpdateAttributes,
-    type UpdateOrCreateAttibutes,
-    type ConditionalQueryOptions,
 } from "../QueryBuilder"
 
 // Components
@@ -69,7 +59,18 @@ import type {
     Constructor
 } from "../../types/General"
 
-import type { EntityProperties } from "../QueryBuilder"
+import type {
+    EntityProperties,
+    FindQueryOptions,
+    FindOneQueryOptions,
+    PaginationQueryOptions,
+    CountQueryOption,
+    CountQueryOptions,
+    CreationAttributes,
+    UpdateAttributes,
+    UpdateOrCreateAttibutes,
+    ConditionalQueryOptions,
+} from "../SQLBuilders"
 
 export default abstract class BaseEntity {
     protected hidden: string[] = []

@@ -27,7 +27,7 @@ import type {
 import type { HookType } from "./HookMetadata/types"
 import type BaseEntity from "../../../BaseEntity"
 import type BasePolymorphicEntity from "../../../BasePolymorphicEntity"
-import type { FindQueryOptions } from "../../../QueryBuilder"
+import type { FindQueryOptions } from "../../../SQLBuilders"
 import type {
     RawData,
     MySQL2RawData
@@ -37,7 +37,7 @@ import type {
     CreationAttributes,
     UpdateAttributes,
     ConditionalQueryOptions
-} from "../../../QueryBuilder"
+} from "../../../SQLBuilders"
 import { DeleteResult } from "../../../Handlers"
 
 export default class HooksMetadata {

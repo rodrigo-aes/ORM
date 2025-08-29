@@ -4,7 +4,7 @@ import { ComputedPropertiesMetadata } from "../../../Metadata"
 import type { CollectionTarget } from "../../../../types/General"
 import type BaseEntity from "../.."
 import type BasePolymorphicEntity from "../../../BasePolymorphicEntity"
-import type { EntityProperties, UpdateAttributes } from "../../../QueryBuilder"
+import type { EntityProperties, UpdateAttributes } from "../../../SQLBuilders"
 
 export default class Collection<
     Entity extends BaseEntity | BasePolymorphicEntity<any>

@@ -2,7 +2,7 @@ import { HooksMetadata } from "../../../Metadata"
 
 // Types
 import type { EntityTarget } from "../../../../types/General"
-import type { ConditionalQueryOptions } from "../../../QueryBuilder"
+import type { ConditionalQueryOptions } from "../../../SQLBuilders"
 
 export default function BeforeBulkDelete<Entity extends object>(
     target: Entity,

@@ -6,7 +6,7 @@ import {
     CreateSQLBuilder,
     UpdateSQLBuilder,
     DeleteSQLBuilder
-} from "../QueryBuilder"
+} from "../SQLBuilders"
 
 // Symbols
 import { Old, New } from "./Symbols"
@@ -33,7 +33,7 @@ import type {
     UpdateAttributes,
     CreationAttributesOptions,
     ConditionalQueryOptions
-} from "../QueryBuilder"
+} from "../SQLBuilders"
 
 export default abstract class Trigger<T extends BaseEntity = any> {
     protected metadata: EntityMetadata

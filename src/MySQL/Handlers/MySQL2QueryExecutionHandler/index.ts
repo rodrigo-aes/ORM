@@ -17,7 +17,7 @@ import {
     DeleteSQLBuilder,
     UpdateAttributes,
     ConditionalQueryOptions,
-} from "../../QueryBuilder"
+} from "../../SQLBuilders"
 
 // Handlers
 import { MetadataHandler } from "../../Metadata"

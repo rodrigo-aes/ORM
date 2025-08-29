@@ -1,7 +1,7 @@
 import OneRelation from "../OneRelation"
 
 // SQL Builders
-import { HasOneThroughHandlerSQLBuilder } from "../../QueryBuilder"
+import { HasOneThroughHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Types
 import type { EntityTarget } from "../../../types/General"
