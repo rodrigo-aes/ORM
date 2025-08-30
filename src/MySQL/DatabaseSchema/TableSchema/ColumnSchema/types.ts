@@ -1,19 +1,15 @@
-import type { DataType, ForeignKeyActionListener } from "../../../Metadata"
+import type { DataType } from "../../../Metadata"
+import type ForeignKeyReferencesSchema from "./ForeignKeyReferencesSchema"
+import type { ForeignKeyReferencesSchemaMap } from "./ForeignKeyReferencesSchema"
 
-export type ForeignKeyReferencesSchema = {
-    constrained?: boolean
-    name?: string
-    tableName: string | null
-    columnName: string | null
-    onDelete?: ForeignKeyActionListener | null
-    onUpdate?: ForeignKeyActionListener | null
-}
 
 export type ColumnSchemaInitMap = {
     tableName: string
     name: string
     dataType: string | DataType
-} & ColumnPropertiesMap
+} & Omit<ColumnPropertiesMap, 'references'> & {
+    references?: ForeignKeyReferencesSchemaMap
+}
 
 export type ColumnPropertiesMap = {
     columnType?: string

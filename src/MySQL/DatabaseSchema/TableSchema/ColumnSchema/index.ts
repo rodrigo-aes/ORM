@@ -7,12 +7,15 @@ import {
     type ForeignKeyActionListener
 } from "../../../Metadata"
 
+import ForeignKeyReferencesSchema, {
+    type ForeignKeyReferencesSchemaMap
+} from "./ForeignKeyReferencesSchema"
+
 // Types
 import type { EntityTarget, Constructor } from "../../../../types/General"
 import type {
     ColumnSchemaInitMap,
     ColumnPropertiesMap,
-    ForeignKeyReferencesSchema
 } from "./types"
 
 export default class ColumnSchema {
@@ -20,30 +23,37 @@ export default class ColumnSchema {
     public name!: string
     public dataType!: DataType | string
 
-    public map!: ColumnPropertiesMap
+    public map: ColumnPropertiesMap = {
+        nullable: false
+    }
 
-    constructor({ name, tableName, dataType, ...map }: (
+    constructor({ name, tableName, dataType, ...rest }: (
         ColumnSchemaInitMap
     )) {
-        Object.assign(this, { name, tableName, dataType })
+        this.name = name
+        this.tableName = tableName
+        this.dataType = dataType
+
+        const { references, ...map } = rest
         this.map = map
+        this.map.references = references
+            ? new ForeignKeyReferencesSchema(references)
+            : undefined
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get foreignKeyName(): string | undefined {
-        if (this.map.references?.constrained) return (
-            this.map.references.name ?? (
-                `fk_${this.tableName}_${this.map.references.columnName}`
-            )
+        if (this.map.references?.map.constrained) return (
+            this.map.references.map.name ?? `fk_${this.tableName}_${this.name}`
         )
     }
 
     // ------------------------------------------------------------------------
 
     public get dependence(): string | undefined {
-        if (this.map.isForeignKey) return this.map.references!.tableName as (
-            string
+        if (this.map.isForeignKey) return (
+            this.map.references!.map.tableName as string
         )
     }
 
@@ -93,11 +103,11 @@ export default class ColumnSchema {
         )
 
         this.map.isForeignKey = true
-        this.map.references = {
+        this.map.references = new ForeignKeyReferencesSchema({
             constrained: true,
             tableName: table as string,
             columnName: column,
-        }
+        })
 
         return this
     }
@@ -107,7 +117,7 @@ export default class ColumnSchema {
     public onUpdate(action: ForeignKeyActionListener): this {
         if (!this.map.isForeignKey) throw new Error
 
-        this.map.references!.onUpdate = action
+        this.map.references!.onUpdate(action)
         return this
     }
 
@@ -116,7 +126,7 @@ export default class ColumnSchema {
     public onDelete(action: ForeignKeyActionListener): this {
         if (!this.map.isForeignKey) throw new Error
 
-        this.map.references!.onDelete = action
+        this.map.references!.onDelete(action)
         return this
     }
 
@@ -136,7 +146,7 @@ export default class ColumnSchema {
     ): InstanceType<T> {
         const { references, dataType } = metadata
 
-        const ref: ForeignKeyReferencesSchema | undefined = references
+        const ref: ForeignKeyReferencesSchemaMap | undefined = references
             ? {
                 tableName: (references.entity as any).tableName as string,
                 columnName: (references.column as any).name as string,
@@ -157,8 +167,9 @@ export default class ColumnSchema {
     }
 }
 
-export type {
-    ColumnSchemaInitMap,
-    ColumnPropertiesMap,
+export {
     ForeignKeyReferencesSchema,
+
+    type ColumnSchemaInitMap,
+    type ColumnPropertiesMap,
 }

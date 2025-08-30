@@ -180,5 +180,10 @@ export default abstract class DataType extends AbstractDataType {
 
 export {
     type DataTypeMetadataJSON,
+    type TextLength,
+    type IntegerLength,
+    type JSONColumnConfig,
+    type BitLength,
+    type BlobLength,
     type ComputedType
 }

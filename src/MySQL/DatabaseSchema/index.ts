@@ -19,12 +19,14 @@ import { databaseSchemaQuery } from "./static"
 // Types
 import type MySQLConnection from "../Connection"
 import type { Constructor } from "../../types/General"
+import type { DatabaseSchemaAction } from "./types"
 
 export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
     public static databaseSchemaQuery = databaseSchemaQuery
 
     protected previous?: DatabaseSchema<T>
     protected triggers?: TriggersSchema
+    protected actions: DatabaseSchemaAction[] = []
 
     constructor(
         public connection: MySQLConnection,
@@ -41,21 +43,61 @@ export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
         this.orderByDependencies()
     }
 
-    protected static get TableConstructor(): typeof TableSchema {
-        return TableSchema
-    }
-
     static get [Symbol.species]() {
         return Array
     }
 
+    // Static Getters =========================================================
+    // Protecteds -------------------------------------------------------------
+    protected static get TableConstructor(): typeof TableSchema {
+        return TableSchema
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public createTable(name: string): T {
+        const table = new TableSchema(name) as T
+
+        this.push(table)
+        this.actions.push(['CREATE', table])
+
+        return table
+    }
+
+    // ------------------------------------------------------------------------
+
+    public alterTable(name: string): T {
+        const table = this.findOrThrow(name)
+        this.actions.push(['ALTER', table])
+
+        return table
+    }
+
+    // ------------------------------------------------------------------------
+
+    public dropTable(name: string): void {
+        const table = this.findOrThrow(name)
+
+        this.actions.push(['DROP', table])
+        this.splice(this.indexOf(table), 1)
+    }
+
+    // ------------------------------------------------------------------------
+
     public findTable(name: string): TableSchema | undefined {
         return this.find(t => t.name === name)
     }
 
     // Privates ---------------------------------------------------------------
+    private findOrThrow(name: string): T {
+        const table = this.findTable(name)
+        if (!table) throw new Error
+
+        return table as T
+    }
+
+    // ------------------------------------------------------------------------
+
     private orderByDependencies(): this {
         return this.sort((a, b) => a.dependencies.includes(b.name) ? -1 : 1)
     }

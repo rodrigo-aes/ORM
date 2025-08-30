@@ -69,7 +69,7 @@ export default abstract class ColumnSQLBuilder extends ColumnSchema {
 
     public dropForeignKeySQL(): string {
         return this.map.references
-            ? `DROP FOREIGN KEY ${this.map.references.name}`
+            ? `DROP FOREIGN KEY ${this.map.references.map.name}`
             : ''
     }
 
@@ -164,7 +164,7 @@ export default abstract class ColumnSQLBuilder extends ColumnSchema {
     // ------------------------------------------------------------------------
 
     private foreignKeySQL() {
-        return (this.map.isForeignKey && this.map.references?.constrained)
+        return (this.map.isForeignKey && this.map.references?.map.constrained)
             ? `
                 CONSTRAINT ${this.foreignKeyName}
                     FOREIGN KEY (${this.name}) ${this.foreignKeyReferences()}`
@@ -179,7 +179,7 @@ export default abstract class ColumnSQLBuilder extends ColumnSchema {
             columnName,
             onDelete,
             onUpdate
-        } = this.map.references!
+        } = this.map.references!.map
 
         const onDelSQL = onDelete ? ` ON DELETE ${onDelete}` : ''
         const onUpdSQL = onUpdate ? ` ON UPDATE ${onUpdate}` : ''

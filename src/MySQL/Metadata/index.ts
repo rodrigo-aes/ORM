@@ -73,6 +73,12 @@ import EntityMetadata, {
     type Scope,
     type ScopeFunction,
 
+    type DataTypeMetadataJSON,
+    type TextLength,
+    type IntegerLength,
+    type JSONColumnConfig,
+    type BitLength,
+    type BlobLength,
     type ComputedType,
     type ComputedPropertyFunction
 } from "./EntityMetadata"
@@ -173,6 +179,12 @@ export {
     type UnionEntitiesMap,
     type CombinedColumnOptions,
 
+    type DataTypeMetadataJSON,
+    type TextLength,
+    type IntegerLength,
+    type JSONColumnConfig,
+    type BitLength,
+    type BlobLength,
     type ComputedType,
     type ComputedPropertyFunction
 }

@@ -5,6 +5,12 @@ import type MySQLConnection from '../../Connection'
 // Objects
 // Data Type
 import DataType, {
+    type DataTypeMetadataJSON,
+    type TextLength,
+    type IntegerLength,
+    type JSONColumnConfig,
+    type BitLength,
+    type BlobLength,
     type ComputedType
 } from './DataType'
 
@@ -407,6 +413,12 @@ export {
     type ColumnMetadataJSON,
     type ForeignKeyReferencesJSON,
 
+    type DataTypeMetadataJSON,
+    type TextLength,
+    type IntegerLength,
+    type JSONColumnConfig,
+    type BitLength,
+    type BlobLength,
     type ComputedType,
     type ComputedPropertyFunction
 }
