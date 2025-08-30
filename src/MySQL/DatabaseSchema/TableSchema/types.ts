@@ -1,4 +1,5 @@
-import type { ColumnSchema, ColumnSchemaInitMap } from "./TableSchema"
+import type ColumnSchema from "./ColumnSchema"
+import type { ColumnSchemaInitMap } from "./ColumnSchema"
 
 export type TableSchemaInitMap = {
     tableName: string

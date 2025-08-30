@@ -1,0 +1,1 @@
+export type TriggerSyncAction = 'ADD' | 'ALTER' | 'DROP' | 'NONE'

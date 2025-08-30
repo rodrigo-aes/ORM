@@ -13,4 +13,3 @@ export type TriggerSchemaInitMap = {
     action?: string
 }
 
-export type TriggerSchemaAction = 'ADD' | 'ALTER' | 'DROP' | 'NONE'

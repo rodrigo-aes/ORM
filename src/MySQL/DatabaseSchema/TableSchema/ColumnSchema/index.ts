@@ -11,6 +11,7 @@ import {
 import type { EntityTarget, Constructor } from "../../../../types/General"
 import type {
     ColumnSchemaInitMap,
+    ColumnPropertiesMap,
     ForeignKeyReferencesSchema
 } from "./types"
 
@@ -19,72 +20,65 @@ export default class ColumnSchema {
     public name!: string
     public dataType!: DataType | string
 
-    public _primary?: boolean
-    public _nullable?: boolean
-    public _autoIncrement?: boolean
-    public _defaultValue?: string | number | null
-    public _unsigned?: boolean
-    public _unique?: boolean
-    public _isForeignKey?: boolean
-    public _references?: ForeignKeyReferencesSchema
+    public map!: ColumnPropertiesMap
 
-    constructor(initMap: ColumnSchemaInitMap) {
-        Object.assign(
-            this,
-            Object.fromEntries(
-                Object.entries(initMap).map(
-                    ([key, value]) => [key.replace('_', ''), value]
-                )
-            )
-        )
+    constructor({ name, tableName, dataType, ...map }: (
+        ColumnSchemaInitMap
+    )) {
+        Object.assign(this, { name, tableName, dataType })
+        this.map = map
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get foreignKeyName(): string | undefined {
-        if (this._references?.constrained) return this._references.name ?? (
-            `fk_${this.tableName}_${this._references.columnName}`
+        if (this.map.references?.constrained) return (
+            this.map.references.name ?? (
+                `fk_${this.tableName}_${this.map.references.columnName}`
+            )
         )
     }
 
     // ------------------------------------------------------------------------
 
     public get dependence(): string | undefined {
-        if (this._isForeignKey) return this._references!.tableName as string
+        if (this.map.isForeignKey) return this.map.references!.tableName as (
+            string
+        )
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public primary(): this {
-        this._primary = true
+        this.map.primary = true
         return this
     }
 
     // ------------------------------------------------------------------------
 
     public nullable(nullable: boolean = true): this {
-        this._nullable = nullable
+        this.map.nullable = nullable
         return this
     }
 
     // ------------------------------------------------------------------------
 
     public autoIncrement(): this {
-        this._autoIncrement = true
+        this.map.autoIncrement = true
         return this
     }
 
     // ------------------------------------------------------------------------
 
     public unsigned(): this {
-        this._unsigned = true
+        this.map.unsigned = true
         return this
     }
 
     // ------------------------------------------------------------------------
 
     public unique(): this {
-        this._unique = true
+        this.map.unique = true
         return this
     }
 
@@ -98,8 +92,8 @@ export default class ColumnSchema {
             this.getTargetMetadata(table).tableName
         )
 
-        this._isForeignKey = true
-        this._references = {
+        this.map.isForeignKey = true
+        this.map.references = {
             constrained: true,
             tableName: table as string,
             columnName: column,
@@ -111,18 +105,18 @@ export default class ColumnSchema {
     // ------------------------------------------------------------------------
 
     public onUpdate(action: ForeignKeyActionListener): this {
-        if (!this._isForeignKey) throw new Error
+        if (!this.map.isForeignKey) throw new Error
 
-        this._references!.onUpdate = action
+        this.map.references!.onUpdate = action
         return this
     }
 
     // ------------------------------------------------------------------------
 
     public onDelete(action: ForeignKeyActionListener): this {
-        if (!this._isForeignKey) throw new Error
+        if (!this.map.isForeignKey) throw new Error
 
-        this._references!.onDelete = action
+        this.map.references!.onDelete = action
         return this
     }
 
@@ -146,6 +140,7 @@ export default class ColumnSchema {
             ? {
                 tableName: (references.entity as any).tableName as string,
                 columnName: (references.column as any).name as string,
+                name: references.name,
                 constrained: references.constrained,
                 onUpdate: references.onUpdate,
                 onDelete: references.onDelete
@@ -164,5 +159,6 @@ export default class ColumnSchema {
 
 export type {
     ColumnSchemaInitMap,
+    ColumnPropertiesMap,
     ForeignKeyReferencesSchema,
 }

@@ -5,66 +5,39 @@ import TriggerSchema, { type TriggerSchemaInitMap } from "./TriggerSchema"
 import { triggersSchemaQuery } from "./static"
 
 // Types
+import type { Constructor } from "../../../types/General"
 import type { TriggersMetadata } from "../../Metadata"
 import type MySQLConnection from "../../Connection"
 
-export default class TriggersSchema extends Array<TriggerSchema> {
-    private previous?: TriggersSchema
+export default class TriggersSchema<
+    T extends TriggerSchema = TriggerSchema
+> extends Array<T> {
+    protected previous?: TriggersSchema
 
     constructor(
         public connection: MySQLConnection,
-        ...triggers: (Trigger | TriggerSchemaInitMap)[]
+        ...triggers: (T | TriggerSchemaInitMap)[]
     ) {
-        super(...triggers.map(trigger => trigger instanceof Trigger
-            ? TriggerSchema.buildFromTrigger(trigger)
+        super(...triggers.map(trigger => trigger instanceof TriggerSchema
+            ? trigger
             : new TriggerSchema(trigger)
-        ))
+        ) as T[])
     }
 
     static get [Symbol.species]() {
         return Array
     }
 
-    // Intance Methods ========================================================
-    // Publics ----------------------------------------------------------------
-    public async reset(): Promise<void> {
-        (await this.previousSchemas()).dropAll()
-        await this.createAll()
+    protected static get TriggerConstructor(): typeof TriggerSchema {
+        return TriggerSchema
     }
-
-    // ------------------------------------------------------------------------
-
-    public async alter(): Promise<void> {
-        await this.dropInexistents()
-
-        for (const trigger of this) await trigger.executeAction(
-            this.connection,
-            (await this.previousSchemas()).findTrigger(trigger.name)
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public async createAll(): Promise<void> {
-        for (const trigger of this) await trigger.create(this.connection)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public async dropAll(): Promise<void> {
-        for (const trigger of (await this.previousSchemas())) (
-            await trigger.drop(this.connection)
-        )
-    }
-
-    // ------------------------------------------------------------------------
 
     public findTrigger(name: string): TriggerSchema | undefined {
         return this.find(t => t.name === name)
     }
 
-    // Privates ---------------------------------------------------------------
-    private async previousSchemas(): (
+    // Protecteds -------------------------------------------------------------
+    protected async previousSchemas(): (
         Promise<TriggersSchema>
     ) {
         if (this.previous) return this.previous
@@ -72,34 +45,43 @@ export default class TriggersSchema extends Array<TriggerSchema> {
         this.previous = new TriggersSchema(
             this.connection,
             ...(await this.connection.query(
-                triggersSchemaQuery(this.connection.config.database)
+                TriggersSchema.triggersSchemaQuery(
+                    this.connection.config.database
+                ),
+                undefined,
+                {
+                    logging: false
+                }
             ))
         )
 
         return this.previous
     }
 
-    // ------------------------------------------------------------------------
-
-    private async dropInexistents(): Promise<void> {
-        for (const trigger of ((await this.previousSchemas()).filter(
-            ({ name }) => !this.findTrigger(name)
-        ))) (
-            await trigger.drop(this.connection)
-        )
-    }
-
     // Static Meethods ========================================================
     // Publics ----------------------------------------------------------------
-    public static buildFromMetadatas(
+    public static buildFromMetadatas<T extends Constructor<TriggersSchema>>(
+        this: T,
         connection: MySQLConnection,
         ...metadatas: TriggersMetadata[]
-    ): TriggersSchema {
-        return new TriggersSchema(
+    ): InstanceType<T> {
+        return new this(
             connection,
             ...metadatas.flatMap(metadata => metadata.map(
                 constructor => new constructor(metadata.target)
             ))
-        )
+                .map(trigger => (this as T & typeof TriggersSchema)
+                    .TriggerConstructor
+                    .buildFromTrigger(trigger)
+                )
+        ) as InstanceType<T>
     }
+
+    // -------------------------------------------------------------------------
+
+    public static triggersSchemaQuery = triggersSchemaQuery
+}
+
+export {
+    TriggerSchema
 }

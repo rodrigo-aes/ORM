@@ -1,11 +1,13 @@
 import { EntityMetadata, DataType } from "../../Metadata"
 import ColumnSchema, {
     type ColumnSchemaInitMap,
+    type ColumnPropertiesMap,
     type ForeignKeyReferencesSchema
 } from "./ColumnSchema"
 
 // Types
 import type { EntityTarget, Constructor } from "../../../types/General"
+import type { TableSchemaInitMap, TableSchemaAction } from "./types"
 
 export default class TableSchema<
     T extends ColumnSchema = ColumnSchema
@@ -27,7 +29,7 @@ export default class TableSchema<
         this.dependencies = this.flatMap(({ dependence }) => dependence ?? [])
     }
 
-    public static get ColumnConstructor(): typeof ColumnSchema {
+    protected static get ColumnConstructor(): typeof ColumnSchema {
         return ColumnSchema
     }
 
@@ -103,6 +105,10 @@ export default class TableSchema<
 
 export {
     ColumnSchema,
+
+    type TableSchemaInitMap,
+    type TableSchemaAction,
     type ColumnSchemaInitMap,
+    type ColumnPropertiesMap,
     type ForeignKeyReferencesSchema
 }

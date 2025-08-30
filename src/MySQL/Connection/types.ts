@@ -10,6 +10,7 @@ export type MySQLConnectionConfig = {
     entities?: EntityTarget[]
     lazyConnection?: boolean
     logging?: LogginOptions
+    autoSync?: boolean
 }
 
 export type LogginConfig = {

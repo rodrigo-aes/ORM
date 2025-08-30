@@ -86,7 +86,11 @@ import type {
 
 import type { RelationsOptions, RelationOptions } from "./JoinSQLBuilder"
 
-import { TableSQLBuilder, ColumnSQLBuilder } from "./DatabaseSQLBuilders"
+import {
+    TableSQLBuilder,
+    ColumnSQLBuilder,
+    TriggerSQLBuilder
+} from "./DatabaseSQLBuilders"
 
 export {
     FindByPkSQLBuilder,
@@ -117,6 +121,7 @@ export {
 
     TableSQLBuilder,
     ColumnSQLBuilder,
+    TriggerSQLBuilder,
 
     Op,
     Case,

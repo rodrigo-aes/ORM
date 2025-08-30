@@ -25,19 +25,27 @@ export default class MySQLConnection {
 
     public config: MySQLConnectionConfig
     private static defaultConfig: Partial<MySQLConnectionConfig> = {
-        logging: true
+        logging: true,
+        autoSync: false
     }
 
     private logging?: LogginOptions
+    private autoSync?: boolean
 
     private constructor(config: MySQLConnectionConfig) {
-        const { entities, logging, ...rest } = {
+        const {
+            entities,
+            logging,
+            autoSync,
+            ...rest
+        } = {
             ...config,
             ...MySQLConnection.defaultConfig
         }
 
         this.config = rest
         this.logging = logging
+        this.autoSync = autoSync
 
         if (entities) this.entities = entities
     }
@@ -106,6 +114,8 @@ export default class MySQLConnection {
         MetadataHandler.normalizeMetadata()
         MetadataHandler.registerEntitiesConnection(this, ...this.entities)
         await RegisterProcedures.register(this)
+
+        if (this.autoSync) await this.sync('alter')
     }
 
     // ------------------------------------------------------------------------

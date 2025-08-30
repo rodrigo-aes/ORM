@@ -19,9 +19,10 @@ SELECT
             'isForeignKey',     cols.isForeignKey,
             
             'references', JSON_OBJECT(
-                'foreignTable',     cols.foreignTable,
-                'foreignColumn',    cols.foreignColumn,
-                'foreignKeyName',   cols.foreignKeyName,
+                'constrained',      cols.isForeignKey,
+                'tableName',        cols.foreignTable,
+                'name',             cols.foreignKeyName,
+                'columnName',       cols.foreignColumn,
                 'onDelete',         cols.onDelete,
                 'onUpdate',         cols.onUpdate
             )

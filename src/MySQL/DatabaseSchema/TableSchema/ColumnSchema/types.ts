@@ -13,6 +13,10 @@ export type ColumnSchemaInitMap = {
     tableName: string
     name: string
     dataType: string | DataType
+} & ColumnPropertiesMap
+
+export type ColumnPropertiesMap = {
+    columnType?: string
     nullable?: boolean
     primary?: boolean
     autoIncrement?: boolean
@@ -21,5 +25,4 @@ export type ColumnSchemaInitMap = {
     unique?: boolean
     isForeignKey?: boolean
     references?: ForeignKeyReferencesSchema
-}
-
+}   

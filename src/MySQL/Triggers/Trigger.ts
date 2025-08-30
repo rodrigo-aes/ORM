@@ -73,7 +73,6 @@ export default abstract class Trigger<T extends BaseEntity = any> {
 
     public async register(): Promise<void> {
         if (!this.metadata.connection) throw new Error
-        console.log(this.SQL())
         await this.metadata.connection.query(this.SQL())
     }
 
@@ -81,7 +80,6 @@ export default abstract class Trigger<T extends BaseEntity = any> {
 
     public async drop(): Promise<void> {
         if (!this.metadata.connection) throw new Error
-        console.log(`DROP TRIGGER ${this.name}`)
         await this.metadata.connection.query(`DROP TRIGGER ${this.name}`)
     }
 

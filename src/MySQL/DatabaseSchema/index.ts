@@ -4,10 +4,14 @@ import TableSchema, {
     ColumnSchema,
 
     type ColumnSchemaInitMap,
-    type ForeignKeyReferencesSchema
+    type ColumnPropertiesMap,
+    type ForeignKeyReferencesSchema,
+    type TableSchemaInitMap
 } from "./TableSchema"
 
-import TriggersSchema from "./TriggersSchema"
+import TriggersSchema, {
+    TriggerSchema
+} from "./TriggersSchema"
 
 // Statics 
 import { databaseSchemaQuery } from "./static"
@@ -15,7 +19,7 @@ import { databaseSchemaQuery } from "./static"
 // Types
 import type MySQLConnection from "../Connection"
 import type { Constructor } from "../../types/General"
-import type { TableSchemaInitMap } from "./types"
+
 export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
     public static databaseSchemaQuery = databaseSchemaQuery
 
@@ -37,7 +41,7 @@ export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
         this.orderByDependencies()
     }
 
-    public static get TableConstructor(): typeof TableSchema {
+    protected static get TableConstructor(): typeof TableSchema {
         return TableSchema
     }
 
@@ -53,7 +57,7 @@ export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
 
     // Privates ---------------------------------------------------------------
     private orderByDependencies(): this {
-        return this.sort((a, b) => a.dependencies.includes(b.name) ? 1 : -1)
+        return this.sort((a, b) => a.dependencies.includes(b.name) ? -1 : 1)
     }
 
     // ------------------------------------------------------------------------
@@ -129,7 +133,9 @@ export {
     TableSchema,
     ColumnSchema,
     TriggersSchema,
+    TriggerSchema,
 
     type ColumnSchemaInitMap,
+    type ColumnPropertiesMap,
     type ForeignKeyReferencesSchema
 }
