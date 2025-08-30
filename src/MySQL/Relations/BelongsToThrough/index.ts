@@ -13,7 +13,7 @@ import {
 import type { EntityTarget } from "../../../types/General"
 import type { BelongsToThroughMetadata } from "../../Metadata"
 
-export default class BelongsTo<
+export default class BelongsToThrough<
     Target extends object,
     Related extends EntityTarget
 > extends OneRelation<Target, Related> {

@@ -3,6 +3,7 @@ import HasMany from "./HasMany"
 import BelongsTo from "./BelongsTo"
 import HasOneThrough from "./HasOneThrough"
 import HasManyThrough from "./HasManyThrough"
+import BelongsToThrough from "./BelongsToThrough"
 import BelongsToMany from "./BelongsToMany"
 import PolymorphicHasOne from "./PolymorphicHasOne"
 import PolymorphicHasMany from "./PolymorphicHasMany"
@@ -14,6 +15,7 @@ export {
     BelongsTo,
     HasOneThrough,
     HasManyThrough,
+    BelongsToThrough,
     BelongsToMany,
     PolymorphicHasOne,
     PolymorphicHasMany,
