@@ -14,6 +14,16 @@ import type UpdateQueryBuilder from "./UpdateQueryBuilder"
 import type UpdateOrCreateQueryBuilder from "./UpdateOrCreateQueryBuilder"
 import type DeleteQueryBuilder from "./DeleteQueryBuilder"
 
+import type {
+    SelectQueryHandler,
+    CountQueryHandler,
+    AndQueryHandler,
+    CaseQueryHandler,
+    WhereQueryHandler,
+    JoinQueryHandler,
+    PaginateQueryBuilder
+} from "./types"
+
 export {
     EntityQueryBuilder,
     PolymorphicEntityQueryBuilder,
@@ -25,5 +35,13 @@ export {
     type InsertQueryBuilder,
     type UpdateQueryBuilder,
     type UpdateOrCreateQueryBuilder,
-    type DeleteQueryBuilder
+    type DeleteQueryBuilder,
+
+    type SelectQueryHandler,
+    type CountQueryHandler,
+    type AndQueryHandler,
+    type CaseQueryHandler,
+    type WhereQueryHandler,
+    type JoinQueryHandler,
+    type PaginateQueryBuilder
 }
