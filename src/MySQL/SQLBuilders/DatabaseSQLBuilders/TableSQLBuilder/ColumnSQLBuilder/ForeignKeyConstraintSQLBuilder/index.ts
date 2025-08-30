@@ -1,0 +1,71 @@
+import ForeignKeyReferencesSchema from "../../../../../DatabaseSchema/TableSchema/ColumnSchema/ForeignKeyReferencesSchema"
+
+// Helpers
+import { SQLStringHelper } from "../../../../../Helpers"
+
+// Types
+import type { ActionType } from "../../../../../DatabaseSchema"
+
+export default class ForeignKeyConstraintSQLBuilder extends
+    ForeignKeyReferencesSchema {
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public createSQL(): string {
+        return SQLStringHelper.normalizeSQL(this.constraintSQL())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public addSQL(): string {
+        return SQLStringHelper.normalizeSQL(`ADD ${this.constraintSQL()}`)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public alterSQL(): string {
+        return `${this.dropSQL()}, ${this.createSQL()}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public dropSQL(): string {
+        return `DROP FOREIGN KEY ${this.name}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public migrateAlterSQL(action: ActionType): string {
+        switch (action) {
+            case "CREATE": return this.addSQL()
+            case "ALTER": return this.alterSQL()
+            case "DROP": return this.dropSQL()
+        }
+    }
+
+    // Privates ---------------------------------------------------------------
+    private constraintSQL(): string {
+        return `
+            CONSTRAINT ${this.name}
+                FOREIGN KEY (${this.columnName}) ${this.referencesSQL()}
+        `
+    }
+
+    // ------------------------------------------------------------------------
+
+    private referencesSQL(): string {
+        const onDelSQL = this.map.onDelete
+            ? `ON DELETE ${this.map.onDelete}`
+            : ''
+
+        const onUpdSQL = this.map.onUpdate
+            ? `ON UPDATE ${this.map.onUpdate}`
+            : ''
+
+        return `
+            REFERENCES ${this.map.tableName}(${this.map.columnName})
+            ${onDelSQL}
+            ${onUpdSQL}
+        `
+
+    }
+}

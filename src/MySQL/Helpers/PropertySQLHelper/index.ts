@@ -14,16 +14,28 @@ export default class PropertySQLHelper {
         switch (typeof value) {
             case "string": return `'${value}'`
 
-            case "object":
-                if (value === null) return 'NULL';
-                if (value instanceof Date) return `'${value.toISOString()}'`;
+            // ----------------------------------------------------------------
 
-                return `'${JSON.stringify(value)}'`;
+            case "object":
+                if (value === null) return 'NULL'
+                if (value instanceof Date) return `'${value.toISOString()}'`
+
+                return `'${JSON.stringify(value)}'`
+
+            // ----------------------------------------------------------------
 
             case "number":
-            case "bigint": return value.toString();
+            case "bigint": return value.toString()
 
-            case "boolean": return value ? 'TRUE' : 'FALSE';
+            // ----------------------------------------------------------------
+
+            case "boolean": return value ? 'TRUE' : 'FALSE'
+
+            // ----------------------------------------------------------------
+
+            case 'function': return value()
+
+            // ----------------------------------------------------------------
 
             default: throw new Error
         }

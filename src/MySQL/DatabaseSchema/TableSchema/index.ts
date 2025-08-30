@@ -14,7 +14,7 @@ import ColumnSchema, {
     ForeignKeyReferencesSchema,
 
     type ColumnSchemaInitMap,
-    type ColumnPropertiesMap,
+    type ColumnSchemaMap,
 } from "./ColumnSchema"
 
 // Types
@@ -225,8 +225,26 @@ export default class TableSchema<
         const col = this.findOrThrow(column)
         if (col.map.references) throw new Error
 
-        col.map.references = new ForeignKeyReferencesSchema()
+        if (this.colAlreadyInActions(column)) return col.constained()
+
+        col.map.references = new ForeignKeyReferencesSchema(
+            this.name,
+            col.name
+        )
         this.actions.push(['CREATE', col.map.references])
+
+        return col.map.references
+    }
+
+    // ------------------------------------------------------------------------
+
+    public alterConstraint(column: string): ForeignKeyReferencesSchema {
+        const col = this.findOrThrow(column)
+        if (!col.map.references) throw new Error
+
+        if (this.colAlreadyInActions(column)) return col.alterConstraint()
+
+        this.actions.push(['ALTER', col.map.references])
 
         return col.map.references
     }
@@ -236,6 +254,8 @@ export default class TableSchema<
     public dropConstraint(column: string): void {
         const col = this.findOrThrow(column)
         if (!col.map.references) throw new Error
+
+        if (this.colAlreadyInActions(column)) return col.dropConstraint()
 
         this.actions.push(['DROP', col.map.references])
     }
@@ -266,6 +286,12 @@ export default class TableSchema<
         if (!col) throw new Error
 
         return col
+    }
+
+    // ------------------------------------------------------------------------
+
+    private colAlreadyInActions(column: string): boolean {
+        return !!this.actions.find(([_, { name }]) => name === column)
     }
 
     // Static Methods =========================================================
@@ -320,6 +346,6 @@ export {
 
     type TableSchemaInitMap,
     type ColumnSchemaInitMap,
-    type ColumnPropertiesMap,
+    type ColumnSchemaMap,
     type ForeignKeyReferencesSchema
 }

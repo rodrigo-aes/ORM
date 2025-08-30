@@ -4,11 +4,11 @@ import type {
     ColumnSchemaInitMap,
     ForeignKeyReferencesSchema
 } from "./ColumnSchema"
+
 export type TableSchemaInitMap = {
     tableName: string
     columns: (ColumnSchema | ColumnSchemaInitMap)[]
 }
-
 
 export type TableSchemaAction = [ActionType, (
     ColumnSchema |

@@ -8,8 +8,18 @@ import type { ForeignKeyReferencesSchemaMap } from "./types"
 export default class ForeignKeyReferencesSchema {
     public map: ForeignKeyReferencesSchemaMap = {}
 
-    constructor(initMap?: ForeignKeyReferencesSchemaMap) {
+    constructor(
+        public tableName: string,
+        public columnName: string,
+        initMap?: ForeignKeyReferencesSchemaMap
+    ) {
         if (initMap) Object.assign(this.map, initMap)
+    }
+
+    // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get name(): string {
+        return `fk_${this.tableName}_${this.columnName}`
     }
 
     // Instance Methods =======================================================

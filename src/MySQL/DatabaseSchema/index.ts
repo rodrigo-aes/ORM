@@ -4,14 +4,12 @@ import TableSchema, {
     ColumnSchema,
 
     type ColumnSchemaInitMap,
-    type ColumnPropertiesMap,
+    type ColumnSchemaMap,
     type ForeignKeyReferencesSchema,
     type TableSchemaInitMap
 } from "./TableSchema"
 
-import TriggersSchema, {
-    TriggerSchema
-} from "./TriggersSchema"
+import TriggersSchema, { TriggerSchema } from "./TriggersSchema"
 
 // Statics 
 import { databaseSchemaQuery } from "./static"
@@ -19,7 +17,7 @@ import { databaseSchemaQuery } from "./static"
 // Types
 import type MySQLConnection from "../Connection"
 import type { Constructor } from "../../types/General"
-import type { DatabaseSchemaAction } from "./types"
+import type { DatabaseSchemaAction, ActionType } from "./types"
 
 export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
     public static databaseSchemaQuery = databaseSchemaQuery
@@ -177,7 +175,8 @@ export {
     TriggersSchema,
     TriggerSchema,
 
+    type ActionType,
     type ColumnSchemaInitMap,
-    type ColumnPropertiesMap,
+    type ColumnSchemaMap,
     type ForeignKeyReferencesSchema
 }

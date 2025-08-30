@@ -1,17 +1,9 @@
 import type { DataType } from "../../../Metadata"
+import type { ActionType } from "../../types"
 import type ForeignKeyReferencesSchema from "./ForeignKeyReferencesSchema"
 import type { ForeignKeyReferencesSchemaMap } from "./ForeignKeyReferencesSchema"
 
-
-export type ColumnSchemaInitMap = {
-    tableName: string
-    name: string
-    dataType: string | DataType
-} & Omit<ColumnPropertiesMap, 'references'> & {
-    references?: ForeignKeyReferencesSchemaMap
-}
-
-export type ColumnPropertiesMap = {
+export interface ColumnSchemaMap {
     columnType?: string
     nullable?: boolean
     primary?: boolean
@@ -21,4 +13,21 @@ export type ColumnPropertiesMap = {
     unique?: boolean
     isForeignKey?: boolean
     references?: ForeignKeyReferencesSchema
-}   
+}
+
+export type ColumnSchemaInitMap = (
+    {
+        tableName: string
+        name: string
+        dataType: string | DataType
+    } &
+    Omit<ColumnSchemaMap, 'references'>
+    & {
+        references?: (
+            ForeignKeyReferencesSchema |
+            ForeignKeyReferencesSchemaMap
+        )
+    }
+)
+
+export type ColumnSchemaAction = [ActionType, ForeignKeyReferencesSchema]

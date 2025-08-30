@@ -29,7 +29,7 @@ export default class TableSyncronizer extends TableSQLBuilder<
     public async alter(connection: MySQLConnection, schema: TableSchema): (
         Promise<void>
     ) {
-        await connection.query(this.alterSQL(schema))
+        await connection.query(this.syncAlterSQL(schema))
     }
 
     // ------------------------------------------------------------------------
@@ -44,16 +44,16 @@ export default class TableSyncronizer extends TableSQLBuilder<
         connection: MySQLConnection,
         schema?: TableSchema
     ): Promise<void> {
-        const sql = this.actionSQL(schema)
+        const sql = this.syncActionSQL(schema)
         if (sql) await connection.query(sql)
     }
 
     // ------------------------------------------------------------------------
 
-    public actionSQL(schema?: TableSchema): string | undefined {
+    public syncActionSQL(schema?: TableSchema): string | undefined {
         switch (this.compare(schema)) {
             case 'ADD': return this.createSQL()
-            case 'ALTER': return this.alterSQL(schema!)
+            case 'ALTER': return this.syncAlterSQL(schema!)
         }
     }
 

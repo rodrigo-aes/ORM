@@ -1,61 +1,98 @@
 import ColumnSchema from "../../../../DatabaseSchema/TableSchema/ColumnSchema"
+
+// Metadata
 import { DataType } from "../../../../Metadata"
 
-// Helpers
-import { SQLStringHelper } from "../../../../Helpers"
+// SQL Builders
+import ForeignKeyConstraintSQLBuilder from "./ForeignKeyConstraintSQLBuilder"
 
-export default abstract class ColumnSQLBuilder extends ColumnSchema {
+// Helpers
+import { SQLStringHelper, PropertySQLHelper } from "../../../../Helpers"
+
+// Types
+import type { ActionType } from "../../../../DatabaseSchema"
+import type { ColumnSQLBuilderMap } from "./types"
+
+export default class ColumnSQLBuilder extends ColumnSchema {
+    public override map!: ColumnSQLBuilderMap
+
+    // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get foreignKeyConstraint(): (
+        ForeignKeyConstraintSQLBuilder | undefined
+    ) {
+        return this.map.references
+    }
+
+    // Static Getters =========================================================
+    // Protecteds =============================================================
+    protected static get ForeignKeyConstructor(): (
+        typeof ForeignKeyConstraintSQLBuilder
+    ) {
+        return ForeignKeyConstraintSQLBuilder
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public createSQL() {
-        const foreignKeySQL = this.foreignKeySQL()
-
         return SQLStringHelper.normalizeSQL(`
-            ${this.columnSQL()}
-            ${foreignKeySQL ? `, ${foreignKeySQL}` : ''}
+            ${this.columnSQL()}${this.createForeignKeySQL()}
         `)
     }
 
     // ------------------------------------------------------------------------
 
-    public addSQL() {
-        const foreignKeySQL = this.addForeignKeySQL()
+    public createForeignKeySQL() {
+        return (
+            this.map.isForeignKey &&
+            this.foreignKeyConstraint?.map.constrained
+        )
+            ? `, ${this.foreignKeyConstraint?.createSQL()}`
+            : ''
+    }
 
+    // ------------------------------------------------------------------------
+
+    public addSQL() {
         return SQLStringHelper.normalizeSQL(`
-            ADD COLUMN ${this.columnSQL()}
-            ${foreignKeySQL ? `, ${foreignKeySQL}` : ''}
+            ADD COLUMN ${this.columnSQL()}${this.addForeignKeySQL()}
         `)
     }
 
     // ------------------------------------------------------------------------
 
     public addForeignKeySQL() {
-        const foreignKeySQL = this.foreignKeySQL()
-        return foreignKeySQL
-            ? `ADD ${foreignKeySQL}`
+        return (
+            this.map.isForeignKey &&
+            this.foreignKeyConstraint?.map.constrained
+        )
+            ? `, ${this.foreignKeyConstraint?.addSQL()}`
             : ''
     }
 
     // ------------------------------------------------------------------------
 
-    public modifySQL(schema?: ColumnSchema) {
-        const fkSQL = schema ? this.foreignKeyActionSQL(schema) : ''
-
+    public alterSQL() {
         return SQLStringHelper.normalizeSQL(`
             MODIFY COLUMN ${this.columnSQL()}
-            ${fkSQL ? `, ${fkSQL}` : ''}
         `)
     }
 
     // ------------------------------------------------------------------------
 
-    public abstract actionSQL(schema?: ColumnSchema): string | undefined
+    public alterForeignKeySQL(): string {
+        return this.foreignKeyConstraint?.alterSQL() ?? ''
+    }
 
     // ------------------------------------------------------------------------
 
-    public abstract foreignKeyActionSQL(schema: ColumnSchema): (
-        string | undefined
-    )
+    public syncAlterSQL(schema?: ColumnSchema) {
+        const fkSQL = schema ? this.syncForeignKeyActionSQL(schema) : ''
+
+        return SQLStringHelper.normalizeSQL(`
+            ${this.alterSQL()}${fkSQL ? `, ${fkSQL}` : ''}
+        `)
+    }
 
     // ------------------------------------------------------------------------
 
@@ -68,15 +105,53 @@ export default abstract class ColumnSQLBuilder extends ColumnSchema {
     // ------------------------------------------------------------------------
 
     public dropForeignKeySQL(): string {
-        return this.map.references
-            ? `DROP FOREIGN KEY ${this.map.references.map.name}`
-            : ''
+        return this.foreignKeyConstraint?.dropSQL() ?? ''
+    }
+
+    // ------------------------------------------------------------------------
+
+    public syncActionSQL(schema?: ColumnSchema): string | undefined {
+        throw new Error
+    }
+
+    // ------------------------------------------------------------------------
+
+    public syncForeignKeyActionSQL(schema: ColumnSchema): string | undefined {
+        throw new Error
+    }
+
+    // ------------------------------------------------------------------------
+
+    public migrateAlterSQL(action: Omit<ActionType, 'CREATE'>): string {
+        switch (action) {
+            case 'ALTER': return [
+                this.alterSQL(),
+                this.childMigrateAlterSQL()
+            ]
+                .join(', ')
+
+            case 'DROP': return this.dropSQL()
+        }
+
+        throw new Error
+    }
+
+    // Protecteds -------------------------------------------------------------
+    protected childMigrateAlterSQL(): string {
+        return this.actions.map(([action]) => {
+            switch (action) {
+                case "CREATE": return this.addForeignKeySQL()
+                case "ALTER": return this.alterForeignKeySQL()
+                case "DROP": return this.dropForeignKeySQL()
+            }
+        })
+            .join(', ')
     }
 
     // Privates ---------------------------------------------------------------
     private shouldDropForeignKeySQL(): string {
         return this.map.isForeignKey
-            ? this.dropForeignKeySQL()
+            ? `${this.dropForeignKeySQL()},`
             : ''
     }
 
@@ -142,50 +217,11 @@ export default abstract class ColumnSQLBuilder extends ColumnSchema {
 
     private defaultSQL() {
         return this.map.defaultValue
-            ? `DEFAULT ${this.formatDefaultValue(this.map.defaultValue)}`
+            ? `DEFAULT ${PropertySQLHelper.valueSQL(this.map.defaultValue)}`
             : ''
     }
+}
 
-    // ------------------------------------------------------------------------
-
-    private formatDefaultValue(def: any) {
-        switch (typeof def) {
-            case "string":
-            case "number":
-            case "bigint":
-            case "boolean":
-            case "object": return JSON.stringify(def)
-            case "function": return def()
-
-            default: throw new Error
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private foreignKeySQL() {
-        return (this.map.isForeignKey && this.map.references?.map.constrained)
-            ? `
-                CONSTRAINT ${this.foreignKeyName}
-                    FOREIGN KEY (${this.name}) ${this.foreignKeyReferences()}`
-            : ''
-    }
-
-    // ------------------------------------------------------------------------
-
-    private foreignKeyReferences() {
-        const {
-            tableName,
-            columnName,
-            onDelete,
-            onUpdate
-        } = this.map.references!.map
-
-        const onDelSQL = onDelete ? ` ON DELETE ${onDelete}` : ''
-        const onUpdSQL = onUpdate ? ` ON UPDATE ${onUpdate}` : ''
-
-        return (
-            `REFERENCES ${tableName}(${columnName})${onDelSQL}${onUpdSQL}`
-        )
-    }
+export {
+    ForeignKeyConstraintSQLBuilder
 }

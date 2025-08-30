@@ -1,7 +1,7 @@
 import {
     ColumnSchema,
 
-    type ColumnPropertiesMap,
+    type ColumnSchemaMap,
     type ForeignKeyReferencesSchema
 } from "../../../../DatabaseSchema"
 
@@ -33,23 +33,20 @@ export default class ColumnSyncronizer extends ColumnSQLBuilder {
 
     // ------------------------------------------------------------------------
 
-    public actionSQL(schema?: ColumnSchema): string | undefined {
+    public syncActionSQL(schema?: ColumnSchema): string | undefined {
         switch (this.compare(schema)[0]) {
             case 'ADD': return this.addSQL()
-            case 'ALTER': return this.modifySQL()
+            case 'ALTER': return this.syncAlterSQL()
             case 'DROP': return this.dropSQL()
         }
     }
 
     // ------------------------------------------------------------------------
 
-    public foreignKeyActionSQL(schema: ColumnSchema): string {
+    public syncForeignKeyActionSQL(schema: ColumnSchema): string {
         switch (this.foreignKeyAction(schema)) {
             case 'ADD': return this.addForeignKeySQL()
-            case 'ALTER': return `
-                ${this.dropForeignKeySQL()},
-                ${this.addForeignKeySQL()}
-            `
+            case 'ALTER': return this.alterForeignKeySQL()
             case 'DROP': return this.dropForeignKeySQL()
 
             case 'NONE': return ''
@@ -98,7 +95,7 @@ export default class ColumnSyncronizer extends ColumnSQLBuilder {
         const { references, ...map } = this.map
 
         for (const [key, value] of Object.entries(map) as (
-            [keyof ColumnPropertiesMap, any][]
+            [keyof ColumnSchemaMap, any][]
         ))
             if (!this.compareValues(value, schema.map[key])) return true
 
