@@ -4,7 +4,10 @@ import ColumnSchema from "../../../DatabaseSchema/TableSchema/ColumnSchema"
 import ForeignKeyReferencesSchema from "../../../DatabaseSchema/TableSchema/ColumnSchema/ForeignKeyReferencesSchema"
 
 // SQL Builders
-import ColumnSQLBuilder from "./ColumnSQLBuilder"
+import ColumnSQLBuilder, {
+    ForeignKeyConstraintSQLBuilder,
+    type ColumnSQLBuilderMap
+} from "./ColumnSQLBuilder"
 
 // Helpers
 import { SQLStringHelper } from "../../../Helpers"
@@ -118,5 +121,8 @@ export default class TableSQLBuilder<
 }
 
 export {
-    ColumnSQLBuilder
+    ColumnSQLBuilder,
+    ForeignKeyConstraintSQLBuilder,
+
+    type ColumnSQLBuilderMap
 }

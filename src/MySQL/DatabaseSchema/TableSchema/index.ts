@@ -25,7 +25,7 @@ export default class TableSchema<
     T extends ColumnSchema = ColumnSchema
 > extends Array<T> {
     public dependencies: string[]
-    protected actions: TableSchemaAction[] = []
+    public actions: TableSchemaAction[] = []
 
     constructor(
         public name: string,

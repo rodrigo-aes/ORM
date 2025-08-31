@@ -89,7 +89,10 @@ import type { RelationsOptions, RelationOptions } from "./JoinSQLBuilder"
 import {
     TableSQLBuilder,
     ColumnSQLBuilder,
-    TriggerSQLBuilder
+    ForeignKeyConstraintSQLBuilder,
+    TriggerSQLBuilder,
+
+    type ColumnSQLBuilderMap
 } from "./DatabaseSQLBuilders"
 
 export {
@@ -121,6 +124,7 @@ export {
 
     TableSQLBuilder,
     ColumnSQLBuilder,
+    ForeignKeyConstraintSQLBuilder,
     TriggerSQLBuilder,
 
     Op,
@@ -166,4 +170,6 @@ export {
     type ElseQueryOption,
     type ExistsQueryOptions,
     type CrossExistsQueryOptions,
+
+    type ColumnSQLBuilderMap
 }

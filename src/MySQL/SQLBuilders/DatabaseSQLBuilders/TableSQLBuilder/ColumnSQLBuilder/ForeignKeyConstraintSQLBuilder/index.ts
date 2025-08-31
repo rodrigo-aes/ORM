@@ -11,19 +11,19 @@ export default class ForeignKeyConstraintSQLBuilder extends
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public createSQL(): string {
-        return SQLStringHelper.normalizeSQL(this.constraintSQL())
+        return this.constraintSQL()
     }
 
     // ------------------------------------------------------------------------
 
     public addSQL(): string {
-        return SQLStringHelper.normalizeSQL(`ADD ${this.constraintSQL()}`)
+        return `ADD ${this.constraintSQL()}`
     }
 
     // ------------------------------------------------------------------------
 
     public alterSQL(): string {
-        return `${this.dropSQL()}, ${this.createSQL()}`
+        return `${this.dropSQL()}, ${this.addSQL()}`
     }
 
     // ------------------------------------------------------------------------
@@ -44,10 +44,10 @@ export default class ForeignKeyConstraintSQLBuilder extends
 
     // Privates ---------------------------------------------------------------
     private constraintSQL(): string {
-        return `
+        return SQLStringHelper.normalizeSQL(`
             CONSTRAINT ${this.name}
-                FOREIGN KEY (${this.columnName}) ${this.referencesSQL()}
-        `
+            FOREIGN KEY (${this.columnName}) ${this.referencesSQL()}
+        `)
     }
 
     // ------------------------------------------------------------------------
@@ -66,6 +66,5 @@ export default class ForeignKeyConstraintSQLBuilder extends
             ${onDelSQL}
             ${onUpdSQL}
         `
-
     }
 }

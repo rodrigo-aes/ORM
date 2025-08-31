@@ -26,7 +26,7 @@ export default class ColumnSchema {
         nullable: false
     }
 
-    protected actions: ColumnSchemaAction[] = []
+    public actions: ColumnSchemaAction[] = []
 
     constructor({ name, tableName, dataType, ...rest }: (
         ColumnSchemaInitMap
@@ -88,6 +88,13 @@ export default class ColumnSchema {
 
     public nullable(nullable: boolean = true): this {
         this.map.nullable = nullable
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public default(value: any): this {
+        this.map.defaultValue = value
         return this
     }
 

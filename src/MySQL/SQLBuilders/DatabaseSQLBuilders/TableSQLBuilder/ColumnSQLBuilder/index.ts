@@ -223,5 +223,7 @@ export default class ColumnSQLBuilder extends ColumnSchema {
 }
 
 export {
-    ForeignKeyConstraintSQLBuilder
+    ForeignKeyConstraintSQLBuilder,
+
+    type ColumnSQLBuilderMap
 }

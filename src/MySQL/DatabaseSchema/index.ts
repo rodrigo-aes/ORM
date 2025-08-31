@@ -3,10 +3,10 @@ import { EntityMetadata } from "../Metadata"
 import TableSchema, {
     ColumnSchema,
 
+    type TableSchemaInitMap,
     type ColumnSchemaInitMap,
     type ColumnSchemaMap,
-    type ForeignKeyReferencesSchema,
-    type TableSchemaInitMap
+    type ForeignKeyReferencesSchema
 } from "./TableSchema"
 
 import TriggersSchema, { TriggerSchema } from "./TriggersSchema"
@@ -17,14 +17,21 @@ import { databaseSchemaQuery } from "./static"
 // Types
 import type MySQLConnection from "../Connection"
 import type { Constructor } from "../../types/General"
-import type { DatabaseSchemaAction, ActionType } from "./types"
+import type {
+    DatabaseSchemaAction,
+    ActionType,
+    TableSchemaHandler
+} from "./types"
 
-export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
+export default class DatabaseSchema<
+    T extends TableSchema = TableSchema
+> extends Array<T> {
     public static databaseSchemaQuery = databaseSchemaQuery
+
+    public actions: DatabaseSchemaAction[] = []
 
     protected previous?: DatabaseSchema<T>
     protected triggers?: TriggersSchema
-    protected actions: DatabaseSchemaAction[] = []
 
     constructor(
         public connection: MySQLConnection,
@@ -53,49 +60,47 @@ export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public createTable(name: string): T {
+    public createTable(name: string, handle: TableSchemaHandler): void {
         const table = new TableSchema(name) as T
 
         this.push(table)
         this.actions.push(['CREATE', table])
 
-        return table
+        return handle(table)
     }
 
     // ------------------------------------------------------------------------
 
-    public alterTable(name: string): T {
+    public alterTable(name: string, handle: TableSchemaHandler): void {
         const table = this.findOrThrow(name)
         this.actions.push(['ALTER', table])
 
-        return table
+        return handle(table)
     }
 
     // ------------------------------------------------------------------------
 
     public dropTable(name: string): void {
         const table = this.findOrThrow(name)
-
         this.actions.push(['DROP', table])
-        this.splice(this.indexOf(table), 1)
     }
 
     // ------------------------------------------------------------------------
 
-    public findTable(name: string): TableSchema | undefined {
+    public findTable(name: string): T | undefined {
         return this.find(t => t.name === name)
     }
 
-    // Privates ---------------------------------------------------------------
-    private findOrThrow(name: string): T {
+    // ------------------------------------------------------------------------
+
+    public findOrThrow(name: string): T {
         const table = this.findTable(name)
         if (!table) throw new Error
 
-        return table as T
+        return table
     }
 
-    // ------------------------------------------------------------------------
-
+    // Privates ---------------------------------------------------------------
     private orderByDependencies(): this {
         return this.sort((a, b) => a.dependencies.includes(b.name) ? -1 : 1)
     }
@@ -107,9 +112,13 @@ export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
 
         this.previous = new DatabaseSchema(
             this.connection,
-            ...(await this.connection.query(databaseSchemaQuery, undefined, {
-                logging: false
-            }))
+            ...await this.connection.query(
+                databaseSchemaQuery(),
+                undefined,
+                {
+                    logging: false
+                }
+            )
         )
 
         return this.previous
@@ -167,6 +176,24 @@ export default class DatabaseSchema<T extends TableSchema> extends Array<T> {
                 }),
         ) as InstanceType<T>
     }
+
+    // ------------------------------------------------------------------------
+
+    public static async buildFromDatabase<
+        T extends Constructor<DatabaseSchema<any>>
+    >(
+        this: T,
+        connection: MySQLConnection
+    ): Promise<InstanceType<T>> {
+        return new this(connection, ...await connection.query(
+            databaseSchemaQuery(),
+            undefined,
+            {
+                logging: false
+            }
+        )
+        ) as InstanceType<T>
+    }
 }
 
 export {
@@ -176,6 +203,7 @@ export {
     TriggerSchema,
 
     type ActionType,
+    type TableSchemaInitMap,
     type ColumnSchemaInitMap,
     type ColumnSchemaMap,
     type ForeignKeyReferencesSchema
