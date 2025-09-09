@@ -39,10 +39,11 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
         schema: DatabaseSchema,
         connection?: MySQLConnection
     ): DatabaseMigrator {
-        const migrator = new DatabaseMigrator(
-            connection ?? schema.connection,
-            ...schema.map(schema => TableMigrator.buildFromSchema(schema))
-        )
+        const migrator = new DatabaseMigrator(connection ?? schema.connection)
+
+        migrator.push(...schema.map(
+            schema => TableMigrator.buildFromSchema(migrator, schema)
+        ))
 
         migrator.actions = schema.actions
 

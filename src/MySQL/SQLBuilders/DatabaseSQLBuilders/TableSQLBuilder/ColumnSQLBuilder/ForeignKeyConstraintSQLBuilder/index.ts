@@ -39,6 +39,7 @@ export default class ForeignKeyConstraintSQLBuilder extends
             case "CREATE": return this.addSQL()
             case "ALTER": return this.alterSQL()
             case "DROP": return this.dropSQL()
+            case "NONE": return ''
         }
     }
 

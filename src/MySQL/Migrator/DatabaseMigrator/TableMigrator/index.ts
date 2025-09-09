@@ -5,6 +5,7 @@ import ColumnMigrator from "./ColumnMigrator"
 
 // Types
 import type MySQLConnection from "../../../Connection"
+import type DatabaseSchema from "../../../DatabaseSchema"
 import type { TableSchema, ActionType } from "../../../DatabaseSchema"
 export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
     // Getters ================================================================
@@ -37,7 +38,7 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
     // ------------------------------------------------------------------------
 
     public action(connection: MySQLConnection, action: ActionType): (
-        Promise<void>
+        Promise<void> | void
     ) {
         switch (action) {
             case "CREATE": return this.create(connection)
@@ -48,8 +49,12 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static buildFromSchema(schema: TableSchema): TableMigrator {
+    public static buildFromSchema(
+        database: DatabaseSchema,
+        schema: TableSchema
+    ): TableMigrator {
         const migrator = new TableMigrator(
+            database,
             schema.name,
             ...schema.map(schema => ColumnMigrator.buildFromSchema(schema))
         )
