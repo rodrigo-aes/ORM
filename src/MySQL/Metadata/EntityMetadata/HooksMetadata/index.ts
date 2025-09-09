@@ -17,6 +17,8 @@ import HookMetadata, {
     AfterDeleteMetadata,
     BeforeBulkDeleteMetadata,
     AfterBulkDeleteMetadata,
+
+    UpdatedTimestampMetadata
 } from "./HookMetadata"
 
 // Types
@@ -41,7 +43,7 @@ import type {
 import { DeleteResult } from "../../../Handlers"
 
 export default class HooksMetadata {
-    private toCall!: Set<HookType>
+    private toCall: Set<HookType> = new Set
 
     public beforeSync: BeforeSyncMetadata[] = []
     public afterSync: AfterSyncMetadata[] = []
@@ -363,6 +365,15 @@ export default class HooksMetadata {
             new HookMetadata.BeforeUpdateMetadata(this.target, propertyName)
         )
 
+        this.toCall.add('before-update')
+    }
+
+
+
+    // ------------------------------------------------------------------------
+
+    public addUpdatedTimestampMetadata() {
+        this.beforeUpdate.push(new UpdatedTimestampMetadata(this.target))
         this.toCall.add('before-update')
     }
 

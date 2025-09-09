@@ -1,6 +1,7 @@
 // Metadata
 import EntityMetadata from "../../"
 import DataType from "../../DataType"
+import HooksMetadata from "../../HooksMetadata"
 import TriggersMetadata from "../../TriggersMetadata"
 
 // Objects
@@ -13,6 +14,9 @@ import ForeignKeyReferences, {
 
 // Triggers
 import { PolymorphicId } from "../../../../Triggers"
+
+// Symbols
+import { CurrentTimestamp } from "../../../../SQLBuilders"
 
 // Types
 import type { EntityTarget } from "../../../../../types/General"
@@ -35,6 +39,8 @@ export default class ColumnMetadata {
     public unsigned?: boolean
     public isForeignKey?: boolean
     public references?: ForeignKeyReferences
+
+    public pattern?: ColumnPattern
 
     // public beforeUpdate: ColumnBeforeUpdateListener[] = []
 
@@ -86,6 +92,7 @@ export default class ColumnMetadata {
                     'autoIncrement',
                     'unsigned',
                     'isForeignKey',
+                    'pattern'
                 ]
                     .includes(key)
             )
@@ -103,7 +110,7 @@ export default class ColumnMetadata {
         switch (pattern) {
             case 'id': return this.buildIdColumn(target, name)
 
-            case 'polymorphicId': return this.buildPolymorphicIdColumn(
+            case 'polymorphic-id': return this.buildPolymorphicIdColumn(
                 target, name
             )
 
@@ -139,6 +146,7 @@ export default class ColumnMetadata {
             unsigned: true,
             autoIncrement: true,
             nullable: false,
+            pattern: 'id'
         })
 
         return column
@@ -155,6 +163,7 @@ export default class ColumnMetadata {
         Object.assign(column, {
             primary: true,
             nullable: false,
+            pattern: 'polymorphic-id'
         })
 
         TriggersMetadata.findOrBuild(target).addTrigger(PolymorphicId)
@@ -174,6 +183,7 @@ export default class ColumnMetadata {
         Object.assign(column, {
             isForeignKey: true,
             unsigned: true,
+            pattern: 'foreign-id'
         })
 
         column.defineForeignKey({
@@ -193,7 +203,10 @@ export default class ColumnMetadata {
     ) {
         const column = new ColumnMetadata(target, name, DataType.VARCHAR())
 
-        Object.assign(column, { isForeignKey: true })
+        Object.assign(column, {
+            isForeignKey: true,
+            pattern: 'polymorphic-foreign-id'
+        })
         column.defineForeignKey(config)
 
         return column
@@ -206,7 +219,8 @@ export default class ColumnMetadata {
 
         Object.assign(column, {
             nullable: false,
-            defaultValue: () => 'CURRENT_TIMESTAMP',
+            defaultValue: CurrentTimestamp,
+            pattern: 'created-timestamp',
         })
 
         return column
@@ -219,11 +233,11 @@ export default class ColumnMetadata {
 
         Object.assign(column, {
             nullable: false,
-            defaultValue: () => 'CURRENT_TIMESTAMP',
-            beforeUpdate: [
-                () => Date.now()
-            ]
+            defaultValue: CurrentTimestamp,
+            pattern: 'updated-timestamp',
         })
+
+        HooksMetadata.findOrBuild(column.target).addUpdatedTimestampMetadata()
 
         return column
     }

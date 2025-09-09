@@ -5,6 +5,6 @@ export type IntegerLength = 'TINY' | 'SMALL' | 'MEDIUM' | 'BIG'
 
 export default class INT extends DataType {
     constructor(length?: IntegerLength) {
-        super(`${length?.toLocaleLowerCase()}int` as SQLColumnType)
+        super(`${length?.toLocaleLowerCase() ?? ''}int` as SQLColumnType)
     }
 }

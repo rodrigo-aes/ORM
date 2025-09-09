@@ -14,6 +14,8 @@ export default abstract class HookMetadata {
     // Publics ----------------------------------------------------------------
     public abstract get type(): HookType
 
+    // ------------------------------------------------------------------------
+
     public get hookFn(): HookFunction {
         return this.target[this.propertName as keyof EntityTarget]
     }

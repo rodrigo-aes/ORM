@@ -8,9 +8,7 @@ import type {
     TriggerTiming
 } from "../types"
 
-export default class PolymorphicId<
-    T extends EntityTarget
-> extends Trigger {
+export default class PolymorphicId<T extends EntityTarget> extends Trigger {
     public timing: TriggerTiming = 'BEFORE'
     public event: TriggerEvent = 'INSERT'
     public orientation: TriggerOrientation = 'ROW'
@@ -41,20 +39,34 @@ export default class PolymorphicId<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public action(): string {
+        return PolymorphicId.actionSQL(
+            this.tableName,
+            this.primary,
+            this.prefix
+        )
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static actionSQL(
+        tableName: string,
+        primary: string,
+        prefix: string,
+    ): string {
         return `
             DECLARE existent INT DEFAULT 1;
             
-            IF NEW.${this.primary} = NULL THEN    
-                SET NEW.${this.primary} = CONCAT('${this.prefix}_', UUID());
+            IF NEW.${primary} = NULL THEN    
+                SET NEW.${primary} = CONCAT('${prefix}_', UUID());
                 
                 WHILE existent > 0 DO
                     SELECT COUNT(*) INTO existent
-                    FROM ${this.tableName}
-                    WHERE ${this.primary} = NEW.${this.primary};
+                    FROM ${tableName}
+                    WHERE ${primary} = NEW.${primary};
 
                     IF existent > 0 THEN
-                        SET NEW.${this.primary} = CONCAT(
-                            '${this.prefix}_', UUID()
+                        SET NEW.${primary} = CONCAT(
+                            '${prefix}_', UUID()
                         );
                     END IF;
                 END WHILE;

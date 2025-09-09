@@ -8,7 +8,7 @@ export default class DatabaseSyncronizer extends DatabaseSchema<
     TableSyncronizer
 > {
     protected override previous?: DatabaseSyncronizer;
-    protected override triggers?: TriggersSyncronizer;
+    protected override triggers!: TriggersSyncronizer;
 
     // Static Getters =========================================================
     // Publics ----------------------------------------------------------------
@@ -58,17 +58,17 @@ export default class DatabaseSyncronizer extends DatabaseSchema<
     protected override async previuosSchema(): Promise<DatabaseSyncronizer> {
         if (this.previous) return this.previous
 
-        this.previous = new DatabaseSyncronizer(
-            this.connection,
-            ...(await this.connection.query(
-                DatabaseSyncronizer.databaseSchemaQuery,
-                undefined,
-                {
-                    logging: false
-                }
-            ))
+        this.previous = new DatabaseSyncronizer(this.connection)
+        this.previous.push(
+            ...(await this.connection
+                .query(
+                    DatabaseSyncronizer.databaseSchemaQuery(),
+                    undefined,
+                    { logging: false }
+                )
+            )
                 .map(({ tableName, columns }) => new TableSyncronizer(
-                    tableName, ...columns
+                    this.previous, tableName, ...columns
                 ))
         )
 

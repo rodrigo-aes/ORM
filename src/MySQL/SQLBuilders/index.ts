@@ -48,7 +48,14 @@ import {
     type ManyRelationHandlerSQLBuilder,
 } from './RelationHandlersSQLBuilders'
 
-import { RegisterProcedures } from "./Procedures"
+import {
+    RegisterProcedures,
+    InsertMigration,
+    DeleteMigration,
+    MigrateRollProcedure,
+    MigrateRollbackProcedure
+} from "./Procedures"
+
 import {
     Op,
     type CaseQueryOptions,
@@ -92,6 +99,8 @@ import {
     ForeignKeyConstraintSQLBuilder,
     TriggerSQLBuilder,
 
+    CurrentTimestamp,
+
     type ColumnSQLBuilderMap
 } from "./DatabaseSQLBuilders"
 
@@ -121,6 +130,10 @@ export {
     PolymorphicBelongsToHandlerSQLBuilder,
 
     RegisterProcedures,
+    InsertMigration,
+    DeleteMigration,
+    MigrateRollProcedure,
+    MigrateRollbackProcedure,
 
     TableSQLBuilder,
     ColumnSQLBuilder,
@@ -131,6 +144,7 @@ export {
     Case,
     Exists,
     Cross,
+    CurrentTimestamp,
 
     type EntityProperties,
     type EntityRelations,

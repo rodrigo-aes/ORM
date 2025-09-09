@@ -2,11 +2,11 @@ import { EntityMetadata } from "../Metadata"
 
 import TableSchema, {
     ColumnSchema,
+    ForeignKeyReferencesSchema,
 
     type TableSchemaInitMap,
     type ColumnSchemaInitMap,
     type ColumnSchemaMap,
-    type ForeignKeyReferencesSchema
 } from "./TableSchema"
 
 import TriggersSchema, { TriggerSchema } from "./TriggersSchema"
@@ -31,15 +31,17 @@ export default class DatabaseSchema<
     public actions: DatabaseSchemaAction[] = []
 
     protected previous?: DatabaseSchema<T>
-    protected triggers?: TriggersSchema
+    protected triggers!: TriggersSchema
 
     constructor(
         public connection: MySQLConnection,
         ...tables: (T | TableSchemaInitMap)[]
     ) {
-        super(...tables.map(table => table instanceof TableSchema
+        super()
+        this.push(...tables.map(table => table instanceof TableSchema
             ? table
             : new TableSchema(
+                this,
                 table.tableName,
                 ...table.columns
             ) as T
@@ -61,7 +63,7 @@ export default class DatabaseSchema<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public createTable(name: string, handle: TableSchemaHandler): void {
-        const table = new TableSchema(name) as T
+        const table = new TableSchema(this, name) as T
 
         this.push(table)
         this.actions.push(['CREATE', table])
@@ -83,6 +85,12 @@ export default class DatabaseSchema<
     public dropTable(name: string): void {
         const table = this.findOrThrow(name)
         this.actions.push(['DROP', table])
+    }
+
+    // ------------------------------------------------------------------------
+
+    public createTrigger(tableName: string, name: string): TriggerSchema {
+        return this.triggersSchema().create(tableName, name)
     }
 
     // ------------------------------------------------------------------------
@@ -151,30 +159,30 @@ export default class DatabaseSchema<
         connection: MySQLConnection
     ): InstanceType<T> {
         const included = new Set<string>()
+        const database = new this(connection)
 
-        return new this(
-            connection,
-            ...connection.entities.flatMap(target => {
-                const meta = EntityMetadata.find(target)
-                if (!meta) throw new Error
+        database.push(...connection.entities.flatMap(target => {
+            const meta = EntityMetadata.find(target)
+            if (!meta) throw new Error
 
-                return [
-                    (this as T & typeof DatabaseSchema)
-                        .TableConstructor
-                        .buildFromMetadata(meta),
+            return [
+                (this as T & typeof DatabaseSchema)
+                    .TableConstructor
+                    .buildFromMetadata(database, meta),
 
-                    ...(this as T & typeof DatabaseSchema)
-                        .TableConstructor
-                        .buildJoinTablesFromMetadata(meta)
-                ]
-            })
-                .filter(({ name }) => {
-                    if (included.has(name)) return false
+                ...(this as T & typeof DatabaseSchema)
+                    .TableConstructor
+                    .buildJoinTablesFromMetadata(database, meta)
+            ]
+        })
+            .filter(({ name }) => {
+                if (included.has(name)) return false
 
-                    included.add(name)
-                    return true
-                }),
-        ) as InstanceType<T>
+                included.add(name)
+                return true
+            }))
+
+        return database as InstanceType<T>
     }
 
     // ------------------------------------------------------------------------
@@ -199,6 +207,7 @@ export default class DatabaseSchema<
 export {
     TableSchema,
     ColumnSchema,
+    ForeignKeyReferencesSchema,
     TriggersSchema,
     TriggerSchema,
 
@@ -206,5 +215,4 @@ export {
     type TableSchemaInitMap,
     type ColumnSchemaInitMap,
     type ColumnSchemaMap,
-    type ForeignKeyReferencesSchema
 }

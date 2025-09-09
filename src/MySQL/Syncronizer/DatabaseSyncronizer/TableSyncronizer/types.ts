@@ -1,1 +1,0 @@
-export type TableSyncAction = 'ADD' | 'ALTER' | 'DROP' | 'NONE'

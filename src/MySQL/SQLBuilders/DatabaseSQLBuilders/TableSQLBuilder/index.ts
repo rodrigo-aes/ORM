@@ -6,6 +6,7 @@ import ForeignKeyReferencesSchema from "../../../DatabaseSchema/TableSchema/Colu
 // SQL Builders
 import ColumnSQLBuilder, {
     ForeignKeyConstraintSQLBuilder,
+    CurrentTimestamp,
     type ColumnSQLBuilderMap
 } from "./ColumnSQLBuilder"
 
@@ -41,7 +42,10 @@ export default class TableSQLBuilder<
     // ------------------------------------------------------------------------
 
     public syncActionSQL(schema?: TableSchema): string | undefined {
-        throw new Error
+        switch (this.compare(schema)) {
+            case 'ADD': return this.createSQL()
+            case 'ALTER': return this.syncAlterSQL(schema!)
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -104,6 +108,8 @@ export default class TableSQLBuilder<
 
             case "ALTER":
             case "DROP": return column?.migrateAlterSQL(action)
+
+            case "NONE": return ''
         }
     }
 
@@ -123,6 +129,7 @@ export default class TableSQLBuilder<
 export {
     ColumnSQLBuilder,
     ForeignKeyConstraintSQLBuilder,
+    CurrentTimestamp,
 
     type ColumnSQLBuilderMap
 }

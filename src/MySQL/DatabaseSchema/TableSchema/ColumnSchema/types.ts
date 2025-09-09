@@ -2,17 +2,19 @@ import type { DataType } from "../../../Metadata"
 import type { ActionType } from "../../types"
 import type ForeignKeyReferencesSchema from "./ForeignKeyReferencesSchema"
 import type { ForeignKeyReferencesSchemaMap } from "./ForeignKeyReferencesSchema"
-
+import type { ColumnPattern } from "../../../Metadata"
 export interface ColumnSchemaMap {
     columnType?: string
     nullable?: boolean
     primary?: boolean
     autoIncrement?: boolean
-    defaultValue?: string | number | null
+    defaultValue?: any
     unsigned?: boolean
     unique?: boolean
     isForeignKey?: boolean
     references?: ForeignKeyReferencesSchema
+
+    pattern?: ColumnPattern
 }
 
 export type ColumnSchemaInitMap = (

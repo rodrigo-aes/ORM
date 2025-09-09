@@ -1,0 +1,1 @@
+export const CurrentTimestamp = Symbol('CURRENT_TIMESTAMP')

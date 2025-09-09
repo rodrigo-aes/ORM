@@ -21,7 +21,9 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
     }
 
     // Privates ---------------------------------------------------------------
-    private execTableAction(name: string, action: ActionType): Promise<void> {
+    private execTableAction(name: string, action: ActionType): (
+        Promise<void> | void
+    ) {
         const table = this.findOrThrow(name)
 
         switch (action) {

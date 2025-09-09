@@ -42,7 +42,7 @@ export default class UpdateOrCreate extends Procedure {
     // ------------------------------------------------------------------------
 
     public static SQL(...args: UpdateOrCreateArgs): string {
-        return `CALL ${this.name} (${args.map(arg => `"${arg}"`)})`
+        return `CALL ${this.name} (${args.map(arg => `"${arg}"`).join(', ')})`
     }
 }
 

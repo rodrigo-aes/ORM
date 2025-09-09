@@ -5,14 +5,16 @@ import TriggerSchema, { type TriggerSchemaInitMap } from "./TriggerSchema"
 import { triggersSchemaQuery } from "./static"
 
 // Types
-import type { Constructor } from "../../../types/General"
+import type { EntityTarget, Constructor } from "../../../types/General"
 import type { TriggersMetadata } from "../../Metadata"
 import type MySQLConnection from "../../Connection"
+import type { TriggersSchemaAction } from "./types"
 
 export default class TriggersSchema<
     T extends TriggerSchema = TriggerSchema
 > extends Array<T> {
     protected previous?: TriggersSchema
+    public actions: TriggersSchemaAction[] = []
 
     constructor(
         public connection: MySQLConnection,
@@ -24,19 +26,49 @@ export default class TriggersSchema<
         ) as T[])
     }
 
-    static get [Symbol.species]() {
+    // Static Getters =========================================================
+    // Publics ----------------------------------------------------------------
+    public static get [Symbol.species]() {
         return Array
     }
 
+    // Protecteds -------------------------------------------------------------
     protected static get TriggerConstructor(): typeof TriggerSchema {
         return TriggerSchema
     }
+
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public add<T extends EntityTarget>(
+        target: T,
+        trigger: Constructor<Trigger>
+    ): void {
+        const t = TriggerSchema.buildFromTrigger(new trigger(target))
+        this.actions.push(['CREATE', t])
+    }
+
+    // ------------------------------------------------------------------------
+
+    public create(tableName: string, name: string): T {
+        return this.buildTrigger(tableName, name)
+    }
+
+    // ------------------------------------------------------------------------
 
     public findTrigger(name: string): TriggerSchema | undefined {
         return this.find(t => t.name === name)
     }
 
     // Protecteds -------------------------------------------------------------
+    protected buildTrigger(tableName: string, name: string): T {
+        const trigger = new TriggerSchema({ tableName, name })
+        this.actions.push(['CREATE', trigger])
+
+        return trigger as T
+    }
+
+    // ------------------------------------------------------------------------
+
     protected async previousSchemas(): (
         Promise<TriggersSchema>
     ) {

@@ -91,6 +91,8 @@ import {
     DefaultPagination,
 } from './Decorators'
 
+import { Migration } from './Migrator'
+
 export {
     MySQLConnection,
 
@@ -101,6 +103,7 @@ export {
     BasePolymorphicEntity,
 
     Trigger,
+    Migration,
 
     Entity,
     PolymorphicEntity,

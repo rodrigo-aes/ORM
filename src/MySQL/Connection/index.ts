@@ -1,10 +1,12 @@
 import { createPool, type Pool } from 'mysql2/promise'
 
+// Metadata
+import { ConnectionsMetadata, MetadataHandler } from '../Metadata'
+
 // Syncronizer
 import Syncronizer from '../Syncronizer'
 
 // Handlers
-import { MetadataHandler } from '../Metadata'
 import { RegisterProcedures } from '../SQLBuilders'
 
 // Utils
@@ -32,7 +34,10 @@ export default class MySQLConnection {
     private logging?: LogginOptions
     private autoSync?: boolean
 
-    private constructor(config: MySQLConnectionConfig) {
+    private constructor(
+        public name: string,
+        config: MySQLConnectionConfig
+    ) {
         const {
             entities,
             logging,
@@ -48,6 +53,8 @@ export default class MySQLConnection {
         this.autoSync = autoSync
 
         if (entities) this.entities = entities
+
+        ConnectionsMetadata.set(name, this)
     }
 
     // Instance Methods =======================================================
@@ -143,9 +150,9 @@ export default class MySQLConnection {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static createConnection(config: MySQLConnectionConfig): (
+    public static createConnection(name: string, config: MySQLConnectionConfig): (
         Promise<MySQLConnection>
     ) {
-        return new MySQLConnection(config).init()
+        return new MySQLConnection(name, config).init()
     }
 }

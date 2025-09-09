@@ -1,0 +1,1 @@
+export type InsertMigrationArgs = [string, number | undefined]

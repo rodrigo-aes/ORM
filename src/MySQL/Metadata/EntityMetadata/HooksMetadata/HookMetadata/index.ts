@@ -19,6 +19,8 @@ import AfterDeleteMetadata from "./AfterDeleteMetadata"
 import BeforeBulkDeleteMetadata from "./BeforeBulkDeleteMetadata"
 import AfterBulkDeleteMetadata from "./AfterBulkDeleteMetadata"
 
+import UpdatedTimestampMetadata from "./UpdatedTimestampMetadata"
+
 export default abstract class HookMetadata extends AbstractHookMetadata {
     public static BeforeSync = BeforeSyncMetadata
     public static AfterSync = AfterSyncMetadata
@@ -38,6 +40,8 @@ export default abstract class HookMetadata extends AbstractHookMetadata {
     public static AfterDeleteMetadata = AfterDeleteMetadata
     public static BeforeBulkDeleteMetadata = BeforeBulkDeleteMetadata
     public static AfterBulkDeleteMetadata = AfterBulkDeleteMetadata
+
+    public static UpdatedTimestampMetadata = UpdatedTimestampMetadata
 }
 
 export {
@@ -59,4 +63,6 @@ export {
     AfterDeleteMetadata,
     BeforeBulkDeleteMetadata,
     AfterBulkDeleteMetadata,
+
+    UpdatedTimestampMetadata
 }

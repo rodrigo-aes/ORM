@@ -1,6 +1,7 @@
 import TableSQLBuilder, {
     ColumnSQLBuilder,
     ForeignKeyConstraintSQLBuilder,
+    CurrentTimestamp,
 
     type ColumnSQLBuilderMap
 } from "./TableSQLBuilder"
@@ -13,6 +14,8 @@ export {
     ForeignKeyConstraintSQLBuilder,
 
     TriggerSQLBuilder,
+
+    CurrentTimestamp,
 
     type ColumnSQLBuilderMap
 }

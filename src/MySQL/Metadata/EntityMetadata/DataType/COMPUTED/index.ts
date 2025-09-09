@@ -3,10 +3,10 @@ import type { ComputedConfig, ComputedType } from "./types"
 
 export default class COMPUTED extends DataType {
     constructor(
-        private dataType: DataType,
+        public dataType: DataType,
         public config: ComputedConfig
     ) {
-        super(dataType.type)
+        super('computed')
     }
 
     public override buildSQL(): string {

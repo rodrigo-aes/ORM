@@ -7,7 +7,7 @@ import type { DataTypeMetadataJSON } from "../../DataType";
 
 export type ColumnPattern = (
     'id' |
-    'polymorphicId' |
+    'polymorphic-id' |
     'foreign-id' |
     'polymorphic-foreign-id' |
     'created-timestamp' |
@@ -45,6 +45,8 @@ export type SQLColumnType = (
     | 'boolean'
     | 'binary'
     | 'varbinary'
+    | 'computed'
+    | 'json-ref'
 )
 
 export type ColumnConfig = {

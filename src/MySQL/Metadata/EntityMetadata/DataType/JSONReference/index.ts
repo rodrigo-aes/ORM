@@ -2,8 +2,8 @@ import DataType from "../DataType"
 import type { JSONColumnConfig } from "./types"
 
 export default class JSONReference extends DataType {
-    constructor(private dataType: DataType, public config: JSONColumnConfig) {
-        super(dataType.type)
+    constructor(public dataType: DataType, public config: JSONColumnConfig) {
+        super('json-ref')
     }
 
     public override buildSQL(): string {

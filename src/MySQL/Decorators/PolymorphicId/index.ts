@@ -8,5 +8,5 @@ export default function PolymorphicId<Entity extends object>(
     name: string
 ) {
     ColumnsMetadata.findOrBuild(target.constructor as EntityTarget)
-        .registerColumnPattern(name, 'polymorphicId')
+        .registerColumnPattern(name, 'polymorphic-id')
 }

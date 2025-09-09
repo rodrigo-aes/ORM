@@ -17,9 +17,18 @@ import ColumnSchema, {
     type ColumnSchemaMap,
 } from "./ColumnSchema"
 
+// Triggers
+import { PolymorphicId } from "../../Triggers"
+
+// Symbols
+import { CurrentTimestamp } from "../../SQLBuilders"
+
 // Types
 import type { EntityTarget, Constructor } from "../../../types/General"
+import type DatabaseSchema from ".."
+import type { TriggerSchema } from "../TriggersSchema"
 import type { TableSchemaInitMap, TableSchemaAction } from "./types"
+import { ActionType } from ".."
 
 export default class TableSchema<
     T extends ColumnSchema = ColumnSchema
@@ -28,6 +37,7 @@ export default class TableSchema<
     public actions: TableSchemaAction[] = []
 
     constructor(
+        public database: DatabaseSchema | undefined = undefined,
         public name: string,
         ...columns: (T | Omit<ColumnSchemaInitMap, 'tableName'>)[]
     ) {
@@ -42,16 +52,113 @@ export default class TableSchema<
         this.dependencies = this.flatMap(({ dependence }) => dependence ?? [])
     }
 
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
     protected static get ColumnConstructor(): typeof ColumnSchema {
         return ColumnSchema
     }
 
-    static get [Symbol.species]() {
+    // Satatic Getters ========================================================
+    // Publics ----------------------------------------------------------------
+    public static get [Symbol.species]() {
         return Array
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public id(name?: string): void {
+        this.buildColumn(name ?? 'id', DataType.INT('BIG'))
+            .primary()
+            .unsigned()
+            .autoIncrement()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public polymorphicId(prefix: EntityTarget | string, name?: string): void {
+        this.buildColumn('id', DataType.VARCHAR()).primary()
+
+        this.buildTrigger(`${this.name}_polymorphic_pk`)
+            .before('INSERT')
+            .forEach('ROW')
+            .execute(PolymorphicId.actionSQL(
+                this.name,
+                name ?? 'id',
+                typeof prefix === 'string' ? prefix : prefix.name,
+            ))
+    }
+
+    // ------------------------------------------------------------------------
+
+    public foreignId(name: string): T {
+        const col = this.buildColumn(name, DataType.INT('BIG'))
+            .unsigned()
+
+        col.map.isForeignKey = true
+
+        return col
+    }
+
+    // ------------------------------------------------------------------------
+
+    public foreignIdFor(target: EntityTarget, name?: string): (
+        ForeignKeyReferencesSchema
+    ) {
+        const meta = EntityMetadata.find(target)
+        if (!meta) throw new Error
+
+        const pk = meta.columns.primary
+        name = name ?? `${meta.target.name.toLowerCase()}_id`
+
+        return this.buildColumn(name, pk.dataType)
+            .unsigned()
+            .constrained()
+            .references(target, pk.name)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public polymorphicForeignId(name: string): T {
+        const col = this.buildColumn(name, DataType.VARCHAR())
+        col.map.isForeignKey = true
+
+        return col
+    }
+
+    // ------------------------------------------------------------------------
+
+    public polymorphicTypeKey(
+        name: string,
+        ...types: (EntityTarget | string)[]
+    ): T {
+        return this.buildColumn(name, DataType.ENUM(...types.map(
+            type => typeof type === 'string' ? type : type.name
+        )))
+    }
+
+    // ------------------------------------------------------------------------
+
+    public createdTimestamp(): void {
+        this.buildColumn('createdAt', DataType.TIMESTAMP())
+            .default(CurrentTimestamp)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public updatedTimestamp(): void {
+        this.buildColumn('updatedAt', DataType.TIMESTAMP())
+            .default(CurrentTimestamp)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public timestamps(): void {
+        this.createdTimestamp()
+        this.updatedTimestamp()
+    }
+
+    // ------------------------------------------------------------------------
+
     public column(name: string, dataType: DataType): T {
         return this.buildColumn(name, dataType)
     }
@@ -60,6 +167,12 @@ export default class TableSchema<
 
     public string(name: string, length?: number): T {
         return this.buildColumn(name, DataType.VARCHAR(length))
+    }
+
+    // ------------------------------------------------------------------------
+
+    public char(name: string, length?: number): T {
+        return this.buildColumn(name, DataType.CHAR(length))
     }
 
     // ------------------------------------------------------------------------
@@ -225,7 +338,7 @@ export default class TableSchema<
         const col = this.findOrThrow(column)
         if (col.map.references) throw new Error
 
-        if (this.colAlreadyInActions(column)) return col.constained()
+        if (this.colAlreadyInActions(column)) return col.constrained()
 
         col.map.references = new ForeignKeyReferencesSchema(
             this.name,
@@ -266,6 +379,17 @@ export default class TableSchema<
         return this.find(col => col.name === columnName)
     }
 
+    // ------------------------------------------------------------------------
+
+    public compare(schema?: TableSchema): Omit<ActionType, 'DROP'> {
+        switch (true) {
+            case !schema: return 'CREATE'
+            case this.shouldAlter(schema!): return 'ALTER'
+
+            default: return 'NONE'
+        }
+    }
+
     // Protecteds -------------------------------------------------------------
     protected buildColumn(name: string, dataType: DataType): T {
         const col = new ColumnSchema({
@@ -278,6 +402,28 @@ export default class TableSchema<
         this.actions.push(['CREATE', col])
 
         return col
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected buildTrigger(name: string): TriggerSchema {
+        return this.database!.createTrigger(this.name, name)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected shouldAlter(schema: TableSchema): boolean {
+        const diff = this.some(column => {
+            const [action, fkAction] = column.compare(
+                schema.findColumn(column.name)
+            )
+
+            return action !== 'NONE' || fkAction !== 'NONE'
+        })
+
+        const shouldDrop = schema.some(({ name }) => !this.findColumn(name))
+
+        return diff || shouldDrop
     }
 
     // Privates ---------------------------------------------------------------
@@ -298,12 +444,14 @@ export default class TableSchema<
     // Publics ----------------------------------------------------------------
     public static buildFromMetadata<T extends Constructor<TableSchema>>(
         this: T,
+        database: DatabaseSchema,
         source: EntityMetadata | EntityTarget
     ): InstanceType<T> {
         const { tableName, columns } = (this as T & typeof TableSchema)
             .metadataFromSource(source)
 
         return new this(
+            database,
             tableName,
             ...columns.map(
                 column => (this as T & typeof TableSchema)
@@ -316,10 +464,12 @@ export default class TableSchema<
     // ------------------------------------------------------------------------
 
     public static buildJoinTablesFromMetadata(
+        database: DatabaseSchema,
         source: EntityMetadata | EntityTarget
     ): TableSchema[] {
         return this.metadataFromSource(source).joinTables?.map(
             ({ tableName, columns }) => new this(
+                database,
                 tableName,
                 ...columns.map(
                     column => this.ColumnConstructor.buildFromMetadata(column)
@@ -343,9 +493,9 @@ export default class TableSchema<
 
 export {
     ColumnSchema,
+    ForeignKeyReferencesSchema,
 
     type TableSchemaInitMap,
     type ColumnSchemaInitMap,
-    type ColumnSchemaMap,
-    type ForeignKeyReferencesSchema
+    type ColumnSchemaMap
 }

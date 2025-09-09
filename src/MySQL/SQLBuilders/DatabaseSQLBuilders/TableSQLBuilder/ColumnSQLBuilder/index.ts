@@ -6,6 +6,9 @@ import { DataType } from "../../../../Metadata"
 // SQL Builders
 import ForeignKeyConstraintSQLBuilder from "./ForeignKeyConstraintSQLBuilder"
 
+// Symbols
+import { CurrentTimestamp } from "./Symbols"
+
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../../../Helpers"
 
@@ -43,10 +46,7 @@ export default class ColumnSQLBuilder extends ColumnSchema {
     // ------------------------------------------------------------------------
 
     public createForeignKeySQL() {
-        return (
-            this.map.isForeignKey &&
-            this.foreignKeyConstraint?.map.constrained
-        )
+        return this.foreignKeyConstraint?.map.constrained
             ? `, ${this.foreignKeyConstraint?.createSQL()}`
             : ''
     }
@@ -62,10 +62,7 @@ export default class ColumnSQLBuilder extends ColumnSchema {
     // ------------------------------------------------------------------------
 
     public addForeignKeySQL() {
-        return (
-            this.map.isForeignKey &&
-            this.foreignKeyConstraint?.map.constrained
-        )
+        return this.foreignKeyConstraint?.map.constrained
             ? `, ${this.foreignKeyConstraint?.addSQL()}`
             : ''
     }
@@ -98,7 +95,7 @@ export default class ColumnSQLBuilder extends ColumnSchema {
 
     public dropSQL(): string {
         return SQLStringHelper.normalizeSQL(
-            `${this.shouldDropForeignKeySQL()} DROP COLUMN ${this.name}`
+            `${this.shouldDropForeignKeySQL()} DROP COLUMN ${this.name};`
         )
     }
 
@@ -111,13 +108,23 @@ export default class ColumnSQLBuilder extends ColumnSchema {
     // ------------------------------------------------------------------------
 
     public syncActionSQL(schema?: ColumnSchema): string | undefined {
-        throw new Error
+        switch (this.compare(schema)[0]) {
+            case 'CREATE': return this.addSQL()
+            case 'ALTER': return this.syncAlterSQL()
+            case 'DROP': return this.dropSQL()
+        }
     }
 
     // ------------------------------------------------------------------------
 
-    public syncForeignKeyActionSQL(schema: ColumnSchema): string | undefined {
-        throw new Error
+    public syncForeignKeyActionSQL(schema: ColumnSchema): string {
+        switch (this.foreignKeyAction(schema)) {
+            case 'CREATE': return this.addForeignKeySQL()
+            case 'ALTER': return this.alterForeignKeySQL()
+            case 'DROP': return this.dropForeignKeySQL()
+
+            case 'NONE': return ''
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -216,14 +223,27 @@ export default class ColumnSQLBuilder extends ColumnSchema {
     // ------------------------------------------------------------------------
 
     private defaultSQL() {
-        return this.map.defaultValue
-            ? `DEFAULT ${PropertySQLHelper.valueSQL(this.map.defaultValue)}`
-            : ''
+        switch (typeof this.map.defaultValue) {
+            case "string":
+            case "number":
+            case "bigint":
+            case "boolean":
+            case "object": return (
+                `DEFAULT ${PropertySQLHelper.valueSQL(this.map.defaultValue)}`
+            )
+
+            case "symbol": switch (this.map.defaultValue) {
+                case CurrentTimestamp: return 'DEFAULT CURRENT_TIMESTAMP'
+            }
+
+            default: return ''
+        }
     }
 }
 
 export {
     ForeignKeyConstraintSQLBuilder,
+    CurrentTimestamp,
 
     type ColumnSQLBuilderMap
 }

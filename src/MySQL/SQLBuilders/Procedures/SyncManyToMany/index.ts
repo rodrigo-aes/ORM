@@ -1,5 +1,8 @@
 import Procedure from "../Procedure"
 
+// Helpers
+import { SQLStringHelper } from "../../../Helpers"
+
 // Types
 import type MySQLConnection from "../../../Connection"
 import type { SyncManyToManyArgs } from "./types"
@@ -45,12 +48,12 @@ export default class SyncManyToMany extends Procedure {
     // ------------------------------------------------------------------------
 
     public static SQL(insertSQL: string, deleteSQL?: string): string {
-        return `
+        return SQLStringHelper.normalizeSQL(`
             CALL ${this.name} (
                 "${insertSQL}",
                 ${deleteSQL ? `"${deleteSQL}"` : 'NULL'}
             )
-        `
+        `)
     }
 }
 

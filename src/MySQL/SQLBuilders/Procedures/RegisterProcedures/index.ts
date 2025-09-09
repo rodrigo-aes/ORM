@@ -1,5 +1,11 @@
 import UpdateOrCreate from "../UpdateOrCreate"
 import SyncManyToMany from "../SyncManyToMany"
+import {
+    InsertMigration,
+    DeleteMigration,
+    MigrateRollProcedure,
+    MigrateRollbackProcedure
+} from "../MigrationProcedures"
 
 // Types
 import type MySQLConnection from "../../../Connection"
@@ -11,7 +17,12 @@ export default class RegisterProcedures {
 
     public static readonly procedures = [
         UpdateOrCreate,
-        SyncManyToMany
+        SyncManyToMany,
+
+        InsertMigration,
+        DeleteMigration,
+        MigrateRollProcedure,
+        MigrateRollbackProcedure
     ]
 
     // Static Methods =========================================================

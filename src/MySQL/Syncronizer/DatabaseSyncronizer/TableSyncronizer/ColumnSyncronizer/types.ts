@@ -1,1 +1,0 @@
-export type ColumnSyncAction = 'ADD' | 'ALTER' | 'DROP' | 'NONE'

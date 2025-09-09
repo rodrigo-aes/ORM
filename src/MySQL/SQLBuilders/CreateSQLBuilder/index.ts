@@ -222,24 +222,29 @@ export default class CreateSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private createValues(): any[] {
-        return this.columnsNames.map(
-            column => (
-                this.attributes as CreationAttributes<InstanceType<T>>
-            )[column]
-                ?? null
+    private createValues(
+        attributes: CreationAttributes<InstanceType<T>> = this.attributes as (
+            CreationAttributes<InstanceType<T>>
         )
+    ): any[] {
+        return this.columnsNames.map(column => {
+            if (attributes[column]) return attributes[column]
+
+            const defaultValue = this.metadata.columns
+                .findColumn(column as string)
+                ?.defaultValue
+
+            if (typeof defaultValue === 'function') return defaultValue()
+
+            return null
+        })
     }
 
     // ------------------------------------------------------------------------
 
     private bulkCreateValues(): any[][] {
         return (this.attributes as CreationAttributes<InstanceType<T>>[])
-            .map(
-                att => this.columnsNames.map(
-                    column => att[column] ?? null
-                )
-            )
+            .map(att => this.createValues(att))
     }
 
     // ------------------------------------------------------------------------

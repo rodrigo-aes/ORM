@@ -1,11 +1,14 @@
-import { TriggerSQLBuilder } from "../../../../SQLBuilders"
+import { TriggerSchema } from "../../../../DatabaseSchema"
+
 
 // Types
 import type MySQLConnection from "../../../../Connection"
-import type { TriggerSchema } from "../../../../DatabaseSchema"
+import type BaseEntity from "../../../../BaseEntity"
 import type { TriggerSyncAction } from "./types"
 
-export default class TriggerSyncronizer extends TriggerSQLBuilder {
+export default class TriggerSyncronizer<
+    T extends BaseEntity = BaseEntity
+> extends TriggerSchema<T> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public async create(connection: MySQLConnection): Promise<void> {
@@ -15,7 +18,8 @@ export default class TriggerSyncronizer extends TriggerSQLBuilder {
     // ------------------------------------------------------------------------
 
     public async alter(connection: MySQLConnection): Promise<void> {
-        await connection.query(this.alterSQL())
+        await this.drop(connection)
+        await this.create(connection)
     }
 
     // ------------------------------------------------------------------------
@@ -30,13 +34,13 @@ export default class TriggerSyncronizer extends TriggerSQLBuilder {
         connection: MySQLConnection,
         schema?: TriggerSchema
     ): Promise<void> {
-        const sql = this.actionSQL(schema)
+        const sql = this.compareActionSQL(schema)
         if (sql) await connection.query(sql)
     }
 
     // ------------------------------------------------------------------------
 
-    public actionSQL(schema?: TriggerSchema): string | undefined {
+    public compareActionSQL(schema?: TriggerSchema): string | undefined {
         switch (this.compare(schema)) {
             case 'ADD': return this.createSQL()
             case 'ALTER': return this.alterSQL()

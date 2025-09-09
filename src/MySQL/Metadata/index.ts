@@ -1,3 +1,5 @@
+import ConnectionsMetadata from "./ConnectionsMetadata"
+
 import EntityMetadata, {
     DataType,
     ColumnsMetadata,
@@ -73,6 +75,8 @@ import EntityMetadata, {
     type Scope,
     type ScopeFunction,
 
+    type ColumnPattern,
+
     type DataTypeMetadataJSON,
     type TextLength,
     type IntegerLength,
@@ -80,7 +84,30 @@ import EntityMetadata, {
     type BitLength,
     type BlobLength,
     type ComputedType,
-    type ComputedPropertyFunction
+    type ComputedPropertyFunction,
+
+    CHAR,
+    VARCHAR,
+    TEXT,
+    INT,
+    FLOAT,
+    DECIMAL,
+    DOUBLE,
+    BOOLEAN,
+    ENUM,
+    SET,
+    TIMESTAMP,
+    DATETIME,
+    DATE,
+    TIME,
+    YEAR,
+    JSON,
+    JSONReference,
+    BIT,
+    BINARY,
+    VARBINARY,
+    BLOB,
+    COMPUTED,
 } from "./EntityMetadata"
 
 import PolymorphicEntityMetadata, {
@@ -95,6 +122,8 @@ import MetadataHandler from "./MetadataHandler"
 import TempMetadata from "./TempMetadata"
 
 export {
+    ConnectionsMetadata,
+
     EntityMetadata,
     PolymorphicEntityMetadata,
     DataType,
@@ -176,6 +205,8 @@ export {
     type Scope,
     type ScopeFunction,
 
+    type ColumnPattern,
+
     type UnionEntitiesMap,
     type CombinedColumnOptions,
 
@@ -186,5 +217,28 @@ export {
     type BitLength,
     type BlobLength,
     type ComputedType,
-    type ComputedPropertyFunction
+    type ComputedPropertyFunction,
+
+    CHAR,
+    VARCHAR,
+    TEXT,
+    INT,
+    FLOAT,
+    DECIMAL,
+    DOUBLE,
+    BOOLEAN,
+    ENUM,
+    SET,
+    TIMESTAMP,
+    DATETIME,
+    DATE,
+    TIME,
+    YEAR,
+    JSON,
+    JSONReference,
+    BIT,
+    BINARY,
+    VARBINARY,
+    BLOB,
+    COMPUTED,
 }

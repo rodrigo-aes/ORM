@@ -11,6 +11,8 @@ import ForeignKeyReferencesSchema from "./ForeignKeyReferencesSchema"
 
 // Types
 import type { EntityTarget, Constructor } from "../../../../types/General"
+import type { ColumnPattern } from "../../../Metadata"
+import type { ActionType } from "../../types"
 import type {
     ColumnSchemaInitMap,
     ColumnSchemaMap,
@@ -22,18 +24,24 @@ export default class ColumnSchema {
     public name!: string
     public dataType!: DataType | string
 
+    public pattern?: ColumnPattern
+
     public map: ColumnSchemaMap = {
-        nullable: false
+        nullable: true
     }
 
     public actions: ColumnSchemaAction[] = []
 
-    constructor({ name, tableName, dataType, ...rest }: (
+    protected _action?: ActionType
+    protected _fkAction?: ActionType
+
+    constructor({ name, tableName, dataType, pattern, ...rest }: (
         ColumnSchemaInitMap
     )) {
         this.name = name
         this.tableName = tableName
         this.dataType = dataType
+        this.pattern = pattern
 
         const { references, ...map } = rest
         this.map = map
@@ -79,8 +87,8 @@ export default class ColumnSchema {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public primary(): this {
-        this.map.primary = true
+    public primary(primary: boolean = true): this {
+        this.map.primary = primary
         return this
     }
 
@@ -100,22 +108,22 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
-    public autoIncrement(): this {
-        this.map.autoIncrement = true
+    public autoIncrement(autoIncrement: boolean = true): this {
+        this.map.autoIncrement = autoIncrement
         return this
     }
 
     // ------------------------------------------------------------------------
 
-    public unsigned(): this {
-        this.map.unsigned = true
+    public unsigned(unsigned: boolean = true): this {
+        this.map.unsigned = unsigned
         return this
     }
 
     // ------------------------------------------------------------------------
 
-    public unique(): this {
-        this.map.unique = true
+    public unique(unique: boolean = true): this {
+        this.map.unique = unique
         return this
     }
 
@@ -126,7 +134,7 @@ export default class ColumnSchema {
         column: string
     ): this {
         this.map.isForeignKey = true
-        this.constained().references(table, column)
+        this.constrained().references(table, column)
 
         return this
     }
@@ -151,12 +159,16 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
-    public constained(): ForeignKeyReferencesSchema {
+    public constrained(): ForeignKeyReferencesSchema {
         if (this.map.references) throw new Error
 
+        this.map.isForeignKey = true
         this.map.references = new ForeignKeyReferencesSchema(
             this.tableName,
-            this.name
+            this.name,
+            {
+                constrained: true
+            }
         )
         this.actions.push(['CREATE', this.map.references])
 
@@ -179,12 +191,152 @@ export default class ColumnSchema {
         this.actions.push(['DROP', this.map.references])
     }
 
+    // ------------------------------------------------------------------------
+
+    public compare(schema?: ColumnSchema): [ActionType, ActionType] {
+        if (!this._action) this._action = this.action(schema) as ActionType
+
+        if (!this._fkAction) this._fkAction = schema
+            ? this.foreignKeyAction(schema)
+            : 'NONE'
+
+        return [this._action, this._fkAction]
+    }
+
     // Protecteds -------------------------------------------------------------
     protected getTargetMetadata(target: EntityTarget): EntityMetadata {
         const meta = EntityMetadata.find(target)
         if (!meta) throw new Error
 
         return meta
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected action(schema?: ColumnSchema): Omit<ActionType, 'DROP'> {
+        switch (true) {
+            case !schema: return 'CREATE';
+            case this.shouldAlter(schema!): return 'ALTER'
+
+            default: return 'NONE'
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected foreignKeyAction(schema: ColumnSchema): (
+        ActionType
+    ) {
+
+
+        switch (true) {
+            case (
+                !schema.map.isForeignKey &&
+                this.map.isForeignKey
+            ): return 'CREATE'
+
+            case (
+                schema.map.isForeignKey &&
+                !this.map.isForeignKey
+            ): return 'DROP'
+
+            case (
+                !!schema.map.references &&
+                !!this.map.references &&
+                this.shouldAlterForeignKey(schema.map.references)
+            ): return 'ALTER'
+
+            default: return 'NONE'
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected shouldAlter(schema: ColumnSchema): boolean {
+        const { references, ...map } = this.map
+
+        for (const [key, value] of Object.entries(map) as (
+            [keyof ColumnSchemaMap, any][]
+        ))
+            if (!this.compareValues(value, schema.map[key])) return true
+
+        if (!this.compareDataTypes(typeof schema.dataType === 'string'
+            ? schema.map.columnType!
+            : schema.dataType
+        )) return true
+
+        return false
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected shouldAlterForeignKey(references: ForeignKeyReferencesSchema): (
+        boolean
+    ) {
+        for (const [key, value] of Object.entries(this.map.references!) as (
+            [keyof ForeignKeyReferencesSchema, string | null][]
+        ))
+            if (!this.compareValues(value, references[key])) return true
+
+        return false
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected compareDataTypes(
+        dataTypeA: DataType | string,
+        dataTypeB: DataType | string = this.dataType
+    ): boolean {
+        switch (typeof dataTypeA) {
+            case "string": switch (typeof dataTypeB) {
+                case "string": return dataTypeA === dataTypeB
+                case "object": return this.compareStrAndObjDataTypes(
+                    dataTypeA,
+                    dataTypeB
+                )
+            }
+            case "object": switch (typeof dataTypeB) {
+                case "string": return this.compareStrAndObjDataTypes(
+                    dataTypeB,
+                    dataTypeA
+                )
+                case "object": return (
+                    dataTypeA.buildSQL() === dataTypeB.buildSQL()
+                )
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected compareStrAndObjDataTypes(
+        string: string,
+        object: DataType
+    ): boolean {
+        return object
+            .buildSQL()
+            .replace(
+                object.type.toUpperCase(),
+                object.type
+            )
+            === string
+                .replace('unsigned', '')
+                .trim()
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected compareValues(value: any, compare: any): boolean {
+        switch (typeof value) {
+            case "string":
+            case "number":
+            case "bigint": return value === compare
+            case "boolean": return value === !!compare
+            case "undefined": return !compare
+            case "function": return value() === compare
+
+            default: return true
+        }
     }
 
     // Static Methods =========================================================
