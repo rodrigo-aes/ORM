@@ -4,6 +4,8 @@ import type { JSONColumnConfig } from "./types"
 export default class JSONReference extends DataType {
     constructor(public dataType: DataType, public config: JSONColumnConfig) {
         super('json-ref')
+
+        if (['computed', 'json-ref'].includes(dataType.type)) throw new Error
     }
 
     public override buildSQL(): string {

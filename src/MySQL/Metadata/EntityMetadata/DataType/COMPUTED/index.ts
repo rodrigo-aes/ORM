@@ -7,6 +7,8 @@ export default class COMPUTED extends DataType {
         public config: ComputedConfig
     ) {
         super('computed')
+
+        if (['computed', 'json-ref'].includes(dataType.type)) throw new Error
     }
 
     public override buildSQL(): string {

@@ -77,6 +77,12 @@ export default class ColumnSQLBuilder extends ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    public dropAndAddSQL(): string {
+        return `${this.dropSQL()}, ${this.addSQL()}${this.addForeignKeySQL()}`
+    }
+
+    // ------------------------------------------------------------------------
+
     public alterForeignKeySQL(): string {
         return this.foreignKeyConstraint?.alterSQL() ?? ''
     }
@@ -84,10 +90,15 @@ export default class ColumnSQLBuilder extends ColumnSchema {
     // ------------------------------------------------------------------------
 
     public syncAlterSQL(schema?: ColumnSchema) {
+        const beforeSQL = schema ? this.beforeModifySQL(schema) : ''
+        const afterSQL = schema ? this.afterModifySQL(schema) : ''
         const fkSQL = schema ? this.syncForeignKeyActionSQL(schema) : ''
 
         return SQLStringHelper.normalizeSQL(`
-            ${this.alterSQL()}${fkSQL ? `, ${fkSQL}` : ''}
+            ${beforeSQL}
+            ${this.alterSQL()}
+            ${afterSQL}
+            ${fkSQL ? `, ${fkSQL}` : ''}
         `)
     }
 
@@ -111,6 +122,7 @@ export default class ColumnSQLBuilder extends ColumnSchema {
         switch (this.compare(schema)[0]) {
             case 'CREATE': return this.addSQL()
             case 'ALTER': return this.syncAlterSQL()
+            case "DROP/CREATE": return this.dropAndAddSQL()
             case 'DROP': return this.dropSQL()
         }
     }
@@ -123,7 +135,7 @@ export default class ColumnSQLBuilder extends ColumnSchema {
             case 'ALTER': return this.alterForeignKeySQL()
             case 'DROP': return this.dropForeignKeySQL()
 
-            case 'NONE': return ''
+            default: return ''
         }
     }
 
@@ -137,10 +149,44 @@ export default class ColumnSQLBuilder extends ColumnSchema {
             ]
                 .join(', ')
 
+            case 'DROP/CREATE': this.dropAndAddSQL()
+
             case 'DROP': return this.dropSQL()
         }
 
         throw new Error
+    }
+
+    // ------------------------------------------------------------------------
+
+    public beforeModifySQL(schema: ColumnSchema): string {
+        const { primary, unique } = schema.map
+
+        const dropPrimarySQL = primary
+            ? 'DROP PRIMARY KEY, '
+            : ''
+
+        const dropUniqueSQL = unique
+            ? `DROP INDEX ${this.uniqueKeyName}, `
+            : ''
+
+        return `${dropPrimarySQL}${dropUniqueSQL}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public afterModifySQL(schema: ColumnSchema): string {
+        const { primary, unique } = schema.map
+
+        const addPrimarySQL = primary
+            ? `ADD PRIMARY KEY (${this.name})`
+            : ''
+
+        const addUniqueSQL = unique
+            ? `ADD UNIQUE KEY ${this.uniqueKeyName} (${this.name})`
+            : ''
+
+        return `${addPrimarySQL}${addUniqueSQL}`
     }
 
     // Protecteds -------------------------------------------------------------
@@ -170,10 +216,10 @@ export default class ColumnSQLBuilder extends ColumnSchema {
             this.typeSQL(),
             this.unsignedSQL(),
             this.nullSQL(),
-            this.uniqueSQL(),
             this.primarySQL(),
             this.autoIncrementSQL(),
-            this.defaultSQL()
+            this.defaultSQL(),
+            this.uniqueSQL(),
         ].join(' ')
     }
 
@@ -205,7 +251,9 @@ export default class ColumnSQLBuilder extends ColumnSchema {
     // ------------------------------------------------------------------------
 
     private uniqueSQL() {
-        return this.map.unique ? 'UNIQUE' : ''
+        return this.map.unique
+            ? `, UNIQUE KEY ${this.uniqueKeyName} (${this.name})`
+            : ''
     }
 
     // ------------------------------------------------------------------------

@@ -107,6 +107,7 @@ export default class TableSQLBuilder<
             case "CREATE": return column?.addSQL()
 
             case "ALTER":
+            case 'DROP/CREATE':
             case "DROP": return column?.migrateAlterSQL(action)
 
             case "NONE": return ''

@@ -71,6 +71,14 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    public get uniqueKeyName(): string | undefined {
+        return this.map.unique
+            ? `${this.name}_unique_key`
+            : undefined
+    }
+
+    // ------------------------------------------------------------------------
+
     public get dependence(): string | undefined {
         if (this.map.isForeignKey) return (
             this.map.references!.map.tableName as string
@@ -217,6 +225,7 @@ export default class ColumnSchema {
         switch (true) {
             case !schema: return 'CREATE';
             case this.shouldAlter(schema!): return 'ALTER'
+            case this.shouldDropAndAdd(schema!): return 'DROP/CREATE'
 
             default: return 'NONE'
         }
@@ -227,8 +236,6 @@ export default class ColumnSchema {
     protected foreignKeyAction(schema: ColumnSchema): (
         ActionType
     ) {
-
-
         switch (true) {
             case (
                 !schema.map.isForeignKey &&
@@ -256,10 +263,15 @@ export default class ColumnSchema {
         const { references, ...map } = this.map
 
         for (const [key, value] of Object.entries(map) as (
-            [keyof ColumnSchemaMap, any][]
-        ))
-            if (!this.compareValues(value, schema.map[key])) return true
+            [keyof ColumnSchemaMap, any][])
+        ) if (!this.compareValues(value, schema.map[key])) return true
 
+        return false
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected shouldDropAndAdd(schema: ColumnSchema): boolean {
         if (!this.compareDataTypes(typeof schema.dataType === 'string'
             ? schema.map.columnType!
             : schema.dataType

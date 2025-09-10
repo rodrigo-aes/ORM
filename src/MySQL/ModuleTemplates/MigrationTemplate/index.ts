@@ -1,11 +1,8 @@
 import ModuleTemplate from "../ModuleTemplate"
 
-// Database Schema
-import { ColumnSchema, ForeignKeyReferencesSchema } from "../../DatabaseSchema"
-
 // Utils
 import { resolve } from "path"
-import util from "util";
+import { inspect } from "util"
 
 // Types
 import type {
@@ -15,19 +12,11 @@ import type {
     CHAR,
     VARCHAR,
     TEXT,
-    INT,
     FLOAT,
     DECIMAL,
     DOUBLE,
-    BOOLEAN,
     ENUM,
     SET,
-    TIMESTAMP,
-    DATETIME,
-    DATE,
-    TIME,
-    YEAR,
-    JSON,
     JSONReference,
     BIT,
     BINARY,
@@ -35,7 +24,13 @@ import type {
     BLOB,
     COMPUTED,
 } from "../../Metadata"
-import type { ActionType, TableSchema } from "../../DatabaseSchema"
+
+import type {
+    TableSchema,
+    ColumnSchema,
+    ForeignKeyReferencesSchema,
+    ActionType
+} from "../../DatabaseSchema"
 
 export default class MigrationTemplate extends ModuleTemplate {
     private readonly packageImportPath = '../../../MySQL'
@@ -71,6 +66,42 @@ export default class MigrationTemplate extends ModuleTemplate {
         return resolve(`src/TestTools/Migrations/${this.dir}`)
     }
 
+    // ------------------------------------------------------------------------
+
+    protected get importLine(): string {
+        const dataType = this.shouldImportDataType ? ', DataType' : ''
+
+        return (
+            `import { Migration${dataType} } from "${this.packageImportPath}"`
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get mainClassLine(): string {
+        return `export default class ${this.className} extends Migration {`
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get defaultCreateTableMethod(): string {
+        return (
+            `this.database.createTable('${this.tableName}', table => {\n\n})`
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get defaultAlterTableMethod(): string {
+        return `this.database.alterTable('${this.tableName}', table => {\n\n})`
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get defaultDropTableMethod(): string {
+        return `this.database.dropTable('${this.tableName}')`
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public sync(
@@ -97,15 +128,15 @@ export default class MigrationTemplate extends ModuleTemplate {
     // Privates ---------------------------------------------------------------
     private defaultContent(): string {
         return this.indentMany([
-            `import { Migration } from "${this.packageImportPath}"`,
+            this.importLine,
             '\n',
-            `export default class ${this.className} extends Migration {`,
+            this.mainClassLine,
             ['public up(): void {', 4],
-            [`this.database.${this.upDefaultMethod()}`, 8],
+            [this.handleDefaultMethod('UP'), 8],
             ['}', 4],
             '\n',
             ['public down(): void {', 4],
-            [this.downDefaultMethod(), 8],
+            [this.handleDefaultMethod('DOWN'), 8],
             ['}', 4],
             '}'
         ])
@@ -118,9 +149,9 @@ export default class MigrationTemplate extends ModuleTemplate {
         const down = this.tableSyncMethod('DOWN').replace('\n\n', '\n')
 
         return this.indentMany([
-            `import { Migration } from "${this.packageImportPath}"`,
+            this.importLine,
             '\n',
-            `export default class ${this.className} extends Migration {`,
+            this.mainClassLine,
             ['public up(): void {', 4],
             [`this.database.${up}`, 8],
             '\n',
@@ -136,17 +167,11 @@ export default class MigrationTemplate extends ModuleTemplate {
 
     // ------------------------------------------------------------------------
 
-    private upDefaultMethod(): string {
-        switch (this.action) {
-            case "CREATE": return (
-                `createTable('${this.tableName}', table => {\n\n})`
-            )
-
-            case "ALTER": return (
-                `alterTable('${this.tableName}', table => {\n\n})`
-            )
-
-            case "DROP": return `dropTable('${this.tableName}')`
+    private handleDefaultMethod(main: 'UP' | 'DOWN' = 'UP'): string {
+        switch (main === 'UP' ? this.action : this.invertAction()) {
+            case "CREATE": return this.defaultCreateTableMethod
+            case "ALTER": return this.defaultCreateTableMethod
+            case "DROP": return this.defaultDropTableMethod
 
             default: throw new Error
         }
@@ -154,16 +179,14 @@ export default class MigrationTemplate extends ModuleTemplate {
 
     // ------------------------------------------------------------------------
 
-    private downDefaultMethod(): string {
-        switch (this.action) {
-            case "CREATE": return (
-                `this.database.dropTable('${this.tableName}')`
-            )
+    private invertAction(action?: ActionType): ActionType {
+        switch (action ?? this.action) {
+            case "CREATE": return 'DROP'
+            case "DROP": return 'CREATE'
 
+            case 'DROP/CREATE':
             case "ALTER":
-            case "DROP": return ''
-
-            default: throw new Error
+            case "NONE": return this.action
         }
     }
 
@@ -172,13 +195,7 @@ export default class MigrationTemplate extends ModuleTemplate {
     private tableSyncMethod(method: 'UP' | 'DOWN'): string {
         const down = method === 'DOWN'
 
-        const action: ActionType = (
-            down && ['CREATE', 'DROP'].includes(this.action)
-        )
-            ? this.action === 'CREATE' ? 'DROP' : 'CREATE'
-            : this.action
-
-        switch (action) {
+        switch (down ? this.invertAction() : this.action) {
             case "CREATE": return this.indentMany([
                 `createTable('${this.tableName}', table => {`,
                 [this.tableSyncMethodImplementation(down), 4],
@@ -231,17 +248,27 @@ export default class MigrationTemplate extends ModuleTemplate {
         column: ColumnSchema,
         down: boolean = false
     ): string {
-        if (down && ['CREATE', 'DROP'].includes(action)) action = (
-            action === 'CREATE' ? 'DROP' : 'CREATE'
-        )
-
         const prev = this.previousSchema?.findColumn(column.name)
 
-        switch (action) {
+        switch (down ? this.invertAction(action) : action) {
             case "CREATE": return this.createColumnImplementation(column)
-            case "ALTER": return `table.alterColumn('${column.name}')
-                    ${this.columnImplementation(down ? prev! : column, down ? column : prev!)}
-                `
+
+            case "ALTER": return this.indentMany([
+                `table.alterColumn('${column.name}')`,
+                [
+                    this.columnImplementation(
+                        down ? prev! : column,
+                        down ? column : prev!
+                    ),
+                    4
+                ]
+            ])
+
+            case 'DROP/CREATE': this.indentMany([
+                `table.dropColumn('${column.name}')`,
+                this.createColumnImplementation(down ? prev! : column),
+            ])
+
             case "DROP": return `table.dropColumn('${column.name}')`
 
 
@@ -254,15 +281,15 @@ export default class MigrationTemplate extends ModuleTemplate {
     private createColumnImplementation(column: ColumnSchema): string {
         return (
             column.pattern
-                ? this.columnPatternImplementation(column)
-                : this.dataTypeColumnImplementation(column)
+                ? this.patternColumnImplementation(column)
+                : this.commonColumnImplementation(column)
         )
             .replace('\n\n', '')
     }
 
     // ------------------------------------------------------------------------
 
-    private columnPatternImplementation(column: ColumnSchema): string {
+    private patternColumnImplementation(column: ColumnSchema): string {
         const { pattern, name } = column
 
         switch (pattern!) {
@@ -297,7 +324,7 @@ export default class MigrationTemplate extends ModuleTemplate {
 
     // ------------------------------------------------------------------------
 
-    private dataTypeColumnImplementation(column: ColumnSchema): string {
+    private commonColumnImplementation(column: ColumnSchema): string {
         return this.indentMany([
             `table.${this.createColumnMethod(column)}`,
             [this.columnImplementation(column), 4]
@@ -341,8 +368,49 @@ export default class MigrationTemplate extends ModuleTemplate {
             case "binary": return `binary('${name}', ${(dataType as BINARY).length})`
             case "varbinary": return `varbinary('${name}', ${(dataType as VARBINARY).length})`
 
-            case "computed":
-            case "json-ref": throw new Error('NOT IMPLEMENTED DATATYPE!!!')
+            case "computed": return `computed('${name}', ${this.dataType((dataType as COMPUTED).dataType)}, '${(dataType as COMPUTED).config.as}', '${(dataType as COMPUTED).config.type}')`
+            case "json-ref": return `jsonRef('${name}', ${this.dataType((dataType as JSONReference).dataType)}, ${inspect((dataType as JSONReference).config)})`
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    private dataType(dataType: DataType): string {
+        this.shouldImportDataType = true
+
+        switch (dataType.type) {
+            case "boolean": return `DataType.BOOLEAN()`
+            case "bigint": return `DataType.INT('BIG')`
+            case "int": `DataType.INT()`
+            case "tinyint": `DataType.INT('TINY')`
+            case "smallint": `DataType.INT('SMALL')`
+            case "mediumint": `DataType.INT('MEDIUM')`
+            case "decimal": `DataType.DECIMAL(${(dataType as DECIMAL).M}, ${(dataType as DECIMAL).D})`
+            case "float": `DataType.FLOAT(${(dataType as FLOAT).M}, ${(dataType as FLOAT).D})`
+            case "double": `DataType.DOUBLE(${(dataType as DOUBLE).M}, ${(dataType as DOUBLE).D})`
+            case "bit": `DataType.BIT(${(dataType as BIT).length})`
+            case "char": `DataType.CHAR(${(dataType as CHAR).length})`
+            case "varchar": `DataType.VARCHAR(${(dataType as VARCHAR).length})`
+            case "text": `DataType.TEXT()`
+            case "tinytext": `DataType.TEXT('${(dataType as TEXT).length}')`
+            case "mediumtext": `DataType.TEXT('${(dataType as TEXT).length}')`
+            case "longtext": `DataType.TEXT('${(dataType as TEXT).length}')`
+            case "blob": `DataType.BLOB()`
+            case "tinyblob": `DataType.BLOB('${(dataType as BLOB).length}')`
+            case "mediumblob": `DataType.BLOB('${(dataType as BLOB).length}')`
+            case "longblob": `DataType.BLOB('${(dataType as BLOB).length}')`
+            case "enum": `DataType.ENUM(${(dataType as ENUM).options.map(o => `'${o}'`).join(', ')})`
+            case "set": `DataType.SET(${(dataType as SET).options.map(o => `'${o}'`).join(', ')})`
+            case "json": `DataType.JSON()`
+            case "date": `DataType.DATE()`
+            case "datetime": `DataType.DATETIME()`
+            case "timestamp": `DataType.TIMESTAMP()`
+            case "time": `DataType.TIME()`
+            case "year": `DataType.YEAR()`
+            case "binary": `DataType.BINARY(${(dataType as BINARY).length})`
+            case "varbinary": `DataType.VARBINARY(${(dataType as VARBINARY).length})`
+
+            default: throw new Error
         }
     }
 
@@ -376,27 +444,27 @@ export default class MigrationTemplate extends ModuleTemplate {
         const implementation: string[] = []
 
         if (primary !== undefined) implementation.push(
-            `.primary(${primary && !previous ? '' : util.inspect(primary)})`
+            `.primary(${primary && !previous ? '' : inspect(primary)})`
         )
 
         if (autoIncrement !== undefined) implementation.push(
-            `.autoIncrement(${autoIncrement && !previous ? '' : util.inspect(autoIncrement)})`
+            `.autoIncrement(${autoIncrement && !previous ? '' : inspect(autoIncrement)})`
         )
 
         if (unsigned !== undefined) implementation.push(
-            `.unsigned(${unsigned && !previous ? '' : util.inspect(unsigned)})`
+            `.unsigned(${unsigned && !previous ? '' : inspect(unsigned)})`
         )
 
         if (unique !== undefined) implementation.push(
-            `.unique(${unique && !previous ? '' : util.inspect(unique)})`
+            `.unique(${unique && !previous ? '' : inspect(unique)})`
         )
 
         if (nullable !== undefined) implementation.push(
-            `.nullable(${nullable && !previous ? '' : util.inspect(nullable)})`
+            `.nullable(${nullable && !previous ? '' : inspect(nullable)})`
         )
 
         if (defaultValue !== undefined) implementation.push(
-            `.default(${defaultValue && !previous ? '' : util.inspect(defaultValue)})`
+            `.default(${defaultValue && !previous ? '' : inspect(defaultValue)})`
         )
 
         implementation.concat(this.constraintsImplementation(column))
