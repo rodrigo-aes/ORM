@@ -1,6 +1,6 @@
-import type BaseEntity from "../../MySQL/BaseEntity"
-import type BasePolymorphicEntity from "../../MySQL/BasePolymorphicEntity"
-import type { Collection } from "../../MySQL/BaseEntity"
+import type BaseEntity from "../../BaseEntity"
+import type BasePolymorphicEntity from "../../BasePolymorphicEntity"
+import type { Collection } from "../../BaseEntity"
 
 export type EntityTarget = new (...args: any[]) => BaseEntity
 export type PolymorphicEntityTarget = (
