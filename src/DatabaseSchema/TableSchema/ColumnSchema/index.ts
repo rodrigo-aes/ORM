@@ -7,7 +7,9 @@ import {
     type ForeignKeyActionListener
 } from "../../../Metadata"
 
-import ForeignKeyReferencesSchema from "./ForeignKeyReferencesSchema"
+import ForeignKeyReferencesSchema, {
+    type ForeignKeyReferencesSchemaMap
+} from "./ForeignKeyReferencesSchema"
 
 // Types
 import type { EntityTarget, Constructor } from "../../../types/General"
@@ -390,4 +392,5 @@ export {
 
     type ColumnSchemaInitMap,
     type ColumnSchemaMap,
+    type ForeignKeyReferencesSchemaMap
 }

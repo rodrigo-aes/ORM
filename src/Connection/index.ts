@@ -7,7 +7,7 @@ import { ConnectionsMetadata, MetadataHandler } from '../Metadata'
 import Syncronizer from '../Syncronizer'
 
 // Handlers
-import { RegisterProcedures } from '../SQLBuilders'
+import { ProceduresHandler } from '../SQLBuilders'
 
 // Utils
 import Log from '../utils/Log'
@@ -25,34 +25,19 @@ export default class MySQLConnection {
     private pool!: Pool
     public entities: EntityTarget[] = []
 
-    public config: MySQLConnectionConfig
+    public config!: MySQLConnectionConfig
+
     private static defaultConfig: Partial<MySQLConnectionConfig> = {
+        connectionLimit: 10,
         logging: true,
         autoSync: false
     }
-
-    private logging?: LogginOptions
-    private autoSync?: boolean
 
     private constructor(
         public name: string,
         config: MySQLConnectionConfig
     ) {
-        const {
-            entities,
-            logging,
-            autoSync,
-            ...rest
-        } = {
-            ...config,
-            ...MySQLConnection.defaultConfig
-        }
-
-        this.config = rest
-        this.logging = logging
-        this.autoSync = autoSync
-
-        if (entities) this.entities = entities
+        this.setConfig(config)
 
         ConnectionsMetadata.set(name, this)
     }
@@ -61,19 +46,12 @@ export default class MySQLConnection {
     // Publics ----------------------------------------------------------------
     public async query<T = any>(
         sql: string,
-        params?: any[],
-        options?: QueryOptions
+        params?: any[]
     ): Promise<T[]> {
-        this.sqlLogging(sql, options?.logging)
+        this.sqlLogging(sql)
 
         const [rows] = await this.pool.query(sql, params)
         return rows as T[];
-    }
-
-    // ------------------------------------------------------------------------
-
-    public getConnection() {
-        return this.pool.getConnection()
     }
 
     // ------------------------------------------------------------------------
@@ -96,6 +74,23 @@ export default class MySQLConnection {
     }
 
     // Privates ---------------------------------------------------------------
+    private setConfig(config: MySQLConnectionConfig): void {
+        const { entities, logging, autoSync, ...c } = {
+            ...MySQLConnection.defaultConfig,
+            ...config
+        }
+
+        this.config = c
+        if (entities) this.entities = entities
+
+        Object.assign(this, {
+            logging,
+            autoSync
+        })
+    }
+
+    // ------------------------------------------------------------------------
+
     private async init() {
         this.instantiatePool()
         await this.afterConnect()
@@ -109,9 +104,8 @@ export default class MySQLConnection {
         this.pool = createPool({
             ...this.config,
             waitForConnections: true,
-            connectionLimit: this.config.connectionLimit ?? 10,
+            multipleStatements: true,
             queueLimit: 0,
-            multipleStatements: true
         })
     }
 
@@ -119,27 +113,26 @@ export default class MySQLConnection {
 
     private async afterConnect() {
         MetadataHandler.normalizeMetadata()
-        MetadataHandler.registerEntitiesConnection(this, ...this.entities)
-        await RegisterProcedures.register(this)
+        MetadataHandler.registerConnectionEntities(this, ...this.entities)
+        await ProceduresHandler.register(this)
 
-        if (this.autoSync) await this.sync('alter')
+        if (this.config.autoSync) await this.sync('alter')
     }
 
     // ------------------------------------------------------------------------
 
     private sqlLogging(
         sql: string,
-        logging: LogginOptions | undefined = this.logging,
     ) {
-        if (!logging) return
+        if (!this.config.logging) return
 
-        switch (typeof logging) {
-            case 'boolean': if (logging) Log.out(
+        switch (typeof this.config.logging) {
+            case 'boolean': if (this.config.logging) Log.out(
                 `#[warning]SQL: #[success]${sql}`
             )
                 break
 
-            case 'object': if ((logging as LogginConfig).sql) Log.out(
+            case 'object': if (this.config.logging.sql) Log.out(
                 `#[warning]SQL: #[success]${sql}`
             )
                 break
@@ -150,9 +143,10 @@ export default class MySQLConnection {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static createConnection(name: string, config: MySQLConnectionConfig): (
-        Promise<MySQLConnection>
-    ) {
+    public static createConnection(
+        name: string,
+        config: MySQLConnectionConfig
+    ): Promise<MySQLConnection> {
         return new MySQLConnection(name, config).init()
     }
 }

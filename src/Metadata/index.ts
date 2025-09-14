@@ -71,6 +71,7 @@ import EntityMetadata, {
 
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
+    type PolymorphicTypeKeyRelateds,
 
     type Scope,
     type ScopeFunction,
@@ -201,6 +202,7 @@ export {
 
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
+    type PolymorphicTypeKeyRelateds,
 
     type Scope,
     type ScopeFunction,

@@ -89,17 +89,23 @@ export default class TableSQLBuilder<
                 case source instanceof ForeignKeyReferencesSchema: return (
                     this.migrateAlterForeignKeyConstraintSQL(
                         source.name,
-                        action
+                        action as ActionType
                     )
                 )
             }
         })
+            .filter(line => !!line)
             .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
-    private migrateAlterColumnSQL(name: string, action: ActionType): string {
+    private migrateAlterColumnSQL(
+        name: string,
+        action: ActionType | (
+            'ADD-PK' | 'ADD-UNIQUE' | 'DROP-PK' | 'DROP-UNIQUE'
+        )
+    ): string | undefined {
         const column = this.findColumn(name)
         if (!column) throw new Error
 
@@ -108,7 +114,18 @@ export default class TableSQLBuilder<
 
             case "ALTER":
             case 'DROP/CREATE':
-            case "DROP": return column?.migrateAlterSQL(action)
+            case "DROP": return column.migrateAlterSQL(action)
+
+            case "ADD-PK": return column.map.primary
+                ? column.addIndexSQL('PRIMARY')
+                : undefined
+
+            case "ADD-UNIQUE": column.map.unique
+                ? column.addIndexSQL('UNIQUE')
+                : undefined
+
+            case "DROP-PK": return column.dropIndexSQL('PRIMARY')
+            case "DROP-UNIQUE": return column.dropIndexSQL('UNIQUE')
 
             case "NONE": return ''
         }

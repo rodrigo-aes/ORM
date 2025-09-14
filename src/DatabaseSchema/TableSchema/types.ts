@@ -10,7 +10,7 @@ export type TableSchemaInitMap = {
     columns: (ColumnSchema | ColumnSchemaInitMap)[]
 }
 
-export type TableSchemaAction = [ActionType, (
-    ColumnSchema |
-    ForeignKeyReferencesSchema
-)]
+export type TableSchemaAction = [
+    ActionType | 'ADD-PK' | 'ADD-UNIQUE' | 'DROP-PK' | 'DROP-UNIQUE',
+    ColumnSchema | ForeignKeyReferencesSchema
+]

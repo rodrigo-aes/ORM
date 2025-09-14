@@ -5,7 +5,7 @@ import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
 import RepositoryType from "../../Repository"
 import PolymorphicRepository from "../../PolymorphicRepository"
 
-export default function Repository<
+export default function UseRepository<
     Repository extends typeof RepositoryType | typeof PolymorphicRepository
 >(
     repository: Repository

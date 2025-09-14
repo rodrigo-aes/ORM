@@ -3,6 +3,7 @@ import type { ActionType } from "../../types"
 import type ForeignKeyReferencesSchema from "./ForeignKeyReferencesSchema"
 import type { ForeignKeyReferencesSchemaMap } from "./ForeignKeyReferencesSchema"
 import type { ColumnPattern } from "../../../Metadata"
+
 export interface ColumnSchemaMap {
     columnType?: string
     nullable?: boolean
@@ -32,4 +33,8 @@ export type ColumnSchemaInitMap = (
     }
 )
 
-export type ColumnSchemaAction = [ActionType, ForeignKeyReferencesSchema]
+
+export type ColumnSchemaAction = [
+    ActionType,
+    ForeignKeyReferencesSchema
+]

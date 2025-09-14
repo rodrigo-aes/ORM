@@ -1,3 +1,4 @@
+import type { EntityTarget } from "../../../../types/General";
 import type ColumnMetadata from "."
 import type {
     ForeignKeyReferencesInitMap,
@@ -10,6 +11,7 @@ export type ColumnPattern = (
     'polymorphic-id' |
     'foreign-id' |
     'polymorphic-foreign-id' |
+    'polymorphic-type-key' |
     'created-timestamp' |
     'updated-timestamp'
 );
@@ -68,6 +70,7 @@ export type ForeignIdConfig = Omit<ForeignKeyReferencesInitMap, (
 )>
 
 export type PolymorphicForeignIdConfig = ForeignKeyReferencesInitMap
+export type PolymorphicTypeKeyRelateds = EntityTarget[]
 
 export type ColumnMetadataJSON = {
     name: string,

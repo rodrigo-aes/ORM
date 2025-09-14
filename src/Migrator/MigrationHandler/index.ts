@@ -38,7 +38,8 @@ export default class MigrationHandler {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public async init(): Promise<void> {
-        return await this.table.create()
+        await this.table.drop()
+        return this.table.create()
     }
 
     // ------------------------------------------------------------------------

@@ -10,7 +10,7 @@ import {
 // Types
 import type MySQLConnection from "../../../Connection"
 
-export default class RegisterProcedures {
+export default class ProceduresHandler {
     private constructor() {
         throw new Error
     }

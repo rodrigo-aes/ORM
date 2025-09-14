@@ -6,6 +6,7 @@ import ColumnMetadata, {
     type ColumnPattern,
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
+    type PolymorphicTypeKeyRelateds,
     type ForeignKeyReferencesInitMap,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
@@ -75,14 +76,12 @@ export default class ColumnsMetadata<
         pattern: ColumnPattern,
         ...rest: any[]
     ) {
-        this.push(
-            ColumnMetadata.buildPattern(
-                this.target,
-                name,
-                pattern,
-                ...rest
-            ) as T
-        )
+        this.push(ColumnMetadata.buildPattern(
+            this.target,
+            name,
+            pattern,
+            ...rest
+        ) as T)
     }
 
     // ------------------------------------------------------------------------
@@ -168,6 +167,7 @@ export {
     type ColumnPattern,
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
+    type PolymorphicTypeKeyRelateds,
     type ForeignKeyReferencesInitMap,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,

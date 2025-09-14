@@ -26,6 +26,7 @@ import type {
     ColumnConfig,
     ForeignIdConfig,
     PolymorphicForeignIdConfig,
+    PolymorphicTypeKeyRelateds,
     ColumnMetadataJSON
 } from "./types"
 
@@ -126,6 +127,10 @@ export default class ColumnMetadata {
                 )
             )
 
+            case "polymorphic-type-key": return (
+                this.buildPolymorphicTypeKey(target, name, rest)
+            )
+
             case "created-timestamp": return this.buildCreateDateColumn(
                 target, name
             )
@@ -214,6 +219,24 @@ export default class ColumnMetadata {
 
     // ------------------------------------------------------------------------
 
+    public static buildPolymorphicTypeKey(
+        target: EntityTarget,
+        name: string,
+        relateds: PolymorphicTypeKeyRelateds
+    ) {
+        const column = new ColumnMetadata(target, name, DataType.ENUM(
+            ...relateds.map(({ name }) => name)
+        ))
+
+        Object.assign(column, {
+            pattern: 'polymorphic-type-key'
+        })
+
+        return column
+    }
+
+    // ------------------------------------------------------------------------
+
     public static buildCreateDateColumn(target: EntityTarget, name: string) {
         const column = new ColumnMetadata(target, name, DataType.TIMESTAMP())
 
@@ -252,6 +275,7 @@ export type {
     ForeignKeyActionListener,
     ForeignIdConfig,
     PolymorphicForeignIdConfig,
+    PolymorphicTypeKeyRelateds,
     ColumnMetadataJSON,
     ForeignKeyReferencesJSON
 }

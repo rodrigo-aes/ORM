@@ -1,6 +1,9 @@
 import { resolve } from "path"
 import { writeFileSync, mkdirSync, existsSync } from "fs"
 
+// Helpers
+import { ModuleStringHelper } from "./Helpers"
+
 export default abstract class ModuleTemplate {
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
@@ -35,11 +38,7 @@ export default abstract class ModuleTemplate {
     // ------------------------------------------------------------------------
 
     protected indent(str: string, spaces: number = 4): string {
-        const pad = ' '.repeat(spaces);
-        return str
-            .split('\n')
-            .map(line => (line.trim() ? pad + line : line))
-            .join('\n');
+        return ModuleStringHelper.indent(str, spaces)
     }
 
     // ------------------------------------------------------------------------
@@ -47,19 +46,7 @@ export default abstract class ModuleTemplate {
     protected indentMany(parts: (string | [string, number | undefined])[]): (
         string
     ) {
-        return parts.map(
-            (part) => {
-                if (typeof part === 'string') return part
-
-                const [str, indent] = part
-                return indent ? this.indent(str, indent) : str
-            }
-        )
-            .map(line => line !== '\n'
-                ? line + '\n'
-                : line
-            )
-            .join('')
+        return ModuleStringHelper.indentMany(parts)
     }
 
     // Privates ---------------------------------------------------------------

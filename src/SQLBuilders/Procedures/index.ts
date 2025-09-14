@@ -1,4 +1,4 @@
-import RegisterProcedures from "./RegisterProcedures"
+import ProceduresHandler from "./ProceduresHandler"
 
 import UpdateOrCreate, {
     type UpdateOrCreateArgs
@@ -16,7 +16,7 @@ import {
 } from "./MigrationProcedures"
 
 export {
-    RegisterProcedures,
+    ProceduresHandler,
     UpdateOrCreate,
     SyncManyToMany,
 

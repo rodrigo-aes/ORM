@@ -7,6 +7,7 @@ import TableSchema, {
     type TableSchemaInitMap,
     type ColumnSchemaInitMap,
     type ColumnSchemaMap,
+    type ForeignKeyReferencesSchemaMap
 } from "./TableSchema"
 
 import TriggersSchema, { TriggerSchema } from "./TriggersSchema"
@@ -123,9 +124,6 @@ export default class DatabaseSchema<
             ...await this.connection.query(
                 databaseSchemaQuery(),
                 undefined,
-                {
-                    logging: false
-                }
             )
         )
 
@@ -196,9 +194,6 @@ export default class DatabaseSchema<
         return new this(connection, ...await connection.query(
             databaseSchemaQuery(),
             undefined,
-            {
-                logging: false
-            }
         )
         ) as InstanceType<T>
     }
@@ -215,4 +210,5 @@ export {
     type TableSchemaInitMap,
     type ColumnSchemaInitMap,
     type ColumnSchemaMap,
+    type ForeignKeyReferencesSchemaMap
 }

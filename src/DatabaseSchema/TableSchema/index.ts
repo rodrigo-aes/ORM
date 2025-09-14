@@ -15,6 +15,7 @@ import ColumnSchema, {
 
     type ColumnSchemaInitMap,
     type ColumnSchemaMap,
+    type ForeignKeyReferencesSchemaMap
 } from "./ColumnSchema"
 
 // Triggers
@@ -189,13 +190,13 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
-    public bigInt(name: string): T {
+    public bigint(name: string): T {
         return this.buildColumn(name, DataType.INT('BIG'))
     }
 
     // ------------------------------------------------------------------------
 
-    public tinyInt(name: string): T {
+    public tinyint(name: string): T {
         return this.buildColumn(name, DataType.INT('TINY'))
     }
 
@@ -320,7 +321,10 @@ export default class TableSchema<
 
     public alterColumn(name: string): T {
         const col = this.findOrThrow(name)
+
+        this.beforeAlterActions(col)
         this.actions.push(['ALTER', col])
+        this.afterAlterActions(col)
 
         return col
     }
@@ -440,6 +444,20 @@ export default class TableSchema<
         return !!this.actions.find(([_, { name }]) => name === column)
     }
 
+    // ------------------------------------------------------------------------
+
+    private beforeAlterActions(column: ColumnSchema): void {
+        if (column.map.primary) this.actions.push(['DROP-PK', column])
+        if (column.map.unique) this.actions.push(['DROP-UNIQUE', column])
+    }
+
+    // ------------------------------------------------------------------------
+
+    private afterAlterActions(column: ColumnSchema): void {
+        if (column.map.primary) this.actions.push(['ADD-PK', column])
+        if (column.map.unique) this.actions.push(['ADD-UNIQUE', column])
+    }
+
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static buildFromMetadata<T extends Constructor<TableSchema>>(
@@ -497,5 +515,6 @@ export {
 
     type TableSchemaInitMap,
     type ColumnSchemaInitMap,
-    type ColumnSchemaMap
+    type ColumnSchemaMap,
+    type ForeignKeyReferencesSchemaMap
 }

@@ -45,6 +45,7 @@ import ColumnsMetadata, {
     type ColumnPattern,
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
+    type PolymorphicTypeKeyRelateds,
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
 
@@ -428,6 +429,7 @@ export {
 
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
+    type PolymorphicTypeKeyRelateds,
 
     type Scope,
     type ScopeFunction,

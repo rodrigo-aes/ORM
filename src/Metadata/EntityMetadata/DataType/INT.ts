@@ -4,7 +4,7 @@ import type { SQLColumnType } from "../ColumnsMetadata"
 export type IntegerLength = 'TINY' | 'SMALL' | 'MEDIUM' | 'BIG'
 
 export default class INT extends DataType {
-    constructor(length?: IntegerLength) {
+    constructor(public length?: IntegerLength) {
         super(`${length?.toLocaleLowerCase() ?? ''}int` as SQLColumnType)
     }
 }

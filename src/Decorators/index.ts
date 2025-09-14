@@ -20,10 +20,11 @@ import Id from "./Id"
 import PolymorphicId from "./PolymorphicId"
 import ForeignId from "./ForeignId"
 import PolymorphicForeignId from "./PolymorphicForeignId"
+import PolymorphicTypeKey from "./PolymorphicTypeKey"
 import CreatedTimestamp from "./CreatedTimestamp"
 import UpdatedTimestamp from "./UpdatedTimestamp"
 
-import Repository from "./Repository"
+import UseRepository from "./UseRepository"
 
 import ComputedProperty from "./ComputedProperty"
 import Scopes, { DefaultScope } from "./Scopes"
@@ -86,6 +87,7 @@ export {
     PolymorphicId,
     ForeignId,
     PolymorphicForeignId,
+    PolymorphicTypeKey,
     CreatedTimestamp,
     UpdatedTimestamp,
 
@@ -121,7 +123,7 @@ export {
     AfterBulkDelete,
 
     ComputedProperty,
-    Repository,
+    UseRepository,
     Scopes,
     DefaultScope,
     Triggers,

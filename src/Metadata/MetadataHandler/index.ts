@@ -16,7 +16,7 @@ import type {
 } from "../../types/General"
 
 export default class MetadataHandler {
-    public static registerEntitiesConnection(
+    public static registerConnectionEntities(
         connection: MySQLConnection,
         ...entities: EntityTarget[]
     ): void {

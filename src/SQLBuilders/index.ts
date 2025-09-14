@@ -49,7 +49,7 @@ import {
 } from './RelationHandlersSQLBuilders'
 
 import {
-    RegisterProcedures,
+    ProceduresHandler,
     InsertMigration,
     DeleteMigration,
     MigrateRollProcedure,
@@ -131,7 +131,7 @@ export {
     PolymorphicHasManyHandlerSQLBuilder,
     PolymorphicBelongsToHandlerSQLBuilder,
 
-    RegisterProcedures,
+    ProceduresHandler,
     InsertMigration,
     DeleteMigration,
     MigrateRollProcedure,

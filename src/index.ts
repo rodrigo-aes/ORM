@@ -80,7 +80,7 @@ import {
     BeforeBulkDelete,
     AfterBulkDelete,
 
-    Repository,
+    UseRepository,
     ComputedProperty,
     Scopes,
     DefaultScope,
@@ -156,7 +156,7 @@ export {
     BeforeBulkDelete,
     AfterBulkDelete,
 
-    Repository,
+    UseRepository,
     ComputedProperty,
     Scopes,
     DefaultScope,
