@@ -13,7 +13,7 @@ import MigrationHandler from "./MigrationHandler"
 // Utils
 import { resolve, join } from "path"
 import { readdir } from "fs/promises"
-import { pathToFileURL } from "url";
+import { pathToFileURL } from "url"
 
 // Types
 import type MySQLConnection from "../Connection"
@@ -80,16 +80,12 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
-    public async createMigration(action: ActionType, tableName: string): (
-        Promise<void>
-    ) {
+    public async createMigration(action: ActionType, tableName: string) {
         return this.handler.create(action, tableName)
     }
 
     // Privates ---------------------------------------------------------------
-    private async loadDependencies(method: 'roll' | 'rollback' | 'all'): (
-        Promise<void>
-    ) {
+    private async loadDependencies(method: 'roll' | 'rollback' | 'all') {
         this.push(...await this.readMigrationFiles())
         this.database = await this.loadDatabaseSchema()
     }

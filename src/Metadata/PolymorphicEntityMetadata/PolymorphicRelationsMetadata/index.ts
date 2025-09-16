@@ -13,10 +13,16 @@ export default class PolymorphicRelationsMetadata extends Array<
         this.mergeRelations(relations)
     }
 
+    // Static Getters =========================================================
+    // Publics ----------------------------------------------------------------
+    public static get [Symbol.species](): typeof Array {
+        return Array
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): RelationsMetadataJSON {
-        return [...this].map(rel => rel.toJSON())
+        return this.map(rel => rel.toJSON())
     }
 
     // Privates ---------------------------------------------------------------

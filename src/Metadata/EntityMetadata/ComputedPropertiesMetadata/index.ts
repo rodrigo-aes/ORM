@@ -6,7 +6,7 @@ import type {
 } from "../../../types/General"
 
 import { Collection } from "../../../BaseEntity"
-import type { ComputedPropertyFunction } from "./types"
+import type { ComputedPropertyFunction, ComputedPropertiesJSON } from "./types"
 
 export default class ComputedPropertiesMetadata<
     T extends EntityTarget | PolymorphicEntityTarget = any,
@@ -30,6 +30,12 @@ export default class ComputedPropertiesMetadata<
             : this.assignEntity(target)
     }
 
+    // ------------------------------------------------------------------------
+
+    public toJSON(): ComputedPropertiesJSON {
+        return Object.fromEntries(this.entries())
+    }
+
     // Privates ---------------------------------------------------------------
     private register() {
         Reflect.defineMetadata('computed-properties', this, this.target)
@@ -38,17 +44,15 @@ export default class ComputedPropertiesMetadata<
     // ------------------------------------------------------------------------
 
     private async assignEntity(entity: InstanceType<T>): Promise<void> {
-        for (const [prop, fn] of this.entries()) entity[prop as (
+        for (const [prop, fn] of Array.from(this.entries())) entity[prop as (
             keyof InstanceType<T>
         )] = await fn(undefined, entity)
     }
 
     // ------------------------------------------------------------------------
 
-    private async assignCollection(collection: Collection<InstanceType<T>>): (
-        Promise<void>
-    ) {
-        for (const [prop, fn] of this.entries()) {
+    private async assignCollection(collection: Collection<InstanceType<T>>) {
+        for (const [prop, fn] of Array.from(this.entries())) {
             let value
             for (const entity of collection) value = await fn(value, entity)
 
@@ -83,5 +87,6 @@ export default class ComputedPropertiesMetadata<
 }
 
 export {
-    type ComputedPropertyFunction
+    type ComputedPropertyFunction,
+    type ComputedPropertiesJSON
 }

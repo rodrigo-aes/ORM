@@ -52,7 +52,9 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
     public exec(): Promise<InstanceType<T>> {
         return new MySQL2QueryExecutionHandler(
             this.target,
-            this.sqlBuilder as UpdateOrCreateSQLBuilder<AsEntityTarget<T>>,
+            this.sqlBuilder as unknown as UpdateOrCreateSQLBuilder<
+                AsEntityTarget<T>
+            >,
             'entity'
         )
             .exec()

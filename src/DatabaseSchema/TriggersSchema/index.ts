@@ -69,22 +69,16 @@ export default class TriggersSchema<
 
     // ------------------------------------------------------------------------
 
-    protected async previousSchemas(): (
-        Promise<TriggersSchema>
-    ) {
+    protected async previousSchemas() {
         if (this.previous) return this.previous
 
         this.previous = new TriggersSchema(
             this.connection,
-            ...(await this.connection.query(
+            ...await this.connection.query(
                 TriggersSchema.triggersSchemaQuery(
                     this.connection.config.database
-                ),
-                undefined,
-                {
-                    logging: false
-                }
-            ))
+                ))
+
         )
 
         return this.previous

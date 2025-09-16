@@ -10,7 +10,7 @@ import {
 } from "../../SQLBuilders"
 
 // Query Builders
-import WhereQueryBuilder from "../WhereQueryBuilder"
+import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 import CaseQueryBuilder from "../CaseQueryBuilder"
 
 // Handlers
@@ -37,7 +37,7 @@ export default class CountQueryBuilder<
     public _as?: string
     private _conditional?: (
         string |
-        WhereQueryBuilder<T> |
+        ConditionalQueryHandler<T> |
         CaseQueryBuilder<T>
     )
 
@@ -73,7 +73,7 @@ export default class CountQueryBuilder<
             : never
     ): Omit<this, CaseMethods | CountMethods> {
         this.verifyWhere();
-        (this._conditional as WhereQueryBuilder<T>).where(
+        (this._conditional as ConditionalQueryHandler<T>).where(
             propertie,
             conditional,
             value
@@ -101,7 +101,7 @@ export default class CountQueryBuilder<
             ? WhereQueryHandler<Source>
             : never
     ): this {
-        (this._conditional as WhereQueryBuilder<T>).whereExists(
+        (this._conditional as ConditionalQueryHandler<T>).whereExists(
             exists,
             conditional
         )
@@ -133,7 +133,7 @@ export default class CountQueryBuilder<
             : never
     ): Omit<this, CaseMethods | CountMethods> {
         this.verifyWhere();
-        (this._conditional as WhereQueryBuilder<T>).orWhere(
+        (this._conditional as ConditionalQueryHandler<T>).orWhere(
             propertie,
             conditional,
             value
@@ -211,14 +211,14 @@ export default class CountQueryBuilder<
 
     // Privates ---------------------------------------------------------------
     private verifyWhere(): void {
-        if (!this._conditional) this._conditional = new WhereQueryBuilder(
+        if (!this._conditional) this._conditional = new ConditionalQueryHandler(
             this.target,
             this.alias
         )
 
         if (
             this._conditional &&
-            !(this._conditional instanceof WhereQueryBuilder)
+            !(this._conditional instanceof ConditionalQueryHandler)
         ) throw new Error
     }
 }

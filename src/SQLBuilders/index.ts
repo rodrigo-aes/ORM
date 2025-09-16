@@ -49,6 +49,7 @@ import {
 } from './RelationHandlersSQLBuilders'
 
 import {
+    Procedure,
     ProceduresHandler,
     InsertMigration,
     DeleteMigration,
@@ -141,6 +142,8 @@ export {
     ColumnSQLBuilder,
     ForeignKeyConstraintSQLBuilder,
     TriggerSQLBuilder,
+
+    Procedure,
 
     Op,
     Operator,

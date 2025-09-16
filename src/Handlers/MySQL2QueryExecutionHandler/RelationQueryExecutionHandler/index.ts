@@ -49,9 +49,7 @@ export default class RelationQueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    public async executeFind(sql: string): (
-        Promise<Collection<InstanceType<T>>>
-    ) {
+    public async executeFind(sql: string) {
         return this
             .rawDataHandler('Many', await this.getConnection().query(sql))
             .parseEntity() as Collection<InstanceType<T>>
@@ -123,9 +121,7 @@ export default class RelationQueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    public async executeVoidOperation(sql: string, values?: any[]): (
-        Promise<void>
-    ) {
+    public async executeVoidOperation(sql: string, values?: any[]) {
         await this.getConnection().query(sql, values)
     }
 

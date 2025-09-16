@@ -28,16 +28,16 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public override get targetPrimaryValue(): any {
+    public get _targetPrimaryValue(): any {
         return this.target instanceof BasePolymorphicEntity
             ? this.target.primaryKey
-            : super.targetPrimaryValue
+            : this.targetPrimaryValue
     }
 
     // Protecteds -------------------------------------------------------------
     protected get includedAtrributes(): any {
         return {
-            [this.foreignKey]: this.targetPrimaryValue,
+            [this.foreignKey]: this._targetPrimaryValue,
             ...this.includeTypeKey
         }
     }
@@ -71,7 +71,7 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
 
     private get whereForeignKeySQL(): string {
         return `
-        ${this.relatedAlias}.${this.foreignKey} = ${this.targetPrimaryValue}
+        ${this.relatedAlias}.${this.foreignKey} = ${this._targetPrimaryValue}
         `
     }
 

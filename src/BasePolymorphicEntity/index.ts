@@ -213,9 +213,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     // ------------------------------------------------------------------------
 
-    public async delete<T extends BasePolymorphicEntity<any>>(this: T): (
-        Promise<void>
-    ) {
+    public async delete<T extends BasePolymorphicEntity<any>>(this: T) {
         await this.getRepository().delete(this.entities[this.entityType], this)
     }
 

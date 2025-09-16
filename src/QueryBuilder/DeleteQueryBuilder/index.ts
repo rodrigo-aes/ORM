@@ -7,7 +7,7 @@ import {
 } from "../../SQLBuilders"
 
 // Query Builders
-import WhereQueryBuilder from "../WhereQueryBuilder"
+import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Handlers
 import {
@@ -25,7 +25,7 @@ import type {
 
 export default class DeleteQueryBuilder<T extends EntityTarget> {
     private _sqlBuilder?: DeleteSQLBuilder<T>
-    private _where?: WhereQueryBuilder<T>
+    private _where?: ConditionalQueryHandler<T>
 
 
     constructor(
@@ -54,7 +54,7 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        if (!this._where) this._where = new WhereQueryBuilder(
+        if (!this._where) this._where = new ConditionalQueryHandler(
             this.target, this.alias
         )
 
@@ -78,7 +78,7 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
             ? WhereQueryHandler<Source>
             : never
     ): this {
-        (this._where as WhereQueryBuilder<T>).whereExists(
+        (this._where as ConditionalQueryHandler<T>).whereExists(
             exists as EntityTarget,
             conditional as WhereQueryHandler<EntityTarget>
         )

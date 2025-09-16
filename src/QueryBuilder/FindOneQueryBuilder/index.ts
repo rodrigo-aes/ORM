@@ -18,7 +18,7 @@ import {
 
 // Query Builders
 import SelectQueryBuilder from "../SelectQueryBuilder"
-import WhereQueryBuilder from "../WhereQueryBuilder"
+import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 import JoinQueryBuilder from "../JoinQueryBuilder"
 import GroupQueryBuilder from "../GroupQueryBuilder"
 
@@ -120,7 +120,7 @@ export default class FindOneQueryBuilder<
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        if (!this._options.where) this._options.where = new WhereQueryBuilder(
+        if (!this._options.where) this._options.where = new ConditionalQueryHandler(
             this.target, this.alias
         )
 

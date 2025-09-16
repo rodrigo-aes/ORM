@@ -24,9 +24,7 @@ export default class TableSyncronizer extends TableSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    public async alter(connection: MySQLConnection, schema: TableSchema): (
-        Promise<void>
-    ) {
+    public async alter(connection: MySQLConnection, schema: TableSchema) {
         await connection.query(this.syncAlterSQL(schema))
     }
 

@@ -60,13 +60,9 @@ export default class DatabaseSyncronizer extends DatabaseSchema<
 
         this.previous = new DatabaseSyncronizer(this.connection)
         this.previous.push(
-            ...(await this.connection
-                .query(
-                    DatabaseSyncronizer.databaseSchemaQuery(),
-                    undefined,
-                    { logging: false }
-                )
-            )
+            ...(await this.connection.query(
+                DatabaseSyncronizer.databaseSchemaQuery()
+            ))
                 .map(({ tableName, columns }) => new TableSyncronizer(
                     this.previous, tableName, ...columns
                 ))

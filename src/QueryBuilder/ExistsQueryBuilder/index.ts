@@ -19,7 +19,7 @@ import {
 } from "../../SQLBuilders"
 
 // Query Builders
-import WhereQueryBuilder from "../WhereQueryBuilder"
+import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Types
 import type {
@@ -75,7 +75,7 @@ export default class ExistsQueryBuilder<
             BaseEntity.prototype.isPrototypeOf(exists.prototype) ||
             BasePolymorphicEntity.prototype.isPrototypeOf(exists.prototype)
         ) {
-            const where = new WhereQueryBuilder(
+            const where = new ConditionalQueryHandler(
                 exists as EntityTarget | PolymorphicEntityTarget,
                 this.alias
             );
@@ -99,7 +99,7 @@ export default class ExistsQueryBuilder<
             return this
         }
 
-        const where = new WhereQueryBuilder(this.target, this.alias);
+        const where = new ConditionalQueryHandler(this.target, this.alias);
         (exists as WhereQueryHandler<T>)(where)
 
         this._options = {

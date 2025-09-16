@@ -7,7 +7,7 @@ import {
 
 // Query Handlers
 import SelectQueryBuilder from "../SelectQueryBuilder"
-import WhereQueryBuilder from "../WhereQueryBuilder"
+import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Types
 import type {
@@ -103,7 +103,7 @@ export default class JoinQueryBuilder<
     // ------------------------------------------------------------------------
 
     public on(onClause: WhereQueryHandler<T>): this {
-        this._options.on = new WhereQueryBuilder(
+        this._options.on = new ConditionalQueryHandler(
             this.target,
             this.alias
         )

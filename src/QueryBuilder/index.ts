@@ -14,6 +14,13 @@ import type UpdateQueryBuilder from "./UpdateQueryBuilder"
 import type UpdateOrCreateQueryBuilder from "./UpdateOrCreateQueryBuilder"
 import type DeleteQueryBuilder from "./DeleteQueryBuilder"
 
+import type SelectQueryBuilder from "./SelectQueryBuilder"
+import type CountQueryBuilder from "./CountQueryBuilder"
+import type AndQueryBuilder from "./AndQueryBuilder"
+import type CaseQueryBuilder from "./CaseQueryBuilder"
+import type ConditionalQueryHandler from "./ConditionalQueryBuilder"
+import type JoinQueryBuilder from "./JoinQueryBuilder"
+
 import type {
     SelectQueryHandler,
     CountQueryHandler,
@@ -36,6 +43,13 @@ export {
     type UpdateQueryBuilder,
     type UpdateOrCreateQueryBuilder,
     type DeleteQueryBuilder,
+
+    type SelectQueryBuilder,
+    type CountQueryBuilder,
+    type AndQueryBuilder,
+    type CaseQueryBuilder,
+    type ConditionalQueryHandler,
+    type JoinQueryBuilder,
 
     type SelectQueryHandler,
     type CountQueryHandler,

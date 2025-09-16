@@ -46,9 +46,7 @@ export default class TriggersSyncronizer extends TriggersSchema<
     }
 
     // Protecteds -------------------------------------------------------------
-    protected override async previousSchemas(): (
-        Promise<TriggersSyncronizer>
-    ) {
+    protected override async previousSchemas(): Promise<TriggersSyncronizer> {
         if (this.previous) return this.previous
 
         this.previous = new TriggersSyncronizer(
@@ -56,11 +54,7 @@ export default class TriggersSyncronizer extends TriggersSchema<
             ...(await this.connection.query(
                 TriggersSyncronizer.triggersSchemaQuery(
                     this.connection.config.database
-                ),
-                undefined,
-                {
-                    logging: false
-                }
+                )
             ))
                 .map(initMap => new TriggerSyncronizer(initMap))
         )

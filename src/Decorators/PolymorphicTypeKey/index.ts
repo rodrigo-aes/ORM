@@ -17,3 +17,7 @@ export default function PolymorphicTypeKey(
             .registerColumnPattern(name, 'polymorphic-type-key', relateds)
     }
 }
+
+export type {
+    PolymorphicTypeKeyRelateds
+}

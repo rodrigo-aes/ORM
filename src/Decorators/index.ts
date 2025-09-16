@@ -9,7 +9,12 @@ import PolymorphicEntity, {
 import Column from "./Column"
 import ComputedColumn from "./ComputedColumn"
 import Primary from "./Primary"
-import ForeignKey from "./ForeignKey"
+
+import ForeignKey, {
+    type ForeignKeyReferencedGetter,
+    type ForeignKeyConstraintOptions
+} from "./ForeignKey"
+
 import Unique from "./Unique"
 import Nullable from "./Nullable"
 import Default from "./Default"
@@ -18,16 +23,32 @@ import Unsigned from "./Unsigned"
 
 import Id from "./Id"
 import PolymorphicId from "./PolymorphicId"
-import ForeignId from "./ForeignId"
-import PolymorphicForeignId from "./PolymorphicForeignId"
-import PolymorphicTypeKey from "./PolymorphicTypeKey"
+
+import ForeignId, {
+    type ForeignIdRelatedGetter,
+    type ForeignIdOptions
+} from "./ForeignId"
+
+import PolymorphicForeignId, {
+    type PolymorphicForeignIdRelatedGetter,
+    type PolymorphicForeignIdOptions
+} from "./PolymorphicForeignId"
+
+import PolymorphicTypeKey, {
+    type PolymorphicTypeKeyRelateds
+} from "./PolymorphicTypeKey"
+
 import CreatedTimestamp from "./CreatedTimestamp"
 import UpdatedTimestamp from "./UpdatedTimestamp"
 
 import UseRepository from "./UseRepository"
 
-import ComputedProperty from "./ComputedProperty"
+import ComputedProperty, {
+    type ComputedPropertyFunction
+} from "./ComputedProperty"
+
 import Scopes, { DefaultScope } from "./Scopes"
+
 import Triggers from "./Triggers"
 import Collections, { DefaultCollection } from "./Collections"
 import Paginations, { DefaultPagination } from "./Paginations"
@@ -44,6 +65,34 @@ import {
     PolymorphicHasOne,
     PolymorphicHasMany,
     PolymorphicBelongsTo,
+
+    type HasOneOptions,
+    type HasOneRelatedGetter,
+
+    type HasManyOptions,
+    type HasManyRelatedGetter,
+
+    type HasOneThroughOptions,
+    type HasOneThroughRelatedGetter,
+    type HasOneThroughGetter,
+
+    type HasManyThroughOptions,
+    type HasManyThroughRelatedGetter,
+    type HasManyThroughGetter,
+
+    type BelongToOptions,
+    type BelongsToRelatedGetter,
+
+    type BelongsToThroughOptions,
+    type BelongsToThroughRelatedGetter,
+    type BelongsToThroughGetter,
+
+    type BelongsToManyOptions,
+    type BelongsToManyRelatedGetter,
+
+    type PolymorphicHasOneOptions,
+    type PolymorphicHasManyOptions,
+    type PolymorphicBelongsToOptions
 } from "./Relations"
 
 import {
@@ -132,5 +181,42 @@ export {
     Paginations,
     DefaultPagination,
 
-    type CombinedColumnOptions
+    type ForeignKeyReferencedGetter,
+    type ForeignKeyConstraintOptions,
+    type ForeignIdRelatedGetter,
+    type ForeignIdOptions,
+    type PolymorphicForeignIdRelatedGetter,
+    type PolymorphicForeignIdOptions,
+    type PolymorphicTypeKeyRelateds,
+
+    type CombinedColumnOptions,
+    type ComputedPropertyFunction,
+
+    type HasOneOptions,
+    type HasOneRelatedGetter,
+
+    type HasManyOptions,
+    type HasManyRelatedGetter,
+
+    type HasOneThroughOptions,
+    type HasOneThroughRelatedGetter,
+    type HasOneThroughGetter,
+
+    type HasManyThroughOptions,
+    type HasManyThroughRelatedGetter,
+    type HasManyThroughGetter,
+
+    type BelongToOptions,
+    type BelongsToRelatedGetter,
+
+    type BelongsToThroughOptions,
+    type BelongsToThroughRelatedGetter,
+    type BelongsToThroughGetter,
+
+    type BelongsToManyOptions,
+    type BelongsToManyRelatedGetter,
+
+    type PolymorphicHasOneOptions,
+    type PolymorphicHasManyOptions,
+    type PolymorphicBelongsToOptions
 }

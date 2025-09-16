@@ -28,6 +28,7 @@ export type SQLBuilder<T extends EntityTarget | PolymorphicEntityTarget> = (
     DeleteSQLBuilder<T>
 )
 
+
 import type { MySQL2RawData, RawData } from "../MySQL2RawDataHandler"
 
 export type ResultMapOption = (

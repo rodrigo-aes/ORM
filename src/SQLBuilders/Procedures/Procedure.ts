@@ -27,13 +27,8 @@ export default abstract class Procedure {
     public async register(connection: MySQLConnection): Promise<void> {
         this.connection = connection
 
-        await this.connection.query(this.dropIdExistsSQL(), undefined, {
-            logging: false
-        })
-
-        await this.connection.query(this.SQL(), undefined, {
-            logging: false
-        })
+        await this.connection.query(this.dropIfExistsSQL())
+        await this.connection.query(this.SQL())
     }
 
     // ------------------------------------------------------------------------
@@ -45,7 +40,7 @@ export default abstract class Procedure {
     public abstract proccessSQL(): string
 
     // Privates ---------------------------------------------------------------
-    private dropIdExistsSQL(): string {
+    private dropIfExistsSQL(): string {
         return `DROP PROCEDURE IF EXISTS ${this.name}`
     }
 }

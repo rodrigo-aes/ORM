@@ -6,7 +6,7 @@ import {
 } from "../../Metadata"
 
 // Query Handlers
-import WhereQueryBuilder from "../WhereQueryBuilder"
+import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Types
 import type {
@@ -36,7 +36,7 @@ export default class CaseQueryBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public when(caseClause: WhereQueryHandler<T>, then: any): this {
-        const where = new WhereQueryBuilder(
+        const where = new ConditionalQueryHandler(
             this.target,
             this.alias
         )

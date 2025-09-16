@@ -6,21 +6,26 @@ import BaseEntity from "../../BaseEntity"
 import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 
 // Components
-import TemMetadata from "../TempMetadata"
+import TempMetadata from "../TempMetadata"
 
 // Types
 import type MySQLConnection from "../../Connection"
 import type {
     EntityTarget,
-    PolymorphicEntityTarget
+    PolymorphicEntityTarget,
+    Target,
+    TargetMetadata,
 } from "../../types/General"
 
 export default class MetadataHandler {
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
     public static registerConnectionEntities(
         connection: MySQLConnection,
         ...entities: EntityTarget[]
     ): void {
-        for (const entity of entities) EntityMetadata.findOrBuild(entity)
+        for (const entity of entities) EntityMetadata
+            .findOrBuild(entity)
             .defineConnection(connection)
     }
 
@@ -35,27 +40,29 @@ export default class MetadataHandler {
     public static getTargetConnection(target: EntityTarget): (
         MySQLConnection | undefined
     ) {
-        return EntityMetadata.findOrBuild(target).connection
-            ?? Reflect.getOwnMetadata('temp-connection', target)
+        return Reflect.getOwnMetadata('temp-connection', target)
+            ?? EntityMetadata.findOrBuild(target).connection
     }
 
     // ------------------------------------------------------------------------
 
-    public static loadMetadata(
-        target: EntityTarget | PolymorphicEntityTarget
-    ): (
-            EntityMetadata | PolymorphicEntityMetadata
-        ) {
+    public static loadMetadata<T extends Target>(target: T): (
+        TargetMetadata<T>
+    ) {
         switch (true) {
-            case (target as any).prototype instanceof BaseEntity: return (
+            case target.prototype instanceof BaseEntity: return (
                 EntityMetadata.find(target as EntityTarget)
-                ?? TemMetadata.getMetadata(target)
-            )!
+                ?? TempMetadata.getMetadata(target)
+            ) as TargetMetadata<T>
 
-            case (target as any).prototype instanceof BasePolymorphicEntity: return (
-                PolymorphicEntityMetadata.find(target as PolymorphicEntityTarget)
-                ?? TemMetadata.getMetadata(target)
-            )!
+            // ----------------------------------------------------------------
+
+            case target.prototype instanceof BasePolymorphicEntity: return (
+                PolymorphicEntityMetadata.find(
+                    target as PolymorphicEntityTarget
+                )
+                ?? TempMetadata.getMetadata(target)
+            ) as TargetMetadata<T>
         }
 
         throw new Error
@@ -63,9 +70,7 @@ export default class MetadataHandler {
 
     // ------------------------------------------------------------------------
 
-    public static getTargetParents<T extends EntityTarget | PolymorphicEntityTarget>(
-        target: T
-    ): T[] {
+    public static getTargetParents<T extends Target>(target: T): T[] {
         const parents: T[] = []
         let parent = Object.getPrototypeOf(target)
 

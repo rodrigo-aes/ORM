@@ -2,22 +2,20 @@
 import MetadataHandler from "../MetadataHandler"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { Target, TargetMetadata } from "../../types/General"
 import type { TempMetadataValue } from "./types"
-import type { Collection, Pagination } from "../../BaseEntity"
-import type EntityMetadata from "../EntityMetadata"
 import type { ScopeMetadata } from "../EntityMetadata"
-import type PolymorphicEntityMetadata from "../PolymorphicEntityMetadata"
+import type { Collection, Pagination } from "../../BaseEntity"
 
 class TempMetadata extends WeakMap<
-    EntityTarget | PolymorphicEntityTarget,
+    Target,
     TempMetadataValue
 > {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public reply(
-        target: EntityTarget | PolymorphicEntityTarget,
-        source: EntityTarget | PolymorphicEntityTarget
+        target: Target,
+        source: Target
     ): this {
         this.set(target, {
             metadata: this.get(source)?.metadata
@@ -33,42 +31,33 @@ class TempMetadata extends WeakMap<
 
     // ------------------------------------------------------------------------
 
-    public getMetadata<T extends EntityTarget | PolymorphicEntityTarget>(
-        target: T
-    ): EntityMetadata | PolymorphicEntityMetadata | undefined {
-        return this.get(target)?.metadata
+    public getMetadata<T extends Target>(target: T): TargetMetadata<T> {
+        return this.get(target)?.metadata as TargetMetadata<T>
     }
 
     // ------------------------------------------------------------------------
 
-    public getScope(target: EntityTarget | PolymorphicEntityTarget): (
-        ScopeMetadata | undefined
-    ) {
+    public getScope(target: Target): ScopeMetadata | undefined {
         return this.get(target)?.scope
     }
 
     // ------------------------------------------------------------------------
 
-    public getCollection(target: EntityTarget | PolymorphicEntityTarget): (
-        typeof Collection | undefined
-    ) {
+    public getCollection(target: Target): typeof Collection | undefined {
         return this.get(target)?.collection
     }
 
     // ------------------------------------------------------------------------
 
-    public getPagination(target: EntityTarget | PolymorphicEntityTarget): (
-        typeof Pagination | undefined
-    ) {
+    public getPagination(target: Target): typeof Pagination | undefined {
         return this.get(target)?.pagination
     }
 
     // ------------------------------------------------------------------------
 
-    public setMetadata(
-        target: EntityTarget | PolymorphicEntityTarget,
-        metadata: EntityMetadata | PolymorphicEntityMetadata
-    ): this {
+    public setMetadata(target: Target, metadata: TargetMetadata<Target>): (
+        this
+    ) {
         this.set(target, {
             ...this.get(target),
             metadata
@@ -79,10 +68,7 @@ class TempMetadata extends WeakMap<
 
     // ------------------------------------------------------------------------
 
-    public setScope(
-        target: EntityTarget | PolymorphicEntityTarget,
-        scope: ScopeMetadata
-    ): this {
+    public setScope(target: Target, scope: ScopeMetadata): this {
         this.set(target, {
             ...this.get(target),
             scope
@@ -93,10 +79,7 @@ class TempMetadata extends WeakMap<
 
     // ------------------------------------------------------------------------
 
-    public setCollection(
-        target: EntityTarget | PolymorphicEntityTarget,
-        collection: typeof Collection
-    ): this {
+    public setCollection(target: Target, collection: typeof Collection): this {
         this.set(target, {
             ...this.get(target),
             collection

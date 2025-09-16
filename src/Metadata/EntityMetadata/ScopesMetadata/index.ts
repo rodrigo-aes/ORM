@@ -8,7 +8,7 @@ import type {
 } from "../../../types/General"
 
 import type { FindQueryOptions } from "../../../SQLBuilders"
-import type { Scope, ScopeFunction } from "./types"
+import type { Scope, ScopeFunction, ScopesMetadataJSON } from "./types"
 
 export default class ScopesMetadata extends Map<
     string,
@@ -56,6 +56,15 @@ export default class ScopesMetadata extends Map<
 
     }
 
+    // ------------------------------------------------------------------------
+
+    public toJSON(): ScopesMetadataJSON {
+        return {
+            default: this.default?.toJSON(),
+            ...Object.fromEntries(this.entries())
+        }
+    }
+
     // Privates ---------------------------------------------------------------
     private register() {
         Reflect.defineMetadata('scopes', this, this.target)
@@ -87,5 +96,6 @@ export {
     ScopeMetadataHandler,
 
     type Scope,
-    type ScopeFunction
+    type ScopeFunction,
+    type ScopesMetadataJSON
 }

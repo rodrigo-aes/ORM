@@ -1,6 +1,8 @@
-import type { HasOneThroughOptions } from "../../../Metadata"
+import type {
+    HasOneThroughOptions as HasOneThroughMetadataOptions
+} from "../../../Metadata"
 
-export type RelationOptions = Omit<HasOneThroughOptions, (
+export type HasOneThroughOptions = Omit<HasOneThroughMetadataOptions, (
     'name' |
     'related' |
     'through'

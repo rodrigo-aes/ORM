@@ -13,3 +13,7 @@ export type Scope<T extends EntityTarget | PolymorphicEntityTarget = any> = (
     FindQueryOptions<InstanceType<T>> |
     ScopeFunction<T>
 )
+
+export type ScopesMetadataJSON = {
+    [Name: string]: FindQueryOptions<any> | undefined
+}

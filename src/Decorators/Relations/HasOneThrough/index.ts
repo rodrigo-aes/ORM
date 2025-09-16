@@ -6,12 +6,12 @@ import {
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { RelationOptions } from "./types"
+import type { HasOneThroughOptions } from "./types"
 
 export default function HasOneThrough(
     related: HasOneThroughRelatedGetter,
     through: HasOneThroughGetter,
-    options: RelationOptions
+    options: HasOneThroughOptions
 ) {
     return function <Entity extends object>(
         target: Entity,
@@ -20,4 +20,10 @@ export default function HasOneThrough(
         RelationsMetadata.findOrBuild(target.constructor as EntityTarget)
             .addHasOneThrough({ name, related, through, ...options })
     }
+}
+
+export type {
+    HasOneThroughOptions,
+    HasOneThroughRelatedGetter,
+    HasOneThroughGetter
 }

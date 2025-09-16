@@ -64,7 +64,7 @@ export default class UpdateSQLBuilder<
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get columnsNames(): UpdateAtt5ributesKey<InstanceType<T>>[] {
-        return [...(this._propertiesNames ?? this.getFields())]
+        return Array.from(this._propertiesNames ?? this.getFields())
     }
 
     // ------------------------------------------------------------------------

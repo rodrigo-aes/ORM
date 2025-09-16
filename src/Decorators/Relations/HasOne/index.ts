@@ -2,11 +2,11 @@ import { RelationsMetadata } from "../../../Metadata"
 
 import type { EntityTarget } from "../../../types/General"
 import type { HasOneRelatedGetter } from "../../../Metadata"
-import type { RelationOptions } from "./types"
+import type { HasOneOptions } from "./types"
 
 export default function HasOne(
     related: HasOneRelatedGetter,
-    foreignKey: RelationOptions
+    foreignKey: HasOneOptions
 ) {
     return function <Entity extends object>(
         target: Entity,
@@ -17,4 +17,9 @@ export default function HasOne(
         RelationsMetadata.findOrBuild(target.constructor as EntityTarget)
             .addHasOne({ name, related, ...foreignKey })
     }
+}
+
+export type {
+    HasOneOptions,
+    HasOneRelatedGetter
 }

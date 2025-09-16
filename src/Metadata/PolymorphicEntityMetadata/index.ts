@@ -3,6 +3,8 @@ import EntityMetadata, {
     ScopesMetadata,
     ComputedPropertiesMetadata,
     CollectionsMetadata,
+    PaginationsMetadata,
+
     type PolymorphicParentRelatedGetter,
 } from "../EntityMetadata"
 
@@ -35,16 +37,20 @@ export default class PolymorphicEntityMetadata {
     private _entities!: UnionEntitiesMap
     private _sourcesMetadata!: SourcesMetadata
 
-    private _columns!: PolymorphicColumnsMetadata
+    private _columns?: PolymorphicColumnsMetadata
     private _relations?: PolymorphicRelationsMetadata
+
+    public repository!: typeof PolymorphicRepository<any>
 
     public hooks?: HooksMetadata
     public scopes?: ScopesMetadata
-    public repository!: typeof PolymorphicRepository<any>
+
     public exclude?: string[] = []
     public combined?: CombinedColumns
+
     public computedProperties?: ComputedPropertiesMetadata
     public collections?: CollectionsMetadata
+    public paginations?: PaginationsMetadata
 
     constructor(
         public tableName: string,
@@ -56,11 +62,15 @@ export default class PolymorphicEntityMetadata {
         this.loadColumns()
         this.loadRelations()
 
-        if (target) {
-            this.loadHooks()
-            this.loadScopes()
-            this.loadComputedProperties()
-            this.loadCollections()
+        if (this.target) {
+            this.hooks = HooksMetadata.find(this.target)
+            this.scopes = ScopesMetadata.find(this.target)
+            this.computedProperties = ComputedPropertiesMetadata.find(
+                this.target
+            )
+            this.collections = CollectionsMetadata.find(this.target)
+            this.paginations = PaginationsMetadata.find(this.target)
+
             this.loadCombined()
             this.mergeCombined()
         }
@@ -111,13 +121,13 @@ export default class PolymorphicEntityMetadata {
 
     public get columns(): PolymorphicColumnsMetadata {
         if (typeof this.sources === 'function') this.loadSourcesMetadata()
-        return this.loadColumns()
+        return this._columns ?? this.loadColumns()
     }
 
     // ------------------------------------------------------------------------
 
     public get relations(): PolymorphicRelationsMetadata | undefined {
-        return this.loadRelations()
+        return this._relations ?? this.loadRelations()
     }
 
     // ------------------------------------------------------------------------
@@ -164,9 +174,7 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    public toJSON(): (
-        PolymorphicEntityMetadataJSON | undefined
-    ) {
+    public toJSON(): PolymorphicEntityMetadataJSON | undefined {
         return EntityToJSONProcessMetadata.initialized
             ? this.buildJSON()
             : EntityToJSONProcessMetadata.apply(
@@ -276,36 +284,14 @@ export default class PolymorphicEntityMetadata {
         const metas = Object.values(this.sourcesMetadata)
         const relations = metas.flatMap(meta => [...meta.relations ?? []])
 
-        if (relations.length > 0) this._relations = new PolymorphicRelationsMetadata(
-            this.target,
-            ...relations
+        if (relations.length > 0) this._relations = (
+            new PolymorphicRelationsMetadata(
+                this.target,
+                ...relations
+            )
         )
 
         return this._relations
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadHooks() {
-        this.hooks = HooksMetadata.find(this.target!)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadScopes() {
-        this.scopes = ScopesMetadata.find(this.target!)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadComputedProperties() {
-        this.computedProperties = ComputedPropertiesMetadata.find(this.target!)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadCollections() {
-        this.collections = CollectionsMetadata.find(this.target!)
     }
 
     // ------------------------------------------------------------------------
@@ -322,16 +308,19 @@ export default class PolymorphicEntityMetadata {
     private buildJSON<T extends PolymorphicEntityTarget = any>(): (
         PolymorphicEntityMetadataJSON | undefined
     ) {
-        return EntityToJSONProcessMetadata.shouldAdd(this.name)
-            ? {
-                target: this.target as T,
-                name: this.name,
-                tableName: this.tableName,
-                columns: this.columns.toJSON(),
-                relations: this.relations?.toJSON(),
-                // joinTables: this.joinTables?.map(table => table.toJSON())
-            }
-            : undefined
+        if (EntityToJSONProcessMetadata.shouldAdd(this.name)) return {
+            target: this.target as T,
+            name: this.name,
+            tableName: this.tableName,
+            columns: this.columns.toJSON(),
+            relations: this.relations?.toJSON(),
+            repository: this.repository,
+            hooks: this.hooks?.toJSON(),
+            scopes: this.scopes?.toJSON(),
+            computedProperties: this.computedProperties?.toJSON(),
+            collections: this.collections?.toJSON(),
+            paginations: this.paginations?.toJSON(),
+        }
     }
 
     // Static Methods =========================================================

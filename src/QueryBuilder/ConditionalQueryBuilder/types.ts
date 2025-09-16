@@ -1,6 +1,6 @@
 import type { EntityTarget } from "../../types/General"
-import type CaseQueryBuilder from "../CaseQueryBuilder"
+import type AndQueryBuilder from "../AndQueryBuilder"
 
-export type CaseQueryFunction<T extends EntityTarget> = (
-    (queryBuilder: CaseQueryBuilder<T>) => void
+export type AndQueryFunction<T extends EntityTarget> = (
+    (queryBuilder: AndQueryBuilder<T>) => void
 )

@@ -110,20 +110,18 @@ export default class Collection<
     // ------------------------------------------------------------------------
 
     protected computedPropertiesKeys(): string[] {
-        return [
-            ...(this.getComputedPropertiesMetadata()?.keys() as (
-                IterableIterator<string>
-            ))
-        ]
+        return Array
+            .from(this.getComputedPropertiesMetadata()?.keys() ?? []) as (
+                string[]
+            )
     }
 
     // ------------------------------------------------------------------------
 
     protected computedPropertiesJSON(): any {
         return Object.fromEntries(
-            Object.entries(this).filter(
-                ([key]) => this.computedPropertiesKeys().includes(key)
-            )
+            Object.entries(this)
+                .filter(([key]) => this.computedPropertiesKeys().includes(key))
         )
     }
 

@@ -18,7 +18,9 @@ import HookMetadata, {
     BeforeBulkDeleteMetadata,
     AfterBulkDeleteMetadata,
 
-    UpdatedTimestampMetadata
+    UpdatedTimestampMetadata,
+
+    type HookMetadataJSON
 } from "./HookMetadata"
 
 // Types
@@ -26,21 +28,29 @@ import type {
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../../types/General"
+
 import type { HookType } from "./HookMetadata/types"
+
 import type BaseEntity from "../../../BaseEntity"
 import type BasePolymorphicEntity from "../../../BasePolymorphicEntity"
+
 import type { FindQueryOptions } from "../../../SQLBuilders"
+
 import type {
     RawData,
     MySQL2RawData
 } from "../../../Handlers/MySQL2RawDataHandler"
+
 import type { ResultSetHeader } from "mysql2"
+
 import type {
     CreationAttributes,
     UpdateAttributes,
     ConditionalQueryOptions
 } from "../../../SQLBuilders"
-import { DeleteResult } from "../../../Handlers"
+
+import type { DeleteResult } from "../../../Handlers"
+import type { HooksMetadataJSON } from "./types"
 
 export default class HooksMetadata {
     private toCall: Set<HookType> = new Set
@@ -451,6 +461,36 @@ export default class HooksMetadata {
         this.toCall.add('after-bulk-delete')
     }
 
+    // ------------------------------------------------------------------------
+
+    public toJSON(): HooksMetadataJSON {
+        return Object.fromEntries(Object.entries(this).flatMap(
+            ([key, meta]) => [
+                'beforeSync',
+                'afterSync',
+                'beforeFind',
+                'afterFind',
+                'beforeBulkFind',
+                'afterBulkFind',
+                'beforeCreate',
+                'afterCreate',
+                'beforeBulkCreate',
+                'afterBulkCreate',
+                'beforeUpdate',
+                'afterUpdate',
+                'beforeBulkUpdate',
+                'afterBulkUpdate',
+                'beforeDelete',
+                'afterDelete',
+                'beforeBulkDelete',
+                'afterBulkDelete'
+            ]
+                .includes(key)
+                ? [[key, meta.toJSON()]]
+                : []
+        )) as HooksMetadataJSON
+    }
+
     // Privates ---------------------------------------------------------------
     private register() {
         Reflect.defineMetadata('hooks', this, this.target)
@@ -476,4 +516,9 @@ export default class HooksMetadata {
         return this.find(target)
             ?? this.build(target)
     }
+}
+
+export {
+    type HooksMetadataJSON,
+    type HookMetadataJSON
 }

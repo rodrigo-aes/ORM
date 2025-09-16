@@ -2,11 +2,11 @@ import { RelationsMetadata } from "../../../Metadata"
 
 import type { EntityTarget } from "../../../types/General"
 import type { BelongsToRelatedGetter } from "../../../Metadata"
-import type { RelationOptions } from "./types"
+import type { BelongToOptions } from "./types"
 
 export default function BelongsTo(
     related: BelongsToRelatedGetter,
-    foreignKey: string | RelationOptions
+    foreignKey: string | BelongToOptions
 ) {
     return function <Entity extends object>(
         target: Entity,
@@ -17,4 +17,9 @@ export default function BelongsTo(
         RelationsMetadata.findOrBuild(target.constructor as EntityTarget)
             .addBelongsTo({ name, related, ...foreignKey })
     }
+}
+
+export type {
+    BelongToOptions,
+    BelongsToRelatedGetter
 }

@@ -216,9 +216,7 @@ export default class MySQL2QueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    private async executeCreate(): (
-        Promise<CreateResult<Extract<T, EntityTarget>>>
-    ) {
+    private async executeCreate() {
         this.callBeforeCreateHook()
 
         const connection = this.getConnection()
@@ -264,9 +262,7 @@ export default class MySQL2QueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    private async executeUpdateOrCreate(): (
-        Promise<UpdateOrCreateResult<Extract<T, EntityTarget>>>
-    ) {
+    private async executeUpdateOrCreate() {
         const connection = this.getConnection()
         const [mySQL2RawData] = await connection.query(this.sqlBuilder.SQL())
 
@@ -354,9 +350,7 @@ export default class MySQL2QueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    private async callAfterFindHook(result: FindOneResult<T, MapTo>): (
-        Promise<void>
-    ) {
+    private async callAfterFindHook(result: FindOneResult<T, MapTo>) {
         if (result) await this.metadata.hooks?.callAfterFind(result)
     }
 
@@ -370,9 +364,7 @@ export default class MySQL2QueryExecutionHandler<
 
     // ------------------------------------------------------------------------
 
-    private async callAfterBulkFindHook(result: any[]): (
-        Promise<void>
-    ) {
+    private async callAfterBulkFindHook(result: any[]) {
         if (result) await this.metadata.hooks?.callAfterBulkFind(result)
     }
 

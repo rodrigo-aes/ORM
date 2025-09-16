@@ -6,12 +6,12 @@ import {
 
 // Types
 import type { EntityTarget } from "../../../types/General"
-import type { RelationOptions } from "./types"
+import type { BelongsToThroughOptions } from "./types"
 
 export default function BelongsToThrough(
     related: BelongsToThroughRelatedGetter,
     through: BelongsToThroughGetter,
-    options: RelationOptions
+    options: BelongsToThroughOptions
 ) {
     return function <Entity extends object>(
         target: Entity,
@@ -20,4 +20,10 @@ export default function BelongsToThrough(
         RelationsMetadata.findOrBuild(target.constructor as EntityTarget)
             .addBelongsToThrough({ name, related, through, ...options })
     }
+}
+
+export type {
+    BelongsToThroughOptions,
+    BelongsToThroughRelatedGetter,
+    BelongsToThroughGetter
 }

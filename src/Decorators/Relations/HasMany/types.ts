@@ -1,6 +1,8 @@
-import type { HasManyOptions } from "../../../Metadata"
+import type {
+    HasManyOptions as HasManyMetadataOptions
+} from "../../../Metadata"
 
-export type RelationOptions = string | Omit<HasManyOptions, (
+export type HasManyOptions = string | Omit<HasManyMetadataOptions, (
     'related' |
     'name'
 )>

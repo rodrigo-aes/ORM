@@ -239,9 +239,8 @@ export default class MySQL2RawDataHandler<
         method: 'raw' | 'entity' = 'raw'
     ): { [K: string]: MappedDataType<Target, typeof method> } {
         const relations: any = {}
-        const relationKeys = this.filterRelationsKeys(raw)
 
-        for (const key of relationKeys) {
+        for (const key of Array.from(this.filterRelationsKeys(raw))) {
             const toMerge = this.filterRelationsByKey(raw, key)
             if (toMerge.length === 0) continue
 

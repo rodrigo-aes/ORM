@@ -49,7 +49,6 @@ import RelationMetadata, {
 } from "./RelationMetadata"
 
 import type { RelationsMetadataJSON } from "./types"
-
 import type { EntityTarget } from "../../../types/General"
 
 export default class RelationsMetadata extends Array<RelationMetadata> {
@@ -184,8 +183,6 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
 
 export {
     RelationMetadata,
-    type RelationJSON,
-    type RelationsMetadataJSON,
     type OneRelationMetadataType,
     type ManyRelationMetadatatype,
     type RelationMetadataType,
@@ -231,5 +228,8 @@ export {
     type PolymorphicChildOptions,
     type PolymorphicChildRelatedGetter,
 
-    type RelatedEntitiesMap
+    type RelatedEntitiesMap,
+
+    type RelationJSON,
+    type RelationsMetadataJSON,
 }

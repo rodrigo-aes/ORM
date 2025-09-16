@@ -7,6 +7,8 @@ import type {
     PolymorphicEntityTarget
 } from "../../../types/General"
 
+import type { CollectionsMetadataJSON } from "./types"
+
 export default class CollectionsMetadata<
     T extends EntityTarget | PolymorphicEntityTarget = any,
     CollectionType extends typeof Collection<InstanceType<T>> = any
@@ -17,6 +19,12 @@ export default class CollectionsMetadata<
         super(...collections)
 
         this.register()
+    }
+
+    // Static Getters =========================================================
+    // Publics ----------------------------------------------------------------
+    public get [Symbol.species](): typeof Array {
+        return Array
     }
 
     // Instance Methods =======================================================
@@ -35,6 +43,15 @@ export default class CollectionsMetadata<
 
     public add(...collections: (typeof Collection)[]): void {
         this.push(...collections as CollectionType[])
+    }
+
+    // ------------------------------------------------------------------------
+
+    public toJSON(): CollectionsMetadataJSON {
+        return {
+            default: this.default,
+            collections: [...this as CollectionType[]] as (typeof Collection)[]
+        }
     }
 
     // Protecteds -------------------------------------------------------------
@@ -68,5 +85,7 @@ export default class CollectionsMetadata<
 }
 
 export {
-    CollectionsMetadataHandler
+    CollectionsMetadataHandler,
+
+    type CollectionsMetadataJSON
 }

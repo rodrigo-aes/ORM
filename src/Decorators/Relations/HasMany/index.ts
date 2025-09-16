@@ -2,11 +2,11 @@ import { RelationsMetadata } from "../../../Metadata"
 
 import type { EntityTarget } from "../../../types/General"
 import type { HasManyRelatedGetter } from "../../../Metadata"
-import type { RelationOptions } from "./types"
+import type { HasManyOptions } from "./types"
 
 export default function HasMany(
     related: HasManyRelatedGetter,
-    foreignKey: RelationOptions
+    foreignKey: HasManyOptions
 ) {
     return function <Entity extends object>(
         target: Entity,
@@ -17,4 +17,9 @@ export default function HasMany(
         RelationsMetadata.findOrBuild(target.constructor as EntityTarget)
             .addHasMany({ name, related, ...foreignKey })
     }
+}
+
+export type {
+    HasManyOptions,
+    HasManyRelatedGetter
 }

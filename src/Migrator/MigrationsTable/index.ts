@@ -48,16 +48,14 @@ export default class MigrationsTable {
 
     // ------------------------------------------------------------------------
 
-    public async insert(name: string, position?: number): (
-        Promise<MigrationProps>
-    ) {
+    public async insert(name: string, position?: number) {
         const [[{ order, name: _name, fileName }]] = await InsertMigration.call(
             this.connection,
             name,
             position
         )
 
-        return [order, _name, fileName]
+        return [order, _name, fileName] as MigrationProps
     }
 
     // ------------------------------------------------------------------------

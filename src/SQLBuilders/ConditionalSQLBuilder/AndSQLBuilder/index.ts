@@ -75,7 +75,7 @@ export default class AndSQLBuilder<T extends EntityTarget | PolymorphicEntityTar
         return Object.entries(this.propOptions)
             .map(([key, value]) => this.propertySQL(
                 key as keyof EntityAndQueryOptions<InstanceType<T>>,
-                value!
+                value as any
             ))
     }
 

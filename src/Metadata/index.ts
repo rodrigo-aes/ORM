@@ -1,29 +1,58 @@
 import ConnectionsMetadata from "./ConnectionsMetadata"
 
 import EntityMetadata, {
-    DataType,
+    // Columns
     ColumnsMetadata,
     ColumnMetadata,
+
+    type ColumnPattern,
+    type ForeignIdConfig,
+    type PolymorphicForeignIdConfig,
+    type PolymorphicTypeKeyRelateds,
+    type TextLength,
+    type IntegerLength,
+    type JSONColumnConfig,
+    type BitLength,
+    type BlobLength,
+    type ComputedType,
+
+    // Relations
     RelationMetadata,
     RelationsMetadata,
+
+    // Join Tables
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
+
+    // Hooks
     HooksMetadata,
+
+    // Scopes
     ScopesMetadata,
     ScopeMetadataHandler,
+
+    // Triggers
     TriggersMetadata,
+
+    // Computed Properties
+    ComputedPropertiesMetadata,
+    type ComputedPropertyFunction,
+
+    // Collections
     CollectionsMetadata,
     CollectionsMetadataHandler,
+
+    // Paginations
     PaginationsMetadata,
     PaginationMetadataHandler,
-    ComputedPropertiesMetadata,
 
     type JoinTableRelated,
 
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
 
+    // Relations
     type RelationMetadataType,
     type OneRelationMetadataType,
     type ManyRelationMetadatatype,
@@ -69,24 +98,27 @@ import EntityMetadata, {
     type PolymorphicChildOptions,
     type PolymorphicChildRelatedGetter,
 
-    type ForeignIdConfig,
-    type PolymorphicForeignIdConfig,
-    type PolymorphicTypeKeyRelateds,
-
+    // Scopes
     type Scope,
     type ScopeFunction,
 
-    type ColumnPattern,
-
+    // JSON Types
+    type EntityMetadataJSON,
     type DataTypeMetadataJSON,
-    type TextLength,
-    type IntegerLength,
-    type JSONColumnConfig,
-    type BitLength,
-    type BlobLength,
-    type ComputedType,
-    type ComputedPropertyFunction,
+    type ColumnsMetadataJSON,
+    type ColumnMetadataJSON,
+    type ForeignKeyReferencesJSON,
+    type RelationJSON,
+    type RelationsMetadataJSON,
+    type JoinTableMetadataJSON,
+    type HookMetadataJSON,
+    type HooksMetadataJSON,
+    type ScopesMetadataJSON,
+    type ComputedPropertiesJSON,
+    type CollectionsMetadataJSON,
 
+    // Data Type
+    DataType,
     CHAR,
     VARCHAR,
     TEXT,
@@ -212,7 +244,6 @@ export {
     type UnionEntitiesMap,
     type CombinedColumnOptions,
 
-    type DataTypeMetadataJSON,
     type TextLength,
     type IntegerLength,
     type JSONColumnConfig,
@@ -220,6 +251,20 @@ export {
     type BlobLength,
     type ComputedType,
     type ComputedPropertyFunction,
+
+    type EntityMetadataJSON,
+    type DataTypeMetadataJSON,
+    type ColumnsMetadataJSON,
+    type ColumnMetadataJSON,
+    type ForeignKeyReferencesJSON,
+    type RelationJSON,
+    type RelationsMetadataJSON,
+    type JoinTableMetadataJSON,
+    type HookMetadataJSON,
+    type HooksMetadataJSON,
+    type ScopesMetadataJSON,
+    type ComputedPropertiesJSON,
+    type CollectionsMetadataJSON,
 
     CHAR,
     VARCHAR,

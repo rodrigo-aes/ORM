@@ -272,9 +272,9 @@ export default abstract class RelationHandlerSQLBuilder<
             UpdateAttributes<InstanceType<Related>>
         )[]
     ): string[] {
-        return [...new Set<string>([
-            ...attributes.flatMap(att => Object.keys(att))
-        ])]
+        return Array.from(new Set<string>(
+            attributes.flatMap(att => Object.keys(att))
+        ))
     }
 
     // Privates ---------------------------------------------------------------

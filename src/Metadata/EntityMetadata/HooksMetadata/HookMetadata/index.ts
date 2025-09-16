@@ -21,6 +21,9 @@ import AfterBulkDeleteMetadata from "./AfterBulkDeleteMetadata"
 
 import UpdatedTimestampMetadata from "./UpdatedTimestampMetadata"
 
+// Types
+import type { HookMetadataJSON } from "./types"
+
 export default abstract class HookMetadata extends AbstractHookMetadata {
     public static BeforeSync = BeforeSyncMetadata
     public static AfterSync = AfterSyncMetadata
@@ -64,5 +67,7 @@ export {
     BeforeBulkDeleteMetadata,
     AfterBulkDeleteMetadata,
 
-    UpdatedTimestampMetadata
+    UpdatedTimestampMetadata,
+
+    type HookMetadataJSON
 }

@@ -1,6 +1,8 @@
-import type { BelongToOptions } from "../../../Metadata"
+import type {
+    BelongToOptions as BelongsToMetadataOptions
+} from "../../../Metadata"
 
-export type RelationOptions = Omit<BelongToOptions, (
+export type BelongToOptions = Omit<BelongsToMetadataOptions, (
     'name' |
     'related'
 )>

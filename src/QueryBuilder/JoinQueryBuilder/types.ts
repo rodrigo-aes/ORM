@@ -7,7 +7,7 @@ import type { EntityRelationsKeys } from "../../SQLBuilders"
 
 import type JoinQueryBuilder from "."
 import type SelectQueryBuilder from "../SelectQueryBuilder"
-import type WhereQueryBuilder from "../WhereQueryBuilder"
+import type ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 export type JoinQueryOptions<
     T extends EntityTarget | PolymorphicEntityTarget
@@ -23,6 +23,6 @@ export type JoinQueryClause<
 > = {
     required?: boolean
     select?: SelectQueryBuilder<T>,
-    on?: WhereQueryBuilder<T>,
+    on?: ConditionalQueryHandler<T>,
     relations?: JoinQueryOptions<T>
 }

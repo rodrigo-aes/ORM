@@ -3,11 +3,11 @@ import { RelationsMetadata } from "../../../../Metadata"
 // Types
 import type { EntityTarget } from "../../../../types/General"
 import type { PolymorphicParentRelatedGetter } from "../../../../Metadata"
-import type { RelationOptions } from "./types"
+import type { PolymorphicBelongsToOptions } from "./types"
 
 export default function PolymorphicBelongsTo(
     related: PolymorphicParentRelatedGetter,
-    options: RelationOptions
+    options: PolymorphicBelongsToOptions
 ) {
     return function <Entity extends object>(
         target: Entity,
@@ -16,4 +16,8 @@ export default function PolymorphicBelongsTo(
         RelationsMetadata.findOrBuild(target.constructor as EntityTarget)
             .addPolymorphicBelongsTo({ name, related, ...options })
     }
+}
+
+export type {
+    PolymorphicBelongsToOptions
 }

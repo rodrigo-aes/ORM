@@ -23,3 +23,7 @@ export default function ComputedProperty(fn: ComputedPropertyFunction) {
             .set(name, fn)
     }
 }
+
+export type {
+    ComputedPropertyFunction
+}

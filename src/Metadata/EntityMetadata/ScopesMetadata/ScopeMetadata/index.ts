@@ -84,11 +84,22 @@ export default class ScopeMetadata {
     public mergeGroupOptions<T extends GroupQueryOptions<any>>(options?: T): (
         T
     ) {
-        return [
-            ...new Set([
-                ...this.group ?? [],
-                ...options ?? []
-            ])
-        ] as T
+        return Array.from(
+            new Set([...this.group ?? [], ...options ?? []])
+        ) as T
+    }
+
+    // ------------------------------------------------------------------------
+
+    public toJSON(): FindQueryOptions<any> {
+        return {
+            select: this.select,
+            where: this.where,
+            relations: this.relations,
+            group: this.group,
+            order: this.order,
+            limit: this.limit,
+            offset: this.offset
+        }
     }
 }

@@ -509,9 +509,11 @@ export default abstract class BaseEntity {
         this: T & typeof BaseEntity,
         attributes: UpdateOrCreateAttibutes<InstanceType<T>>,
     ): Promise<InstanceType<T>> {
-        return this.getRepository().updateOrCreate(attributes as (
-            UpdateOrCreateAttibutes<InstanceType<T & typeof BaseEntity>>
-        ))
+        return this.getRepository().updateOrCreate(
+            attributes as unknown as (
+                UpdateOrCreateAttibutes<InstanceType<T & typeof BaseEntity>>
+            )
+        )
     }
 
     // ------------------------------------------------------------------------

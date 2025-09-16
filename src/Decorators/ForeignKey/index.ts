@@ -18,3 +18,8 @@ export default function ForeignKey(
             .defineForeignKey(name, { referenced, ...constrained })
     }
 }
+
+export type {
+    ForeignKeyReferencedGetter,
+    ForeignKeyConstraintOptions
+}

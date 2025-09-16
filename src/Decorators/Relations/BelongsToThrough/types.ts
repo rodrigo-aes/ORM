@@ -1,6 +1,8 @@
-import type { BelongsToThroughOptions } from "../../../Metadata"
+import type {
+    BelongsToThroughOptions as BelongsToThroughMetadataOptions
+} from "../../../Metadata"
 
-export type RelationOptions = Omit<BelongsToThroughOptions, (
+export type BelongsToThroughOptions = Omit<BelongsToThroughMetadataOptions, (
     'name' |
     'related' |
     'through'

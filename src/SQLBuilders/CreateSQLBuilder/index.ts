@@ -46,7 +46,7 @@ export default class CreateSQLBuilder<
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get columnsNames(): CreationAttibutesKey<InstanceType<T>>[] {
-        return [...(this._propertiesNames ?? this.getFields())]
+        return Array.from(this._propertiesNames ?? this.getFields())
     }
 
     // ------------------------------------------------------------------------

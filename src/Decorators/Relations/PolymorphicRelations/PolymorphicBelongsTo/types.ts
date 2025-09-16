@@ -1,4 +1,4 @@
-export type RelationOptions = {
+export type PolymorphicBelongsToOptions = {
     foreignKey: string
     typeKey?: string
 }

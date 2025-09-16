@@ -8,7 +8,7 @@ import {
 } from "../../SQLBuilders"
 
 // Query Builders
-import WhereQueryBuilder from "../WhereQueryBuilder"
+import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Handlers
 import { MySQL2QueryExecutionHandler } from "../../Handlers"
@@ -25,7 +25,7 @@ import type {
 import type { WhereQueryHandler } from "../types"
 
 export default class UpdateQueryBuilder<T extends EntityTarget> {
-    private _where?: WhereQueryBuilder<T>
+    private _where?: ConditionalQueryHandler<T>
     private attributes: UpdateAttributes<InstanceType<T>> = {}
 
     private _sqlBuilder?: UpdateSQLBuilder<T>
@@ -63,7 +63,7 @@ export default class UpdateQueryBuilder<T extends EntityTarget> {
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        if (!this._where) this._where = new WhereQueryBuilder(
+        if (!this._where) this._where = new ConditionalQueryHandler(
             this.target, this.alias
         )
 
@@ -87,7 +87,7 @@ export default class UpdateQueryBuilder<T extends EntityTarget> {
             ? WhereQueryHandler<Source>
             : never
     ): this {
-        (this._where as WhereQueryBuilder<T>).whereExists(
+        (this._where as ConditionalQueryHandler<T>).whereExists(
             exists as EntityTarget,
             conditional as WhereQueryHandler<EntityTarget>
         )

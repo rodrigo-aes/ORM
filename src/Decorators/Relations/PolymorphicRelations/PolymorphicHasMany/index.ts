@@ -3,11 +3,11 @@ import { RelationsMetadata } from "../../../../Metadata"
 // Types
 import type { EntityTarget } from "../../../../types/General"
 import type { PolymorphicChildRelatedGetter } from "../../../../Metadata"
-import type { RelationOptions } from "./types"
+import type { PolymorphicHasManyOptions } from "./types"
 
 export default function PolymorphicHasMany(
     related: PolymorphicChildRelatedGetter,
-    options: RelationOptions
+    options: PolymorphicHasManyOptions
 ) {
     return function <Entity extends object>(
         target: Entity,
@@ -16,4 +16,8 @@ export default function PolymorphicHasMany(
         RelationsMetadata.findOrBuild(target.constructor as EntityTarget)
             .addPolymorphicHasMany({ name, related, ...options })
     }
+}
+
+export type {
+    PolymorphicHasManyOptions
 }

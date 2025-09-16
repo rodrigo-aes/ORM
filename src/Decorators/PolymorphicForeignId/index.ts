@@ -20,3 +20,8 @@ export default function PolymorphicForeignId(
             })
     }
 }
+
+export type {
+    PolymorphicForeignIdRelatedGetter,
+    PolymorphicForeignIdOptions
+}

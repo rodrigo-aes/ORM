@@ -115,9 +115,7 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
-    public async count(options: CountQueryOption<InstanceType<T>>): (
-        Promise<number>
-    ) {
+    public async count(options: CountQueryOption<InstanceType<T>>) {
         return (
             await new MySQL2QueryExecutionHandler(
                 this.target,

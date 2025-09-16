@@ -20,3 +20,9 @@ export type HookType = (
 )
 
 export type HookFunction = (...args: any[]) => void | Promise<void>
+
+export type HookMetadataJSON = {
+    type: HookType
+    method: string
+    hookFn: HookFunction
+}

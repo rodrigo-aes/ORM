@@ -17,3 +17,8 @@ export default function ForeignId(
             })
     }
 }
+
+export type {
+    ForeignIdRelatedGetter,
+    ForeignIdOptions
+}

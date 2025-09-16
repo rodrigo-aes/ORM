@@ -2,6 +2,9 @@ import 'reflect-metadata'
 
 import type MySQLConnection from '../../Connection'
 
+// Handlers
+import MetadataHandler from '../MetadataHandler'
+
 // Objects
 // Data Type
 import DataType, {
@@ -60,7 +63,6 @@ import RelationsMetadata, {
     type RelationMetadataType,
     type OneRelationMetadataType,
     type ManyRelationMetadatatype,
-    type RelationsMetadataJSON,
 
     HasOneMetadata,
     type HasOneOptions,
@@ -102,6 +104,9 @@ import RelationsMetadata, {
 
     type PolymorphicChildOptions,
     type PolymorphicChildRelatedGetter,
+
+    type RelationJSON,
+    type RelationsMetadataJSON,
 } from './RelationsMetadata'
 
 // Join Table Metadata
@@ -111,12 +116,16 @@ import JoinTableMetadata, {
 
     type JoinTableRelated,
     type JoinTableRelatedsGetter,
+    type JoinTableMetadataJSON
 } from './JoinTableMetadata'
 
 import Repository from '../../Repository'
 
 // Hooks
-import HooksMetadata from './HooksMetadata'
+import HooksMetadata, {
+    type HookMetadataJSON,
+    type HooksMetadataJSON
+} from './HooksMetadata'
 
 // Scopes
 import ScopesMetadata, {
@@ -124,17 +133,20 @@ import ScopesMetadata, {
     ScopeMetadataHandler,
 
     type Scope,
-    type ScopeFunction
+    type ScopeFunction,
+    type ScopesMetadataJSON
 } from './ScopesMetadata'
 
 import ComputedPropertiesMetadata, {
-    type ComputedPropertyFunction
+    type ComputedPropertyFunction,
+    type ComputedPropertiesJSON
 } from './ComputedPropertiesMetadata'
 
 import TriggersMetadata from './TriggersMetadata'
 
 import CollectionsMetadata, {
-    CollectionsMetadataHandler
+    CollectionsMetadataHandler,
+    type CollectionsMetadataJSON
 } from './CollectionsMetadata'
 
 import PaginationsMetadata, {
@@ -151,19 +163,32 @@ export default class EntityMetadata {
     public connection?: MySQLConnection
 
     public tableName!: string
+
     public columns: ColumnsMetadata = ColumnsMetadata.findOrBuild(this.target)
+
     public relations?: RelationsMetadata = RelationsMetadata.find(this.target)
+
     public joinTables?: JoinTableMetadata[]
-    public hooks?: HooksMetadata = HooksMetadata.find(this.target)
-    public scopes?: ScopesMetadata = ScopesMetadata.find(this.target)
+
     public repository!: typeof Repository<any>
+
+    public hooks?: HooksMetadata = HooksMetadata.find(this.target)
+
+    public scopes?: ScopesMetadata = ScopesMetadata.find(this.target)
+
     public computedProperties?: ComputedPropertiesMetadata = (
         ComputedPropertiesMetadata.find(this.target)
     )
+
     public triggers: TriggersMetadata = TriggersMetadata.findOrBuild(
         this.target
     )
+
     public collections?: CollectionsMetadata = CollectionsMetadata.find(
+        this.target
+    )
+
+    public paginations?: PaginationsMetadata = PaginationsMetadata.find(
         this.target
     )
 
@@ -209,6 +234,13 @@ export default class EntityMetadata {
     // Publics ----------------------------------------------------------------
     public defineConnection(connection: MySQLConnection) {
         this.connection = connection
+    }
+
+    // ------------------------------------------------------------------------
+
+    public getConnection(): MySQLConnection {
+        return Reflect.getOwnMetadata('temp-connection', this.target)
+            ?? this.connection
     }
 
     // ------------------------------------------------------------------------
@@ -310,16 +342,21 @@ export default class EntityMetadata {
     private buildJSON<T extends EntityTarget = any>(): (
         EntityMetadataJSON | undefined
     ) {
-        return EntityToJSONProcessMetadata.shouldAdd(this.name)
-            ? {
-                target: this.target as T,
-                name: this.name,
-                tableName: this.tableName,
-                columns: this.columns.toJSON(),
-                relations: this.relations?.toJSON(),
-                joinTables: this.joinTables?.map(table => table.toJSON())
-            }
-            : undefined
+        if (EntityToJSONProcessMetadata.shouldAdd(this.name)) return {
+            target: this.target as T,
+            name: this.name,
+            tableName: this.tableName,
+            columns: this.columns.toJSON(),
+            relations: this.relations?.toJSON(),
+            joinTables: this.joinTables?.map(table => table.toJSON()),
+            repository: this.repository,
+            hooks: this.hooks?.toJSON(),
+            scopes: this.scopes?.toJSON(),
+            computedProperties: this.computedProperties?.toJSON(),
+            triggers: [...this.triggers ?? []],
+            collections: this.collections?.toJSON(),
+            paginations: this.paginations?.toJSON(),
+        }
     }
 
     // Static Methods =========================================================
@@ -357,22 +394,50 @@ export default class EntityMetadata {
 }
 
 export {
-    DataType,
+    // Columns
     ColumnsMetadata,
     ColumnMetadata,
+
+    type ColumnPattern,
+    type ForeignIdConfig,
+    type PolymorphicForeignIdConfig,
+    type PolymorphicTypeKeyRelateds,
+    type TextLength,
+    type IntegerLength,
+    type JSONColumnConfig,
+    type BitLength,
+    type BlobLength,
+    type ComputedType,
+
+    // Relations
     RelationMetadata,
     RelationsMetadata,
+
+    // Join Tables
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
+
+    // Hooks
     HooksMetadata,
+
+    // Scopes
     ScopesMetadata,
     ScopeMetadata,
     ScopeMetadataHandler,
+
+    // Triggers
     TriggersMetadata,
+
+    // Computed Properties
     ComputedPropertiesMetadata,
+    type ComputedPropertyFunction,
+
+    // Collections
     CollectionsMetadata,
     CollectionsMetadataHandler,
+
+    // Paginations
     PaginationsMetadata,
     PaginationMetadataHandler,
 
@@ -381,10 +446,10 @@ export {
     type ForeignKeyReferencedGetter,
     type ForeignKeyActionListener,
 
+    // Relations
     type RelationMetadataType,
     type OneRelationMetadataType,
     type ManyRelationMetadatatype,
-    type RelationsMetadataJSON,
 
     HasOneMetadata,
     type HasOneOptions,
@@ -427,27 +492,27 @@ export {
     type PolymorphicChildOptions,
     type PolymorphicChildRelatedGetter,
 
-    type ForeignIdConfig,
-    type PolymorphicForeignIdConfig,
-    type PolymorphicTypeKeyRelateds,
-
+    // Scopes
     type Scope,
     type ScopeFunction,
 
-    type ColumnPattern,
+    // JSON Types
+    type EntityMetadataJSON,
+    type DataTypeMetadataJSON,
     type ColumnsMetadataJSON,
     type ColumnMetadataJSON,
     type ForeignKeyReferencesJSON,
+    type RelationJSON,
+    type RelationsMetadataJSON,
+    type JoinTableMetadataJSON,
+    type HookMetadataJSON,
+    type HooksMetadataJSON,
+    type ScopesMetadataJSON,
+    type ComputedPropertiesJSON,
+    type CollectionsMetadataJSON,
 
-    type DataTypeMetadataJSON,
-    type TextLength,
-    type IntegerLength,
-    type JSONColumnConfig,
-    type BitLength,
-    type BlobLength,
-    type ComputedType,
-    type ComputedPropertyFunction,
-
+    // Data Type
+    DataType,
     CHAR,
     VARCHAR,
     TEXT,

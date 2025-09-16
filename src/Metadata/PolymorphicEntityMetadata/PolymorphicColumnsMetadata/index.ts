@@ -46,10 +46,16 @@ export default class PolymorphicColumnsMetadata extends Array<
         )
     }
 
+    // Static Getters =========================================================
+    // Publics ----------------------------------------------------------------
+    public static get [Symbol.species](): typeof Array {
+        return Array
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): ColumnsMetadataJSON {
-        return [...this].map(column => column.toJSON())
+        return this.map(column => column.toJSON())
     }
 
     // ------------------------------------------------------------------------
@@ -83,7 +89,9 @@ export default class PolymorphicColumnsMetadata extends Array<
     // ------------------------------------------------------------------------
 
     private buildEntityTypeColumn(): void {
-        const entityTypes = new Set(this.sources.map(({ target }) => target))
+        const entityTypes = Array.from(
+            new Set(this.sources.map(({ target }) => target))
+        )
 
         this.push(PolymorphicColumnMetadata.buildEntityTypeColumn(
             this.target,

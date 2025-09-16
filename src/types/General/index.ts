@@ -1,11 +1,18 @@
 import type BaseEntity from "../../BaseEntity"
 import type BasePolymorphicEntity from "../../BasePolymorphicEntity"
+
+import type {
+    EntityMetadata,
+    PolymorphicEntityMetadata
+} from "../../Metadata"
+
 import type { Collection } from "../../BaseEntity"
 
 export type EntityTarget = new (...args: any[]) => BaseEntity
 export type PolymorphicEntityTarget = (
     new (...args: any[]) => BasePolymorphicEntity<any>
 )
+
 export type CollectionTarget = new (...args: any[]) => Collection<any>
 
 export type AsEntityTarget<T> = Extract<T, EntityTarget>
@@ -32,3 +39,12 @@ type InstancesOf<T extends (EntityTarget | PolymorphicEntityTarget)[]> = {
 }
 
 export type Primitive = string | number | boolean | Date | null
+
+export type Target = EntityTarget | PolymorphicEntityTarget
+export type TargetMetadata<
+    T extends EntityTarget | PolymorphicEntityTarget
+> = T extends EntityTarget
+    ? EntityMetadata
+    : T extends PolymorphicEntityTarget
+    ? PolymorphicEntityMetadata
+    : never

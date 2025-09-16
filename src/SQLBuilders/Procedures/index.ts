@@ -1,3 +1,4 @@
+import Procedure from "./Procedure"
 import ProceduresHandler from "./ProceduresHandler"
 
 import UpdateOrCreate, {
@@ -16,6 +17,7 @@ import {
 } from "./MigrationProcedures"
 
 export {
+    Procedure,
     ProceduresHandler,
     UpdateOrCreate,
     SyncManyToMany,
