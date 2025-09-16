@@ -1,38 +1,44 @@
 import { ComputedPropertiesMetadata } from "../../../Metadata"
 
 // Types
-import type { CollectionTarget } from "../../../types/General"
-import type BaseEntity from "../.."
-import type BasePolymorphicEntity from "../../../BasePolymorphicEntity"
+import type { CollectionTarget, Entity } from "../../../types/General"
 import type { EntityProperties, UpdateAttributes } from "../../../SQLBuilders"
 
-export default class Collection<
-    Entity extends BaseEntity | BasePolymorphicEntity<any>
-> extends Array<Entity> {
+export default class Collection<T extends Entity> extends Array<T> {
     public static alias: string = this.name
 
-    protected hidden: string[] = []
-
-    constructor(...entities: Entity[]) {
+    constructor(...entities: T[]) {
         super(...entities)
-
         this.assignComputedProperties()
     }
 
-    // Instance Methods =======================================================
-    // Publics ----------------------------------------------------------------
-    public getComputedPropertiesMetadata(): (
-        ComputedPropertiesMetadata | undefined
-    ) {
-        return ComputedPropertiesMetadata.find(
-            this.constructor as CollectionTarget
-        )
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    /**
+     * An array of properties keys that must be hidden in JSON
+     */
+    protected get hidden(): string[] {
+        return []
     }
 
     // ------------------------------------------------------------------------
 
-    public toJSON(): (
-        ({ [K in keyof this]: any } & { data: Entity[] }) | Entity[]
+    /**
+     * An array of properties keys that must be included in JSON
+     */
+    protected get include(): string[] {
+        return []
+    }
+
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    /**
+     * Make as JSON object of collection and entities properties
+     * @returns - A object with included properties and without hidden
+     * properties
+     */
+    public toJSON<This extends Collection<Entity>>(this: This): (
+        { [K: string]: any, data: T[] } | T[]
     ) {
         return this.hasComputedProperties()
             ? this.hide({
@@ -45,9 +51,12 @@ export default class Collection<
 
     // ------------------------------------------------------------------------
 
-    public hide(json?: any): (
-        { [K in keyof this]: any } & { data: Entity[] } | Entity[]
-    ) {
+    /**
+    * Hidde collection and entity hidden properties
+    * @param json - Optional data to make hidden
+    * @returns A object without hidden properties
+    */
+    public hide(json?: any) {
         if (!json) json = this.toJSON()
         for (const key of this.hidden) delete json[key as keyof typeof json]
 
@@ -56,13 +65,21 @@ export default class Collection<
 
     // ------------------------------------------------------------------------
 
-    public fill(data: Partial<EntityProperties<Entity>>): this {
+    /**
+     * Fill entities properties with a data object
+     * @returns {this} - Same entity instance
+     */
+    public fill(data: Partial<EntityProperties<T>>): this {
         for (const entity of this) (entity as any).fill(data)
         return this
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update or create a register of each entity of collection in database
+     * @returns {this} - Same collection instance
+     */
     public async save(): Promise<this> {
         for (const entity of this) await (entity as any).save()
         return this
@@ -70,10 +87,15 @@ export default class Collection<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update the register of each entity of collection in database
+     * @param {UpdateAttributes<this>} attributes -  Attributes data to update
+     * @returns {this} - Same collection instance
+     */
     public async update(
-        attributes: UpdateAttributes<Entity>,
-        filter?: (value: Entity, index: number, array: Entity[]) => boolean
-    ): Promise<Entity[]> {
+        attributes: UpdateAttributes<T>,
+        filter?: (value: T, index: number, array: T[]) => boolean
+    ): Promise<T[]> {
         const entities = filter ? this.filter(filter) : [...this]
 
         for (const entity of entities) await (entity as any).update(
@@ -85,30 +107,49 @@ export default class Collection<
 
     // ------------------------------------------------------------------------
 
-    public async delete(
-        filter: (value: Entity, index: number, array: Entity[]) => boolean
-    ): Promise<Entity[]> {
-        const entities = filter ? this.filter(filter) : [...this]
+    /**
+     * Delete the register of each entoity instance matched by filter fn
+     */
+    public async delete(filter: (value: T, index: number, array: T[]) => (
+        boolean
+    )): Promise<T[]> {
+        const entities = filter ? this.filter(filter) : this
 
-        for (const entity of entities) await (entity as any).delete()
-        for (const entity of entities) this.splice(this.indexOf(entity), 1)
+        for (const entity of entities) {
+            await (entity as any).delete()
+            this.splice(this.indexOf(entity), 1)
+        }
 
         return entities
     }
 
     // Protecteds -------------------------------------------------------------
+    /** @internal */
+    protected getComputedPropertiesMetadata(): (
+        ComputedPropertiesMetadata | undefined
+    ) {
+        return ComputedPropertiesMetadata.find(
+            this.constructor as CollectionTarget
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    /** @internal */
     protected assignComputedProperties(): void {
         this.getComputedPropertiesMetadata()?.assign(this)
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected hasComputedProperties(): boolean {
         return !!this.getComputedPropertiesMetadata()
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected computedPropertiesKeys(): string[] {
         return Array
             .from(this.getComputedPropertiesMetadata()?.keys() ?? []) as (
@@ -118,18 +159,11 @@ export default class Collection<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected computedPropertiesJSON(): any {
         return Object.fromEntries(
             Object.entries(this)
                 .filter(([key]) => this.computedPropertiesKeys().includes(key))
         )
-    }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static computedPropertiesMetadata(): (
-        ComputedPropertiesMetadata | undefined
-    ) {
-        return ComputedPropertiesMetadata.find(this)
     }
 }

@@ -7,8 +7,8 @@ import { EntityMetadata } from "../../Metadata";
 export default class DatabaseSyncronizer extends DatabaseSchema<
     TableSyncronizer
 > {
-    protected override previous?: DatabaseSyncronizer;
-    protected override triggers!: TriggersSyncronizer;
+    declare protected previous?: DatabaseSyncronizer;
+    declare protected triggers: TriggersSyncronizer;
 
     // Static Getters =========================================================
     // Publics ----------------------------------------------------------------

@@ -1,8 +1,12 @@
 {
-  "name": "orm",
+  "name": "poly-orm",
   "version": "0.0.0",
   "description": "ORM",
-  "main": "index.js",
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "test": "tsx ./src/TestTools/index.ts"
   },
@@ -13,12 +17,12 @@
   "license": "ISC",
   "dependencies": {
     "chalk": "^5.4.1",
-    "mongodb": "^6.16.0",
     "mysql2": "^3.14.1",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/mongodb": "^4.0.6",
-    "@types/node": "^22.14.1"
+    "@types/node": "^22.14.1",
+    "esbuild": "^0.25.9"
   }
 }

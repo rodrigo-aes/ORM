@@ -1,13 +1,10 @@
 import Collection from "../Collection"
 
 // Types
-import type BaseEntity from "../.."
-import type BasePolymorphicEntity from "../../../BasePolymorphicEntity"
-import type { PaginationInitMap } from "./types"
+import type { Entity } from "../../../types/General"
+import type { PaginationInitMap, PaginationJSON } from "./types"
 
-export default class Pagination<
-    Entity extends BaseEntity | BasePolymorphicEntity<any>
-> extends Collection<Entity> {
+export default class Pagination<T extends Entity> extends Collection<T> {
     public page: number = 1
     public perPage: number = 26
     public total: number = 0
@@ -15,13 +12,36 @@ export default class Pagination<
     public prevPage: number | null = null
     public nextPage: number | null = null
 
-    constructor(...entities: Entity[]) {
+    constructor(...entities: T[]) {
         super(...entities)
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public assign(pagination: PaginationInitMap): this {
+    /**
+     * Make as JSON object of pagination and entities properties
+     * @returns - A object with included properties and without hidden
+     * properties
+     */
+    public override toJSON(): PaginationJSON<T> {
+        const json = super.toJSON()
+        const isArray = Array.isArray(json)
+
+        return this.hide({
+            page: this.page,
+            perPage: this.perPage,
+            total: this.total,
+            pages: this.pages,
+            prevPage: this.prevPage,
+            nextPage: this.nextPage,
+            ...isArray ? undefined : json,
+            data: isArray ? json : json.data
+        }) as PaginationJSON<T>
+    }
+
+    // Protecteds -------------------------------------------------------------
+    /** @internal */
+    protected assign(pagination: PaginationInitMap): this {
         Object.assign(this, pagination)
 
         this.pages = Math.ceil(this.total / this.perPage)
@@ -31,33 +51,18 @@ export default class Pagination<
         return this
     }
 
-    // ------------------------------------------------------------------------
-
-    public override toJSON(): (
-        Entity[] | ({ [K in keyof this]: any } & { data: Entity[] })
-    ) {
-        return this.hide({
-            page: this.page,
-            perPage: this.perPage,
-            total: this.total,
-            pages: this.pages,
-            prevPage: this.prevPage,
-            nextPage: this.nextPage,
-
-            ...this.computedPropertiesJSON(),
-
-            data: [...this].map((entity: any) => entity.toJSON())
-        })
-    }
-
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static build<
-        Entity extends BaseEntity | BasePolymorphicEntity<any>
-    >(
+    /**
+     * Build a instance of pagination with data
+     * @param pagination - Pagination properties
+     * @param data - Entities data
+     * @returns - A pagination instace with data
+     */
+    public static build<T extends Entity>(
         pagination: PaginationInitMap,
-        data: Entity[] = []
-    ): Pagination<Entity> {
+        data: T[] = []
+    ): Pagination<T> {
         return new this(...data).assign(pagination)
     }
 }

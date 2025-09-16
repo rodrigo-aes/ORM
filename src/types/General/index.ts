@@ -8,17 +8,27 @@ import type {
 
 import type { Collection } from "../../BaseEntity"
 
+export type Entity = BaseEntity | BasePolymorphicEntity<any>
+
+// ----------------------------------------------------------------------------
+
 export type EntityTarget = new (...args: any[]) => BaseEntity
+
 export type PolymorphicEntityTarget = (
     new (...args: any[]) => BasePolymorphicEntity<any>
 )
 
+export type Target = EntityTarget | PolymorphicEntityTarget
+
 export type CollectionTarget = new (...args: any[]) => Collection<any>
+
+// ----------------------------------------------------------------------------
 
 export type AsEntityTarget<T> = Extract<T, EntityTarget>
 export type AsPolymorphicEntityTarget<T> = Extract<T, PolymorphicEntityTarget>
-
 export type Constructor<T extends object> = new (...args: any[]) => T
+
+// ----------------------------------------------------------------------------
 
 export type InternalPolymorphicEntityTarget<T extends EntityTarget[]> = (
     new (...args: any[]) => BasePolymorphicEntity<InstancesOf<T>>
@@ -34,13 +44,18 @@ export type LocalOrInternalPolymorphicEntityTarget<
         : never
     )
 
+// ----------------------------------------------------------------------------
+
 type InstancesOf<T extends (EntityTarget | PolymorphicEntityTarget)[]> = {
     [K in keyof T]: InstanceType<T[K]>
 }
 
+// ----------------------------------------------------------------------------
+
 export type Primitive = string | number | boolean | Date | null
 
-export type Target = EntityTarget | PolymorphicEntityTarget
+// ----------------------------------------------------------------------------
+
 export type TargetMetadata<
     T extends EntityTarget | PolymorphicEntityTarget
 > = T extends EntityTarget

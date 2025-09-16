@@ -16,7 +16,7 @@ import type { EntityMetadata } from "../../Metadata"
 export default class EntityQueryBuilder<
     T extends EntityTarget
 > extends QueryBuilder<T> {
-    protected override metadata!: EntityMetadata
+    declare protected metadata: EntityMetadata
 
     constructor(public target: T, alias?: string) {
         super(target, alias)

@@ -174,12 +174,10 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    public toJSON(): PolymorphicEntityMetadataJSON | undefined {
+    public toJSON(): PolymorphicEntityMetadataJSON {
         return EntityToJSONProcessMetadata.initialized
-            ? this.buildJSON()
-            : EntityToJSONProcessMetadata.apply(
-                () => this.buildJSON()
-            )
+            ? this.buildJSON()!
+            : EntityToJSONProcessMetadata.apply(() => this.buildJSON())
     }
 
     // ------------------------------------------------------------------------

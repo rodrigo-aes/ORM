@@ -17,7 +17,21 @@ import CLI, {
 
 // Metadata
 import {
-    DataType
+    DataType,
+
+    type EntityMetadataJSON as EntityMetadata,
+    type DataTypeMetadataJSON as DataTypeMetadata,
+    type ColumnsMetadataJSON as ColumnsMetadata,
+    type ColumnMetadataJSON as ColumnMetadata,
+    type ForeignKeyReferencesJSON as ForeignKeyReferences,
+    type RelationJSON as Relation,
+    type RelationsMetadataJSON as RelationsMetadata,
+    type JoinTableMetadataJSON as JoinTableMetadata,
+    type HookMetadataJSON as HookMetadata,
+    type HooksMetadataJSON as HooksMetadata,
+    type ScopesMetadataJSON as ScopesMetadata,
+    type ComputedPropertiesJSON as ComputedProperties,
+    type CollectionsMetadataJSON as CollectionsMetadata,
 } from './Metadata'
 
 // Bases
@@ -339,6 +353,20 @@ export {
     type PolymorphicEntityTarget,
     type Target,
     type CollectionTarget,
+
+    type EntityMetadata,
+    type DataTypeMetadata,
+    type ColumnsMetadata,
+    type ColumnMetadata,
+    type ForeignKeyReferences,
+    type Relation,
+    type RelationsMetadata,
+    type JoinTableMetadata,
+    type HookMetadata,
+    type HooksMetadata,
+    type ScopesMetadata,
+    type ComputedProperties,
+    type CollectionsMetadata,
 
     type DatabaseSchema,
     type TableSchema,

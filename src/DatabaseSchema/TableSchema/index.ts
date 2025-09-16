@@ -385,6 +385,10 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * 
+     * @internal
+     */
     public compare(schema?: TableSchema): Omit<ActionType, 'DROP'> {
         switch (true) {
             case !schema: return 'CREATE'

@@ -73,10 +73,12 @@ import type {
     ConditionalQueryOptions,
 } from "../SQLBuilders"
 
+/**
+ * All Entities needs to extends BaseEntity class
+ * @example
+ * class User extends BaseEntity {}
+ */
 export default abstract class BaseEntity {
-    protected hidden: string[] = []
-    protected include: string[] = []
-
     constructor(properties?: any) {
         if (properties) Object.assign(this, properties)
         this.getTrueMetadata().computedProperties?.assign(this)
@@ -84,14 +86,38 @@ export default abstract class BaseEntity {
         ColumnsSnapshots.set(this, this.toJSON())
     }
 
-    // Instance Methods =======================================================
-    // Publics ----------------------------------------------------------------
-    public getMetadata<T extends BaseEntity>(this: T) {
-        return this.getTrueMetadata().toJSON<Constructor<T>>()
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    /**
+     * An array of properties keys that must be hidden in JSON
+     */
+    protected get hidden(): string[] {
+        return []
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * An array of properties keys that must be included in JSON
+     */
+    protected get include(): string[] {
+        return []
+    }
+
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    /**
+     * Get entity metadata
+     */
+    public getMetadata<T extends BaseEntity>(this: T) {
+        return this.getTrueMetadata().toJSON<Constructor<T>>()!
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Get a instance of entity repository
+     */
     public getRepository<
         T extends Repository<Constructor<this>> = Repository<Constructor<this>>
     >(): T {
@@ -100,6 +126,9 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Get a instance of query builder
+     */
     public getQueryBuilder<T extends BaseEntity>(this: T): (
         EntityQueryBuilder<Constructor<T>>
     ) {
@@ -108,6 +137,11 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Make as JSON object of entity properties
+     * @returns - A object with included properties and without hidden
+     * properties
+     */
     public toJSON<T extends BaseEntity>(this: T): EntityProperties<T> {
         return this.hide(Object.fromEntries([
             ...this.getTrueMetadata().columns.map(({ name }) => [
@@ -120,6 +154,11 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Hidde entity hidden properties
+     * @param json - Optional data to make hidden
+     * @returns A object without hidden properties
+     */
     public hide<T extends BaseEntity>(this: T, json?: EntityProperties<T>): (
         EntityProperties<T>
     ) {
@@ -131,6 +170,10 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Fill entity properties with a data object
+     * @returns {this} - Same entity instance
+     */
     public fill<T extends BaseEntity>(
         this: T,
         data: Partial<EntityProperties<T>>
@@ -141,6 +184,10 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update or create a register of the current instance in database
+     * @returns {this} - Same entity instance
+     */
     public async save(): Promise<this> {
         this.fill(await this.getRepository().updateOrCreate(this, 'json'))
         return this
@@ -148,6 +195,11 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update the register of the current instance in database
+     * @param {UpdateAttributes<this>} attributes -  Attributes data to update
+     * @returns {this} - Same entity instance
+     */
     public async update(attributes: UpdateAttributes<this>): Promise<this> {
         this.fill(attributes)
         await this.getRepository().update(this, this)
@@ -157,11 +209,21 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Delete the register of the current instance in database
+     */
     public async delete<T extends BaseEntity>(this: T): Promise<void> {
         await this.getRepository().delete(this)
     }
 
     // Protecteds -------------------------------------------------------------
+    /**
+     * Create a instance of HasOneHandler class for current instance and
+     * related
+     * @param name - Relation name
+     * @param related - Related entity
+     * @returns {HasOne<T, Related>} - HasOneHandler instance
+     */
     protected hasOne<
         T extends BaseEntity,
         Related extends EntityTarget
@@ -178,6 +240,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a instance of HasManyHandler class for current instance and
+     * related
+     * @param name - Relation name
+     * @param related - Related entity
+     * @returns {HasMany<T, Related>} - HasManyHandler instance
+     */
     protected hasMany<
         T extends BaseEntity,
         Related extends EntityTarget
@@ -194,6 +263,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a instance of BelongsToHandler class for current instance and
+     * related
+     * @param name - Relation name
+     * @param related - Related entity
+     * @returns {BelongsTo<T, Related>} - BelongsToHandler instance
+     */
     protected belongsTo<
         T extends BaseEntity,
         Related extends EntityTarget
@@ -210,6 +286,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a instance of HasOneThroughHandler class for current instance and
+     * related (Note: hasOneThrough method doesn't need through entity)
+     * @param name - Relation name
+     * @param related - Related entity
+     * @returns {HasOneThrough<T, Related>} - HasOneThroughHandler instance
+     */
     protected hasOneThrough<
         T extends BaseEntity,
         Related extends EntityTarget
@@ -226,6 +309,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a instance of HasManyThroughHandler class for current instance
+     * and related (Note: hasManyThrough method doesn't need through entity)
+     * @param name - Relation name
+     * @param related - Related entity
+     * @returns {HasManyThrough<T, Related>} - HasManyThroughHandler instance
+     */
     protected hasManyThrough<
         T extends BaseEntity,
         Related extends EntityTarget
@@ -242,6 +332,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a instance of BelongsToManyHandler class for current instance and
+     * related
+     * @param name - Relation name
+     * @param related - Related entity
+     * @returns {BelongsToMany<T, Related>} - BelongsToManyHandler instance
+     */
     protected belongsToMany<
         T extends BaseEntity,
         Related extends EntityTarget
@@ -258,6 +355,14 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a instance of PolymporhicHasOneHandler class for current instance
+     * and related
+     * @param name - Relation name
+     * @param related - Related entity
+     * @returns {PolymporhicHasOne<T, Related>} - PolymporhicHasOneHandler
+     * instance
+     */
     protected polymorphicHasOne<
         T extends BaseEntity,
         Related extends EntityTarget
@@ -274,6 +379,14 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a instance of PolymporhicManyOneHandler class for current
+     * instance and related
+     * @param name - Relation name
+     * @param related - Related entity
+     * @returns {PolymporhicManyOne<T, Related>} - PolymporhicManyOneHandler
+     * instance
+     */
     protected polymorphicHasMany<
         T extends BaseEntity,
         Related extends EntityTarget
@@ -290,6 +403,14 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a instance of PolymporhicBelongsToHandler class for current
+     * instance and relateds
+     * @param name - Relation name
+     * @param related - Related entities or a PolymorphicEntity
+     * @returns {PolymporhicBelongsTo<T, Related>} - 
+     * PolymporhicBelongsToHandler instance
+     */
     protected polymorphicBelongsTo<
         T extends BaseEntity,
         Related extends PolymorphicEntityTarget | EntityTarget[]
@@ -297,9 +418,14 @@ export default abstract class BaseEntity {
         this: T,
         name: string,
         related: Related
-    ): PolymorphicBelongsTo<T, LocalOrInternalPolymorphicEntityTarget<Related>> {
+    ): PolymorphicBelongsTo<
+        T,
+        LocalOrInternalPolymorphicEntityTarget<Related>
+    > {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw new Error
+        if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw (
+            new Error
+        )
 
         return new PolymorphicBelongsTo(
             metadata,
@@ -313,6 +439,7 @@ export default abstract class BaseEntity {
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private getTrueMetadata(): EntityMetadata {
         return MetadataHandler.loadMetadata(
             this.constructor as EntityTarget
@@ -321,6 +448,7 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private getRelationMetadata(name: string): (
         RelationMetadataType
     ) {
@@ -335,6 +463,7 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private getIncludedProperties<T extends BaseEntity>(this: T): (
         [keyof T, any][]
     ) {
@@ -349,20 +478,17 @@ export default abstract class BaseEntity {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Get entity metadata
+     */
     public static getMetadata<T extends EntityTarget>(this: T) {
         return (this as T & typeof BaseEntity).getTrueMetadata().toJSON<T>()
     }
 
     // ------------------------------------------------------------------------
-
-    public static getQueryBuilder<T extends EntityTarget>(this: T): (
-        EntityQueryBuilder<T>
-    ) {
-        return new EntityQueryBuilder(this)
-    }
-
-    // ------------------------------------------------------------------------
-
+    /**
+     * Get a instance of entity repository
+     */
     public static getRepository<
         T extends Repository<Target> = Repository<typeof this>,
         Target extends (EntityTarget & typeof BaseEntity) = any
@@ -371,7 +497,23 @@ export default abstract class BaseEntity {
     }
 
     // ------------------------------------------------------------------------
+    /**
+     * Get a instance of entity query builder
+     */
+    public static getQueryBuilder<T extends EntityTarget>(this: T): (
+        EntityQueryBuilder<T>
+    ) {
+        return new EntityQueryBuilder(this)
+    }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * Apply scope to entity
+     * @param name - Scope name
+     * @param args - Scope args
+     * @returns - Scoped static entity
+     */
     public static scope<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         name: string,
@@ -388,6 +530,11 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Scope entity collection 
+     * @param collection - Collection name or constructor
+     * @returns - Scoped static entity
+     */
     public static collection<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         collection: string | typeof Collection
@@ -406,6 +553,11 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Build a instance of entity with attributes data
+     * @param attributes - Entity attributes
+     * @returns - Entity instance
+     */
     public static build<T extends EntityTarget>(
         this: T,
         attributes: CreationAttributes<InstanceType<T>>
@@ -415,6 +567,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Search a entity register in database and return a instance case finded
+     * @param pk - Entity primary key
+     * @param mapTo - Switch data mapped return
+     * @default - 'entity'
+     * @returns - Entity instance or `null`
+     */
     public static findByPk<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         pk: any,
@@ -425,6 +584,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     *  Search all register matched by options in database
+     * @param options - Find options
+     * @param mapTo @param mapTo - Switch data mapped return
+     * @default 'entity'
+     * @returns - A entity instance collection
+     */
     public static find<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         options: FindQueryOptions<InstanceType<T>>,
@@ -435,6 +601,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+    *  Search the first register matched by options in database
+    * @param options - Find one options
+    * @param mapTo @param mapTo - Switch data mapped return
+    * @default 'entity'
+    * @returns - A entity instance or `null`
+    */
     public static findOne<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         options: FindOneQueryOptions<InstanceType<T>>,
@@ -445,6 +618,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+    *  Search all register matched by options in database and paginate
+    * @param options - Find options
+    * @param mapTo @param mapTo - Switch data mapped return
+    * @default 'entity'
+    * @returns - A entity instance pagination collection
+    */
     public static paginate<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         options: PaginationQueryOptions<InstanceType<T>>
@@ -454,15 +634,11 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
-    public static create<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
-        attributes: CreationAttributes<InstanceType<T>>
-    ): Promise<InstanceType<T>> {
-        return this.getRepository().create(attributes)
-    }
-
-    // ------------------------------------------------------------------------
-
+    /**
+     * Count database registers matched by options
+     * @param options - Count options
+     * @returns - The count number result
+     */
     public static count<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         options: CountQueryOption<InstanceType<T>>
@@ -472,6 +648,12 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Make multiple count database registers matched by options
+     * @param options - A object containing the count name key and count
+     * options value
+     * @returns - A object with count names keys and count results
+     */
     public static countMany<
         T extends EntityTarget,
         Opts extends CountQueryOptions<InstanceType<T>>
@@ -484,6 +666,28 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a register in database and returns a entity instance by created
+     * register
+     * @param attributes - Entity creation attributes
+     * @returns - A entity instance for created register
+     */
+    public static create<T extends EntityTarget>(
+        this: T & typeof BaseEntity,
+        attributes: CreationAttributes<InstanceType<T>>
+    ): Promise<InstanceType<T>> {
+        return this.getRepository().create(attributes)
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Create many resgisters in database and return a entity instance 
+     * collection by created resgiters
+     * @param attributes - An array list for each register entity creation
+     * attributes
+     * @returns - A entity instance collection for created registers
+     */
     public static createMany<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         attributes: CreationAttributes<InstanceType<T>>[]
@@ -493,6 +697,13 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update all resgisters matched by conditional where options in database 
+     * with the data attributes
+     * @param attributes - Data update attributes
+     * @param where - Conditional where options
+     * @returns - A result set header with the count of affected registers
+     */
     public static update<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         attributes: UpdateAttributes<InstanceType<T>>,
@@ -505,6 +716,11 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update a existent register matched by attributes data or create a new
+     * @param attributes - Update or create attributes data 
+     * @returns - A entity instance for updated or created register
+     */
     public static updateOrCreate<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         attributes: UpdateOrCreateAttibutes<InstanceType<T>>,
@@ -518,6 +734,11 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Delete all registers matched by conditional where options in database
+     * @param where - Conditional where options
+     * @returns - A result header containing the count of affected registers
+     */
     public static delete<T extends EntityTarget>(
         this: T & typeof BaseEntity,
         where: ConditionalQueryOptions<InstanceType<T>>
@@ -526,6 +747,7 @@ export default abstract class BaseEntity {
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     public static getTrueMetadata<T extends EntityTarget>(this: T): (
         EntityMetadata
     ) {
@@ -534,6 +756,7 @@ export default abstract class BaseEntity {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private static reply<T extends EntityTarget>(this: T): T {
         const replic = class extends (this as new (...args: any[]) => any) { }
         Object.assign(replic, this)

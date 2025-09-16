@@ -4,7 +4,7 @@ import TriggerSyncronizer from "./TriggerSyncronizer"
 export default class TriggersSyncronizer extends TriggersSchema<
     TriggerSyncronizer
 > {
-    protected override previous?: TriggersSyncronizer;
+    declare protected previous?: TriggersSyncronizer;
 
     protected static override get TriggerConstructor(): (
         typeof TriggerSyncronizer

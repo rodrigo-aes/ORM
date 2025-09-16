@@ -17,7 +17,7 @@ import type { ActionType } from "../../../../DatabaseSchema"
 import type { ColumnSQLBuilderMap } from "./types"
 
 export default class ColumnSQLBuilder extends ColumnSchema {
-    public override map!: ColumnSQLBuilderMap
+    declare public map: ColumnSQLBuilderMap
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------

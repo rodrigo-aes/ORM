@@ -4,8 +4,8 @@ import EntityMetadata, {
     // Columns
     ColumnsMetadata,
     ColumnMetadata,
-
     type ColumnPattern,
+
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
     type PolymorphicTypeKeyRelateds,

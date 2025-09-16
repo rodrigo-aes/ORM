@@ -2,3 +2,5 @@ node_modules
 src/TestTools
 clean-js.ps1
 poly-orm.config.ts
+scripts
+dist

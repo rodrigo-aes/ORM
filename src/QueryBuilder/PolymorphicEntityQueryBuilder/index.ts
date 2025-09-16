@@ -7,7 +7,7 @@ import type { PolymorphicEntityMetadata } from "../../Metadata"
 export default class PolymorphicEntityQueryBuilder<
     T extends PolymorphicEntityTarget
 > extends QueryBuilder<T> {
-    protected override metadata!: PolymorphicEntityMetadata
+    declare protected metadata: PolymorphicEntityMetadata
 
     constructor(public target: T, alias?: string) {
         super(target, alias)
