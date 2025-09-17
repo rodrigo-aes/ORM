@@ -20,8 +20,13 @@ export default class BelongsToThrough<
 > extends OneRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: BelongsToThroughMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -29,6 +34,7 @@ export default class BelongsToThrough<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): (
         BelongsToThroughHandlerSQLBuilder<Target, Related>
     ) {

@@ -15,9 +15,15 @@ export default class BelongsToMany<
     Target extends object,
     Related extends EntityTarget
 > extends HasManyRelation<Target, Related> {
+    /** @internal */
     constructor(
+        /** @internal */
         protected metadata: BelongsToManyMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -25,6 +31,7 @@ export default class BelongsToMany<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): (
         BelongsToManyHandlerSQLBuilder<Target, Related>
     ) {

@@ -13,8 +13,13 @@ export default class PolymorphicHasOne<
 > extends HasOneRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: PolymorphicHasOneMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -22,6 +27,7 @@ export default class PolymorphicHasOne<
 
     // Getters ================================================================
     // protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): (
         PolymorphicHasOneHandlerSQLBuilder<Target, Related>
     ) {

@@ -20,12 +20,17 @@ export default abstract class HasManyRelation<
 > extends ManyRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: (
             HasManyMetadata |
             PolymorphicHasManyMetadata |
             BelongsToManyMetadata
         ),
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)

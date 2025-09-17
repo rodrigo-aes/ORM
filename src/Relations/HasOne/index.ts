@@ -14,8 +14,13 @@ export default class HasOne<
 > extends HasOneRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: HasOneMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -23,6 +28,7 @@ export default class HasOne<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): HasOneHandlerSQLBuilder<Target, Related> {
         return new HasOneHandlerSQLBuilder(
             this.metadata,

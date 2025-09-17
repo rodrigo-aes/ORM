@@ -14,8 +14,13 @@ export default class HasManyThrough<
 > extends ManyRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: HasManyThroughMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -23,6 +28,7 @@ export default class HasManyThrough<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): (
         HasManyThroughHandlerSQLBuilder<Target, Related>
     ) {

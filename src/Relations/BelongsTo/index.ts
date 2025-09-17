@@ -14,8 +14,13 @@ export default class BelongsTo<
 > extends OneRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: BelongsToMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -23,6 +28,7 @@ export default class BelongsTo<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): BelongsToHandlerSQLBuilder<Target, Related> {
         return new BelongsToHandlerSQLBuilder(
             this.metadata,

@@ -14,8 +14,13 @@ export default class PolymorphicHasMany<
 > extends HasManyRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: PolymorphicHasManyMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -23,6 +28,7 @@ export default class PolymorphicHasMany<
 
     // Getters ================================================================
     // protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): (
         PolymorphicHasManyHandlerSQLBuilder<Target, Related>
     ) {

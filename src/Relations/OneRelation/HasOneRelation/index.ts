@@ -21,8 +21,13 @@ export default abstract class HasOneRelation<
 > extends OneRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: HasOneMetadata | PolymorphicHasOneMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)

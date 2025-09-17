@@ -19,8 +19,13 @@ export default class PolymorphicBelongsTo<
 > extends OneRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: PolymorphicBelongsToMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -28,6 +33,7 @@ export default class PolymorphicBelongsTo<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): (
         PolymorphicBelongsToHandlerSQLBuilder<Target, Related>
     ) {

@@ -14,8 +14,13 @@ export default class HasMany<
 > extends HasManyRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: HasManyMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -23,6 +28,7 @@ export default class HasMany<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): HasManyHandlerSQLBuilder<Target, Related> {
         return new HasManyHandlerSQLBuilder(
             this.metadata,

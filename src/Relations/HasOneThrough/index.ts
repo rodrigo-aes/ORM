@@ -14,8 +14,13 @@ export default class HasOneThrough<
 > extends OneRelation<Target, Related> {
     /** @internal */
     constructor(
+        /** @internal */
         protected metadata: HasOneThroughMetadata,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related
     ) {
         super(metadata, target, related)
@@ -23,6 +28,7 @@ export default class HasOneThrough<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected get sqlBuilder(): (
         HasOneThroughHandlerSQLBuilder<Target, Related>
     ) {
