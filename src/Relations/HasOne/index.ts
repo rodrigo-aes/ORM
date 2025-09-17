@@ -7,10 +7,12 @@ import { HasOneHandlerSQLBuilder } from "../../SQLBuilders"
 import type { EntityTarget } from "../../types/General"
 import type { HasOneMetadata } from "../../Metadata"
 
+/** HasOne relation handler */
 export default class HasOne<
     Target extends object,
     Related extends EntityTarget
 > extends HasOneRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: HasOneMetadata,
         protected target: Target,

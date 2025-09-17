@@ -7,10 +7,12 @@ import { HasManyThroughHandlerSQLBuilder } from "../../SQLBuilders"
 import type { EntityTarget } from "../../types/General"
 import type { HasManyThroughMetadata } from "../../Metadata"
 
+/** HasMany relation handler */
 export default class HasManyThrough<
     Target extends object,
     Related extends EntityTarget
 > extends ManyRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: HasManyThroughMetadata,
         protected target: Target,

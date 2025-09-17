@@ -13,10 +13,12 @@ import {
 import type { EntityTarget } from "../../types/General"
 import type { BelongsToThroughMetadata } from "../../Metadata"
 
+/** BelongsToThrough relation handler */
 export default class BelongsToThrough<
     Target extends object,
     Related extends EntityTarget
 > extends OneRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: BelongsToThroughMetadata,
         protected target: Target,

@@ -10,6 +10,7 @@ import {
 import type { EntityTarget } from "../../types/General"
 import type { BelongsToManyMetadata } from "../../Metadata"
 
+/** HasMany relation handler */
 export default class BelongsToMany<
     Target extends object,
     Related extends EntityTarget
@@ -66,6 +67,10 @@ export default class BelongsToMany<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Attach relations on join table to relateds passed
+     * @param relateds - Array of related entity instance or primary key
+     */
     public attach(...relateds: (InstanceType<Related> | any)[]): (
         Promise<void>
     ) {
@@ -75,6 +80,10 @@ export default class BelongsToMany<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Datach relations on join table to relateds passed
+     * @param relateds - Array of related entity instance or primary key
+     */
     public detach(...relateds: (InstanceType<Related> | any)[]): (
         Promise<void>
     ) {
@@ -84,21 +93,14 @@ export default class BelongsToMany<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Syncronize all attachs and detachs keeping only in relateds array
+     * @param relateds - Array of related entity instance or primary key
+     */
     public sync(...relateds: (InstanceType<Related> | any)[]): (
         Promise<void>
     ) {
         return this.queryExecutionHandler
             .executeVoidOperation(this.sqlBuilder.syncSQL(relateds))
-    }
-
-    // ------------------------------------------------------------------------
-
-    public syncWithoutDelete(...relateds: (InstanceType<Related> | any)[]): (
-        Promise<void>
-    ) {
-        return this.queryExecutionHandler
-            .executeVoidOperation(
-                this.sqlBuilder.syncWithoutDeleteSQL(relateds)
-            )
     }
 }

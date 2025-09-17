@@ -7,10 +7,12 @@ import { BelongsToHandlerSQLBuilder } from "../../SQLBuilders"
 import type { EntityTarget } from "../../types/General"
 import type { BelongsToMetadata } from "../../Metadata"
 
+/** BelongsTo relation handler */
 export default class BelongsTo<
     Target extends object,
     Related extends EntityTarget
 > extends OneRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: BelongsToMetadata,
         protected target: Target,

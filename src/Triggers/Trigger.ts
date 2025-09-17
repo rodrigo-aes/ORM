@@ -9,6 +9,7 @@ import type BaseEntity from "../BaseEntity"
 export default abstract class Trigger<
     T extends BaseEntity = any
 > extends TriggerSQLBuilder<T> {
+    /** @internal */
     protected metadata: EntityMetadata
 
     constructor(public target: Constructor<T>) {
@@ -32,6 +33,7 @@ export default abstract class Trigger<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /** @internal */
     public async register(): Promise<void> {
         if (!this.metadata.connection) throw new Error
         await this.metadata.connection.query(this.createSQL())
@@ -39,6 +41,7 @@ export default abstract class Trigger<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public async drop(): Promise<void> {
         if (!this.metadata.connection) throw new Error
         await this.metadata.connection.query(this.dropSQL())
@@ -46,6 +49,7 @@ export default abstract class Trigger<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public async alter(): Promise<void> {
         await this.drop()
         await this.register()

@@ -13,9 +13,7 @@ export default class PolymorphicId<T extends EntityTarget> extends Trigger {
     public event: TriggerEvent = 'INSERT'
     public orientation: TriggerOrientation = 'ROW'
 
-    constructor(
-        public target: T,
-    ) {
+    constructor(public target: T) {
         super(target)
     }
 

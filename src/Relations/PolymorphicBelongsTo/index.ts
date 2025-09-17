@@ -17,6 +17,7 @@ export default class PolymorphicBelongsTo<
     Target extends object,
     Related extends PolymorphicEntityTarget
 > extends OneRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: PolymorphicBelongsToMetadata,
         protected target: Target,

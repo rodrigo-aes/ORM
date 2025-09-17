@@ -12,10 +12,14 @@ import type {
     UpdateOrCreateAttibutes
 } from "../../../SQLBuilders"
 
+/**
+ * Has one relation handler
+ */
 export default abstract class HasOneRelation<
     Target extends object,
     Related extends EntityTarget
 > extends OneRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: HasOneMetadata | PolymorphicHasOneMetadata,
         protected target: Target,
@@ -26,6 +30,11 @@ export default abstract class HasOneRelation<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Create a related entity in database
+     * @param attributes - Related creation attributes data
+     * @returns - Instance of created related entity
+     */
     public create(attributes: CreationAttributes<InstanceType<Related>>): (
         Promise<InstanceType<Related>>
     ) {
@@ -37,6 +46,11 @@ export default abstract class HasOneRelation<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update or create a related entity in database
+     * @param attributes - Related update or create attributes data
+     * @returns - Instance of updated or created related entity
+     */
     public updateOrCreate(
         attributes: UpdateOrCreateAttibutes<InstanceType<Related>>
     ): Promise<InstanceType<Related>> {

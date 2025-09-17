@@ -7,10 +7,12 @@ import { HasOneThroughHandlerSQLBuilder } from "../../SQLBuilders"
 import type { EntityTarget } from "../../types/General"
 import type { HasOneThroughMetadata } from "../../Metadata"
 
+/** HasOneThrough relation handler */
 export default class HasOneThrough<
     Target extends object,
     Related extends EntityTarget
 > extends OneRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: HasOneThroughMetadata,
         protected target: Target,

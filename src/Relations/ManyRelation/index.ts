@@ -21,15 +21,23 @@ import type {
     UpdateAttributes
 } from "../../SQLBuilders"
 
+/** Many relation handler */
 export default abstract class ManyRelation<
     Target extends object,
     Related extends EntityTarget | PolymorphicEntityTarget
 > extends Array<InstanceType<Related>> {
+    /** @internal */
     private _relatedMetadata?: EntityMetadata | PolymorphicEntityMetadata
 
+    /** @internal */
     constructor(
+        /** @internal */
         protected metadata: ManyRelationMetadatatype,
+
+        /** @internal */
         protected target: Target,
+
+        /** @internal */
         protected related: Related,
         ...instances: InstanceType<Related>[]
     ) {
@@ -38,10 +46,12 @@ export default abstract class ManyRelation<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected abstract get sqlBuilder(): ManyRelationHandlerSQLBuilder
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected get queryExecutionHandler(): (
         RelationQueryExecutionHandler<Related>
     ) {
@@ -50,12 +60,14 @@ export default abstract class ManyRelation<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected get relatedMetadata(): EntityMetadata | PolymorphicEntityMetadata {
         return this._relatedMetadata ?? this.loadRelatedMetadata()
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected get relatedPrimary(): keyof InstanceType<Related> {
         return this.relatedMetadata.columns.primary.name as (
             keyof InstanceType<Related>
@@ -64,17 +76,29 @@ export default abstract class ManyRelation<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Load related entities matched by conditional where options
+     * @param where - conditional where options
+     * @returns - 
+     */
     public async load(
         where?: ConditionalQueryOptions<InstanceType<Related>>
-    ): Promise<InstanceType<Related>[]> {
+    ): Promise<this> {
         return this.mergeResults(
-            await this.queryExecutionHandler
-                .executeFind(this.sqlBuilder.loadSQL(where))
+            await this.queryExecutionHandler.executeFind(
+                this.sqlBuilder.loadSQL(where)
+            )
         )
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Load the first related entity matched by conditional where options and
+     * returns
+     * @param where - Conditional where options
+     * @returns - Related entity instance or `null`
+     */
     public async loadOne(
         where?: ConditionalQueryOptions<InstanceType<Related>>
     ): Promise<InstanceType<Related> | null> {
@@ -86,6 +110,13 @@ export default abstract class ManyRelation<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update all related entities registers matched by conditional where
+     * options
+     * @param attributes - Update attributes data 
+     * @param where - Conditional where options
+     * @returns - A result header with details of operation
+     */
     public update(
         attributes: UpdateAttributes<InstanceType<Related>>,
         where?: ConditionalQueryOptions<InstanceType<Related>>
@@ -96,6 +127,12 @@ export default abstract class ManyRelation<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Delete all related entities register matched by conditional where
+     * options
+     * @param where - Conditional where options
+     * @returns - Delete result
+     */
     public delete(where?: ConditionalQueryOptions<InstanceType<Related>>): (
         Promise<DeleteResult>
     ) {
@@ -103,15 +140,9 @@ export default abstract class ManyRelation<
             .executeDelete(this.sqlBuilder.deleteSQL(where))
     }
 
-    // Privates ---------------------------------------------------------------
-    private loadRelatedMetadata(): EntityMetadata | PolymorphicEntityMetadata {
-        this._relatedMetadata = MetadataHandler.loadMetadata(this.related)
-        return this._relatedMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    private mergeResult(result: InstanceType<Related> | null): (
+    // Protecteds -------------------------------------------------------------
+    /** @internal */
+    protected mergeResult(result: InstanceType<Related> | null): (
         InstanceType<Related> | null
     ) {
         if (!result) return result
@@ -131,14 +162,19 @@ export default abstract class ManyRelation<
 
     // ------------------------------------------------------------------------
 
-    private mergeResults(results: InstanceType<Related>[]): (
-        InstanceType<Related>[]
-    ) {
-        return results.map(result => this.mergeResult(result) as (
+    /** @internal */
+    protected mergeResults(results: InstanceType<Related>[]): this {
+        results.map(result => this.mergeResult(result) as (
             InstanceType<Related>
         ))
+
+        return this
     }
 
-    // Static Getters =========================================================
-    // Publics ----------------------------------------------------------------
+    // Privates ---------------------------------------------------------------
+    /** @internal */
+    private loadRelatedMetadata(): EntityMetadata | PolymorphicEntityMetadata {
+        this._relatedMetadata = MetadataHandler.loadMetadata(this.related)
+        return this._relatedMetadata
+    }
 }

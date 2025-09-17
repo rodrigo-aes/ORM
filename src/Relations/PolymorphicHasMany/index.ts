@@ -7,10 +7,12 @@ import { PolymorphicHasManyHandlerSQLBuilder } from "../../SQLBuilders"
 import type { EntityTarget } from "../../types/General"
 import type { PolymorphicHasManyMetadata } from "../../Metadata"
 
+/** HasMany relation handler */
 export default class PolymorphicHasMany<
     Target extends object,
     Related extends EntityTarget
 > extends HasManyRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: PolymorphicHasManyMetadata,
         protected target: Target,

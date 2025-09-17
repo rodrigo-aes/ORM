@@ -11,6 +11,7 @@ export default class PolymorphicHasOne<
     Target extends object,
     Related extends EntityTarget
 > extends HasOneRelation<Target, Related> {
+    /** @internal */
     constructor(
         protected metadata: PolymorphicHasOneMetadata,
         protected target: Target,
