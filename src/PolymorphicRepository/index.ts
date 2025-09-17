@@ -60,6 +60,14 @@ export default class PolymorphicRepository<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Search a register in database and return a polymorphic 
+     * entity instance case finded
+     * @param pk - Entity primary key
+     * @param mapTo - Switch data mapped return
+     * @default - 'entity'
+     * @returns - Entity instance or `null`
+     */
     public findByPk(pk: any, mapTo: ResultMapOption = 'entity') {
         return new MySQL2QueryExecutionHandler(
             this.target,
@@ -74,6 +82,13 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+    *  Search all register matched by options in database
+    * @param options - Find options
+    * @param mapTo @param mapTo - Switch data mapped return
+    * @default 'entity'
+    * @returns - A polymorphic entity instance collection
+    */
     public find(
         options: FindQueryOptions<InstanceType<T>>,
         mapTo: ResultMapOption = 'entity'
@@ -88,6 +103,13 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+    *  Search the first register matched by options in database
+    * @param options - Find one options
+    * @param mapTo @param mapTo - Switch data mapped return
+    * @default 'entity'
+    * @returns - A polymorphic entity instance or `null`
+    */
     public findOne(
         options: FindOneQueryOptions<InstanceType<T>>,
         mapTo: ResultMapOption = 'entity'
@@ -102,6 +124,13 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+    *  Search all register matched by options in database and paginate
+    * @param options - Find options
+    * @param mapTo @param mapTo - Switch data mapped return
+    * @default 'entity'
+    * @returns - A polymorphic entity instance pagination collection
+    */
     public paginate(options: PaginationQueryOptions<InstanceType<T>>): (
         Promise<Pagination<InstanceType<T>>>
     ) {
@@ -115,6 +144,11 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Count database registers matched by options
+     * @param options - Count options
+     * @returns - The count number result
+     */
     public async count(options: CountQueryOption<InstanceType<T>>) {
         return (
             await new MySQL2QueryExecutionHandler(
@@ -132,6 +166,12 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Make multiple count database registers matched by options
+     * @param options - A object containing the count name key and count
+     * options value
+     * @returns - A object with count names keys and count results
+     */
     public countMany<Opts extends CountQueryOptions<InstanceType<T>>>(
         options: Opts
     ): Promise<CountManyQueryResult<T, Opts>> {
@@ -148,6 +188,15 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a source entity register in database and returns a polymorphic 
+     * entity instance of created register
+     * @param source - Source entity
+     * @param attributes - Creation attributes data
+     * @param mapTo - Return options map to case `this` returns a instance of 
+     * polymorphic entity case `source` returns a instance of source entity 
+     * @returns - Source or polymorphic entity instance
+     */
     public create<
         Source extends EntityTarget,
         MapTo extends 'this' | 'source' = 'this'
@@ -173,6 +222,17 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create many resgisters in database and return a polymorphic or source 
+     * entity instances collection for created resgiters
+     * @param source - Source entity
+     * @param attributes - An array list for each register source entity 
+     * creation attributes
+     * @param mapTo - Return options map to case `this` returns a collection
+     * of polymorphic entities instances case `source` returns a 
+     * collection of source entities instances 
+     * @returns - A collection of source or polymorphic entities instances
+     */
     public createMany<
         Source extends EntityTarget,
         MapTo extends 'this' | 'source' = 'this'
@@ -195,6 +255,14 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update all resgisters matched by conditional where optionsof the source 
+     * entity in database with the data attributes
+     * @param source - Source entity
+     * @param attributes - Update attributes data
+     * @param where - Conditional where options
+     * @returns - A result header of the affected registers
+     */
     public update<
         Source extends EntityTarget,
         Data extends InstanceType<T> | UpdateAttributes<InstanceType<Source>>
@@ -221,6 +289,16 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Update a existent source entity register matched by attributes data or 
+     * create a new 
+     * @param source - Source entity
+     * @param attributes - Update or create attributes data
+     * @param mapTo - Return options map to case `this` returns a instance of 
+     * polymorphic entity case `source` returns a instance of source entity 
+     * @returns - A polymorphic or source entity instance for updated or 
+     * created register
+     */
     public updateOrCreate<
         Source extends EntityTarget,
         MapTo extends 'this' | 'source' = 'this'
@@ -243,6 +321,13 @@ export default class PolymorphicRepository<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Delete all source entity registers matched by conditional where 
+     * options in database
+     * @param source  - Source entity
+     * @param where - Conditional where options
+     * @returns - A result header of the affected register in database
+     */
     public delete<Source extends EntityTarget>(
         source: Source,
         where: ConditionalQueryOptions<InstanceType<Source>>
@@ -260,6 +345,7 @@ export default class PolymorphicRepository<
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private verifySource(source: EntityTarget): void {
         if (!this.metadata.entities[source.name]) throw new Error
     }
