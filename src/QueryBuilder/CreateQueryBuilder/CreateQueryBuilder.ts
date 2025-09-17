@@ -10,7 +10,6 @@ import {
 // Types
 import type { EntityTarget } from "../../types/General"
 
-/** @internal */
 export default abstract class CreateQueryBuilder<T extends EntityTarget> {
     /** @internal */
     protected metadata: EntityMetadata

@@ -10,7 +10,6 @@ import CountManyQueryBuilder from "./CountManyQueryBuilder"
 // Types
 import type { Target, TargetMetadata } from "../types/General"
 
-/** @internal */
 export default class QueryBuilder<T extends Target> {
     /** @internal */
     protected metadata: TargetMetadata<T>
