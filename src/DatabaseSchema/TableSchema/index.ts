@@ -34,12 +34,20 @@ import { ActionType } from ".."
 export default class TableSchema<
     T extends ColumnSchema = ColumnSchema
 > extends Array<T> {
+    /** @internal */
     public dependencies: string[]
+
+    /** @internal */
     public actions: TableSchemaAction[] = []
 
+    /** @internal */
     constructor(
+        /** @internal */
         public database: DatabaseSchema | undefined = undefined,
+
+        /** @internal */
         public name: string,
+
         ...columns: (T | Omit<ColumnSchemaInitMap, 'tableName'>)[]
     ) {
         super(...columns.map(col => col instanceof ColumnSchema
@@ -55,18 +63,25 @@ export default class TableSchema<
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected static get ColumnConstructor(): typeof ColumnSchema {
         return ColumnSchema
     }
 
     // Satatic Getters ========================================================
     // Publics ----------------------------------------------------------------
+    /** @internal */
     public static get [Symbol.species]() {
         return Array
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Create a id primary column
+     * @param name - Optional id name
+     * @default - 'id'
+     */
     public id(name?: string): void {
         this.buildColumn(name ?? 'id', DataType.INT('BIG'))
             .primary()
@@ -75,8 +90,13 @@ export default class TableSchema<
     }
 
     // ------------------------------------------------------------------------
-
-    public polymorphicId(prefix: EntityTarget | string, name?: string): void {
+    /**
+     * Create a polymorphic id primary column
+     * @param target - Table entity
+     * @param name - Optional id name
+     * @default - 'id'
+     */
+    public polymorphicId(target: EntityTarget, name?: string): void {
         this.buildColumn('id', DataType.VARCHAR()).primary()
 
         this.buildTrigger(`${this.name}_polymorphic_pk`)
@@ -85,12 +105,17 @@ export default class TableSchema<
             .execute(PolymorphicId.actionSQL(
                 this.name,
                 name ?? 'id',
-                typeof prefix === 'string' ? prefix : prefix.name,
+                target.name,
             ))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a foreign id column and returns 
+     * @param name - Column name
+     * @returns {ColumnSchema} - Foreign id column to handle
+     */
     public foreignId(name: string): T {
         const col = this.buildColumn(name, DataType.INT('BIG'))
             .unsigned()
@@ -102,6 +127,14 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a constrained foreign id for a entity
+     * @param target - Target entity
+     * @param name - Optional custom name
+     * @default - `${target.name.toLowerCase()}_id`
+     * @returns {ForeignKeyReferencesSchema} - Foreign key references schema to
+     * handle
+     */
     public foreignIdFor(target: EntityTarget, name?: string): (
         ForeignKeyReferencesSchema
     ) {
@@ -109,7 +142,7 @@ export default class TableSchema<
         if (!meta) throw new Error
 
         const pk = meta.columns.primary
-        name = name ?? `${meta.target.name.toLowerCase()}_id`
+        name = name ?? `${target.name.toLowerCase()}_id`
 
         return this.buildColumn(name, pk.dataType)
             .unsigned()
@@ -119,6 +152,11 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a polymorphic foreign id column
+     * @param name - Column name
+     * @returns {ColumnSchema} - Polymorphic foreign id column
+     */
     public polymorphicForeignId(name: string): T {
         const col = this.buildColumn(name, DataType.VARCHAR())
         col.map.isForeignKey = true
@@ -128,17 +166,26 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a polymorphic type key column
+     * @param name - Column name
+     * @param referenceds - Entity targets to refences column type enum
+     * @returns {ColumnSchema} - Polymorphoic typekey column
+     */
     public polymorphicTypeKey(
         name: string,
-        ...types: (EntityTarget | string)[]
+        ...referenceds: EntityTarget[]
     ): T {
-        return this.buildColumn(name, DataType.ENUM(...types.map(
-            type => typeof type === 'string' ? type : type.name
-        )))
+        return this.buildColumn(name, DataType.ENUM(
+            ...referenceds.map(type => type.name)
+        ))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create `createdAt` column timestamp
+     */
     public createdTimestamp(): void {
         this.buildColumn('createdAt', DataType.TIMESTAMP())
             .default(CurrentTimestamp)
@@ -146,6 +193,9 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create `updatedAt` column timestamp
+     */
     public updatedTimestamp(): void {
         this.buildColumn('updatedAt', DataType.TIMESTAMP())
             .default(CurrentTimestamp)
@@ -153,6 +203,9 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create `createdAt` and `updatedAt` timestamps columns
+     */
     public timestamps(): void {
         this.createdTimestamp()
         this.updatedTimestamp()
@@ -160,120 +213,235 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a column with name and data type
+     * @param name - Column name
+     * @param {DataType} dataType - Data type
+     * @returns - Created column
+     */
     public column(name: string, dataType: DataType): T {
         return this.buildColumn(name, dataType)
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a VARCHAR type column
+     * @param name - Column name
+     * @param length - String max length
+     * @returns - Created string column
+     */
     public string(name: string, length?: number): T {
         return this.buildColumn(name, DataType.VARCHAR(length))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a CHAR type column
+     * @param name - Column name
+     * @param length - Char max length
+     * @returns - Created char column
+     */
     public char(name: string, length?: number): T {
         return this.buildColumn(name, DataType.CHAR(length))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a TEXT type column
+     * @param name - Column name
+     * @param {TextLength} length - TEXT column size 
+     * @returns - Created text column
+     */
     public text(name: string, length?: TextLength): T {
         return this.buildColumn(name, DataType.TEXT(length))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a INT type column
+     * @param name - Column name
+     * @param {IntegerLength} length - INT column size
+     * @returns - Created int column
+     */
     public int(name: string, length?: IntegerLength): T {
         return this.buildColumn(name, DataType.INT(length))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a BIGINT type column
+     * @param name - Column name
+     * @returns - Create bigint column
+     */
     public bigint(name: string): T {
         return this.buildColumn(name, DataType.INT('BIG'))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a TINYINT type column
+     * @param name - Column name
+     * @returns - Created tinyint column
+     */
     public tinyint(name: string): T {
         return this.buildColumn(name, DataType.INT('TINY'))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a FLOAT type column
+     * @param name - Column name
+     * @param M - Precision
+     * @param D - Scale
+     * @returns - Created float column
+     */
     public float(name: string, M: number, D: number): T {
         return this.buildColumn(name, DataType.FLOAT(M, D))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a DECIMAL type column
+     * @param name - Column name
+     * @param M - Precision
+     * @param D - Scale
+     * @returns - Created decimal column
+     */
     public decimal(name: string, M: number, D: number): T {
         return this.buildColumn(name, DataType.DECIMAL(M, D))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a DOUBLE type column
+     * @param name - Column name
+     * @param M - Precision
+     * @param D - Scale
+     * @returns - Created double column
+     */
     public double(name: string, M: number, D: number): T {
         return this.buildColumn(name, DataType.DOUBLE(M, D))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a BOOLEAN type column
+     * @param name - Column name
+     * @returns - Created boolean column
+     */
     public boolean(name: string): T {
         return this.buildColumn(name, DataType.BOOLEAN())
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a ENUM type column
+     * @param name - Column name
+     * @param options - Array with enum options
+     * @returns - Created enum column
+     */
     public enum(name: string, options: string[]): T {
         return this.buildColumn(name, DataType.ENUM(...options))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a SET type column
+     * @param name - Column name
+     * @param options - Array with set options
+     * @returns - Created set column
+     */
     public set(name: string, options: string[]): T {
         return this.buildColumn(name, DataType.SET(...options))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a TIMESTAMP type column
+     * @param name - Column name
+     * @returns - Created timestamp column
+     */
     public timestamp(name: string): T {
         return this.buildColumn(name, DataType.TIMESTAMP())
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a DATETIME type column
+     * @param name - Column name
+     * @returns - Created datetime column
+     */
     public datetime(name: string): T {
         return this.buildColumn(name, DataType.DATETIME())
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a DATE type column
+     * @param name - Column name
+     * @returns - Created date column
+     */
     public date(name: string): T {
         return this.buildColumn(name, DataType.DATE())
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a TIME type column
+     * @param name - Column name
+     * @returns - Created time column
+     */
     public time(name: string): T {
         return this.buildColumn(name, DataType.TIME())
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a YEAR type column
+     * @param name - Column name
+     * @returns - Created year column
+     */
     public year(name: string): T {
         return this.buildColumn(name, DataType.YEAR())
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a JSON type column
+     * @param name - Column name
+     * @returns - Created json column
+     */
     public json(name: string): T {
         return this.buildColumn(name, DataType.JSON())
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a VIRTUAL or STORED reference column to a JSON column in table
+     * @param name - Column name
+     * @param dataType - Data type of reference
+     * @param {JSONColumnConfig} config - Config of the reference
+     * @returns - Create json reference column
+     */
     public jsonRef(
         name: string,
         dataType: DataType,
@@ -284,30 +452,63 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create BIT type column
+     * @param name - Column name
+     * @param {BitLength} length - Size of bit 
+     * @returns - Created bit column
+     */
     public bit(name: string, length?: BitLength): T {
         return this.buildColumn(name, DataType.BIT(length))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a BINARY type column
+     * @param name - Column name
+     * @param length - Length of binary data
+     * @returns - Created binary column
+     */
     public binary(name: string, length: number): T {
         return this.buildColumn(name, DataType.BINARY(length))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a VARBINARY type column
+     * @param name - Column name
+     * @param length - Length of varbinary data
+     * @returns - Created varbinary column
+     */
     public varbinary(name: string, length: number): T {
         return this.buildColumn(name, DataType.VARBINARY(length))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create BLOB type column
+     * @param name - Colum name
+     * @param {BlobLength} length - Size of blob data 
+     * @returns - Created blob column
+     */
     public blob(name: string, length?: BlobLength): T {
         return this.buildColumn(name, DataType.BLOB(length))
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Create a computed VIRTUAL or STORED column
+     * @param name - Column name
+     * @param {DataType} dataType - Data type of column
+     * @param as - a SQL string to handle column value on INSERT/UPDATE 
+     * case `STORED` or SELECT case `VITRTUAL`
+     * @param type - `VIRTUAL` or `STORED` type
+     * @returns - Created computed column
+     */
     public computed(
         name: string,
         dataType: DataType,
@@ -319,6 +520,11 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Alter a existent column in table
+     * @param name - Column name
+     * @returns - Column to handle modify changes
+     */
     public alterColumn(name: string): T {
         const col = this.findOrThrow(name)
 
@@ -331,6 +537,10 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Drop a existent column in table
+     * @param name - Column name
+     */
     public dropColumn(name: string): void {
         const col = this.findOrThrow(name)
         this.actions.push(['DROP', col])
@@ -338,6 +548,11 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a foreign key constraint to a existent column
+     * @param column - Column name
+     * @returns - Foreing key references schema to handle
+     */
     public addConstraint(column: string): ForeignKeyReferencesSchema {
         const col = this.findOrThrow(column)
         if (col.map.references) throw new Error
@@ -355,6 +570,11 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Alter a existent foreign key constraint in a column
+     * @param column - Column name
+     * @returns - Foreing key references schema to handle
+     */
     public alterConstraint(column: string): ForeignKeyReferencesSchema {
         const col = this.findOrThrow(column)
         if (!col.map.references) throw new Error
@@ -368,6 +588,10 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Drop a existent foreign key constraint in a column
+     * @param column - Column name
+     */
     public dropConstraint(column: string): void {
         const col = this.findOrThrow(column)
         if (!col.map.references) throw new Error
@@ -379,16 +603,19 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Find a column by name and returns
+     * @param columnName - Column name
+     * @returns {ColumnSchema | undefined} - The column case exists or
+     * `undefined`
+     */
     public findColumn(columnName: string) {
         return this.find(col => col.name === columnName)
     }
 
     // ------------------------------------------------------------------------
 
-    /**
-     * 
-     * @internal
-     */
+    /** @internal */
     public compare(schema?: TableSchema): Omit<ActionType, 'DROP'> {
         switch (true) {
             case !schema: return 'CREATE'
@@ -399,6 +626,7 @@ export default class TableSchema<
     }
 
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected buildColumn(name: string, dataType: DataType): T {
         const col = new ColumnSchema({
             tableName: this.name,
@@ -414,12 +642,14 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected buildTrigger(name: string): TriggerSchema {
         return this.database!.createTrigger(this.name, name)
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected shouldAlter(schema: TableSchema): boolean {
         const diff = this.some(column => {
             const [action, fkAction] = column.compare(
@@ -435,6 +665,7 @@ export default class TableSchema<
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private findOrThrow(name: string): T {
         const col = this.findColumn(name)
         if (!col) throw new Error
@@ -444,12 +675,14 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private colAlreadyInActions(column: string): boolean {
         return !!this.actions.find(([_, { name }]) => name === column)
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private beforeAlterActions(column: ColumnSchema): void {
         if (column.map.primary) this.actions.push(['DROP-PK', column])
         if (column.map.unique) this.actions.push(['DROP-UNIQUE', column])
@@ -457,6 +690,7 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private afterAlterActions(column: ColumnSchema): void {
         if (column.map.primary) this.actions.push(['ADD-PK', column])
         if (column.map.unique) this.actions.push(['ADD-UNIQUE', column])
@@ -464,6 +698,7 @@ export default class TableSchema<
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
+    /** @internal */
     public static buildFromMetadata<T extends Constructor<TableSchema>>(
         this: T,
         database: DatabaseSchema,
@@ -485,6 +720,7 @@ export default class TableSchema<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public static buildJoinTablesFromMetadata(
         database: DatabaseSchema,
         source: EntityMetadata | EntityTarget
@@ -493,8 +729,8 @@ export default class TableSchema<
             ({ tableName, columns }) => new this(
                 database,
                 tableName,
-                ...columns.map(
-                    column => this.ColumnConstructor.buildFromMetadata(column)
+                ...columns.map(column => this.ColumnConstructor
+                    .buildFromMetadata(column)
                 )
             )
         )
@@ -502,6 +738,7 @@ export default class TableSchema<
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private static metadataFromSource(source: EntityMetadata | EntityTarget) {
         const metadata = source instanceof EntityMetadata
             ? source

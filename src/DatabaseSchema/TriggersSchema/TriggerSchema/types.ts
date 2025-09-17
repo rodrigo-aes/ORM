@@ -1,7 +1,10 @@
+import type BaseEntity from "../../../BaseEntity"
+import type TriggerSchema from "."
 import type {
     TriggerEvent,
     TriggerTiming,
-    TriggerOrientation
+    TriggerOrientation,
+    TriggerAction
 } from "../../../Triggers"
 
 export type TriggerSchemaInitMap = {
@@ -13,3 +16,12 @@ export type TriggerSchemaInitMap = {
     action?: string
 }
 
+export type TriggerActionHandler<T extends BaseEntity = BaseEntity> = (
+    (schema: TriggerSchema) => string | TriggerAction<T>[]
+)
+
+export type AlreadyDefinedEvent<T extends TriggerSchema> = Omit<T, (
+    'before' |
+    'after' |
+    'insteadOf'
+)>

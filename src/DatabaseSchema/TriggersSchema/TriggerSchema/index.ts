@@ -11,19 +11,34 @@ import type {
     TriggerAction
 } from "../../../Triggers"
 
-import type { TriggerSchemaInitMap } from "./types"
+import type {
+    TriggerSchemaInitMap,
+    TriggerActionHandler,
+    AlreadyDefinedEvent
+} from "./types"
 
 export default class TriggerSchema<
     T extends BaseEntity = BaseEntity
 > extends TriggerSQLBuilder<T> {
+    /** @internal */
     public tableName!: string
+
+    /** @internal */
     public name!: string
+
+    /** @internal */
     public event?: TriggerEvent
+
+    /** @internal */
     public timing?: TriggerTiming
+
+    /** @internal */
     public orientation?: TriggerOrientation
 
-    private _action!: string | (() => string | TriggerAction<T>[])
+    /** @internal */
+    private _action!: string | TriggerActionHandler
 
+    /** @internal */
     constructor(initMap: TriggerSchemaInitMap) {
         super()
         Object.assign(this, initMap)
@@ -31,7 +46,12 @@ export default class TriggerSchema<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public before(event: TriggerEvent): this {
+    /**
+     * Define `this` timing BEFORE `event`
+     * @param {TriggerEvent} event - Trigger event 
+     * @returns {this} - `this`
+     */
+    public before(event: TriggerEvent): AlreadyDefinedEvent<this> {
         this.timing = 'BEFORE'
         this.event = event
 
@@ -40,7 +60,12 @@ export default class TriggerSchema<
 
     // ------------------------------------------------------------------------
 
-    public after(event: TriggerEvent): this {
+    /**
+     * Define `this` timing AFTER `event`
+     * @param {TriggerEvent} event - Trigger event 
+     * @returns {this} - `this`
+     */
+    public after(event: TriggerEvent): AlreadyDefinedEvent<this> {
         this.timing = 'AFTER'
         this.event = event
 
@@ -49,7 +74,12 @@ export default class TriggerSchema<
 
     // ------------------------------------------------------------------------
 
-    public insteadOf(event: TriggerEvent): this {
+    /**
+     * Define `this` timing INSTEAD OF `event`
+     * @param {TriggerEvent} event - Trigger event 
+     * @returns {this} - `this`
+     */
+    public insteadOf(event: TriggerEvent): AlreadyDefinedEvent<this> {
         this.timing = 'INSTEAD OF'
         this.event = event
 
@@ -58,6 +88,11 @@ export default class TriggerSchema<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define for EACH STATEMENT/ROW orientation
+     * @param {TriggerOrientation} orientation - Action orientation
+     * @returns {this} - `this`
+     */
     public forEach(orientation: TriggerOrientation): this {
         this.orientation = orientation
         return this
@@ -65,20 +100,27 @@ export default class TriggerSchema<
 
     // ------------------------------------------------------------------------
 
-    public execute(action: string | (() => string | TriggerAction<T>[])): (
-        void
-    ) {
+    /**
+     * Define action to execute on event with SQL string or trigger actions
+     * array
+     * @param action - SQL string or trigger action handler
+     */
+    public execute(action: string | TriggerActionHandler): void {
         this._action = action
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected action(): string | TriggerAction<T>[] {
-        return typeof this._action === 'string' ? this._action : this._action()
+        return typeof this._action === 'string'
+            ? this._action
+            : this._action(this)
     }
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
+    /** @internal */
     public static buildFromTrigger<T extends Constructor<TriggerSchema>>(
         this: T,
         trigger: Trigger

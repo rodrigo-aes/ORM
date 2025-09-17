@@ -23,6 +23,11 @@ export default abstract class TriggerActionBuilder<
 > {
     // Instance Methods =======================================================
     // Protecteds -------------------------------------------------------------
+    /**
+     * Define set params in same table of trigger event action
+     * @param attributes - Attributes to set
+     * @returns {SetAction<T>} - Set action
+     */
     protected set(attributes: TriggerActionOptions<UpdateAttributes<T>>): (
         SetAction<T>
     ) {
@@ -34,6 +39,12 @@ export default abstract class TriggerActionBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define INSERT INTO another table action
+     * @param target - Table entity target
+     * @param attributes - Attributes to insert on table
+     * @returns {InsertIntoTableAction<T>} - Insert table action
+     */
     protected insertInto<T extends EntityTarget = any>(
         target: T,
         attributes: TriggerActionOptions<
@@ -49,6 +60,15 @@ export default abstract class TriggerActionBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define UPDATE TABLE action to another table target
+     * @param target - Table entity target
+     * @param where - Where conditional options to match register in table
+     * @param attributes - Attributes to update on table
+     * @param target - Table entity target
+     * @param where - Where conditional options to match register in table
+     * @returns {InsertIntoTableAction<T>} - Update table action
+     */
     protected updateTable<T extends EntityTarget = any>(
         target: T,
         attributes: TriggerActionOptions<
@@ -69,6 +89,12 @@ export default abstract class TriggerActionBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define DELETE FROM another table target action
+     * @param target - Table entity target
+     * @param where - Where conditional options to match register in table
+     * @returns {DeleteFromAction<T>} - Delete from action
+     */
     protected deleteFrom<T extends EntityTarget = any>(
         target: T,
         where: TriggerActionOptions<
@@ -84,12 +110,22 @@ export default abstract class TriggerActionBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define value to OLD.column in action
+     * @param column - Column name
+     * @returns - Old column value
+     */
     protected old(column: string): { [Old]: string } {
         return { [Old]: `OLD.${column}` }
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define value to NEW.column in action
+     * @param column - Column name
+     * @returns - New column value
+     */
     protected new(column: string): { [New]: string } {
         return { [New]: `NEW.${column}` }
     }

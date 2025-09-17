@@ -61,7 +61,6 @@ import type {
 
 import type {
     EntityProperties,
-    EntityPropertiesKeys,
     FindQueryOptions,
     FindOneQueryOptions,
     PaginationQueryOptions,
@@ -74,7 +73,7 @@ import type {
 } from "../SQLBuilders"
 
 /**
- * All Entities needs to extends BaseEntity class
+ * All entities needs to extends BaseEntity class
  * @example
  * class User extends BaseEntity {}
  */

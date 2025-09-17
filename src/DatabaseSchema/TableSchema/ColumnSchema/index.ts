@@ -22,21 +22,33 @@ import type {
 } from "./types"
 
 export default class ColumnSchema {
+    /** @internal */
     public tableName!: string
+
+    /** @internal */
     public name!: string
+
+    /** @internal */
     public dataType!: DataType | string
 
+    /** @internal */
     public pattern?: ColumnPattern
 
+    /** @internal */
     public map: ColumnSchemaMap = {
         nullable: true
     }
 
+    /** @internal */
     public actions: ColumnSchemaAction[] = []
 
+    /** @internal */
     protected _action?: ActionType
+
+    /** @internal */
     protected _fkAction?: ActionType
 
+    /** @internal */
     constructor({ name, tableName, dataType, pattern, ...rest }: (
         ColumnSchemaInitMap
     )) {
@@ -61,18 +73,21 @@ export default class ColumnSchema {
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
+    /** @internal */
     public get foreignKeyConstraint(): ForeignKeyReferencesSchema | undefined {
         return this.map.references
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public get foreignKeyName(): string | undefined {
         return this.map.references?.name
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public get uniqueKeyName(): string | undefined {
         return this.map.unique
             ? `${this.name}_unique_key`
@@ -81,6 +96,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public get dependence(): string | undefined {
         if (this.map.isForeignKey) return (
             this.map.references!.map.tableName as string
@@ -89,6 +105,7 @@ export default class ColumnSchema {
 
     // Static Getters =========================================================
     // Protecteds =============================================================
+    /** @internal */
     protected static get ForeignKeyConstructor(): (
         typeof ForeignKeyReferencesSchema
     ) {
@@ -97,6 +114,12 @@ export default class ColumnSchema {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Make `this` primary key in table
+     * @param primary - A boolean defining if is primary
+     * @default true
+     * @returns {this} - `this`
+     */
     public primary(primary: boolean = true): this {
         this.map.primary = primary
         return this
@@ -104,6 +127,12 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Make `this` nullable
+     * @param primary - A boolean defining if is nullable
+     * @default true
+     * @returns {this} - `this`
+     */
     public nullable(nullable: boolean = true): this {
         this.map.nullable = nullable
         return this
@@ -111,6 +140,11 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define `this` default value in database
+     * @param value - Any value to use as default
+     * @returns {this} - `this`
+     */
     public default(value: any): this {
         this.map.defaultValue = value
         return this
@@ -118,6 +152,12 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Make `this` auto increment
+     * @param primary - A boolean defining if is auto increment
+     * @default true
+     * @returns {this} - `this`
+     */
     public autoIncrement(autoIncrement: boolean = true): this {
         this.map.autoIncrement = autoIncrement
         return this
@@ -125,6 +165,12 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Make `this` unsigned
+     * @param primary - A boolean defining if is unsigned
+     * @default true
+     * @returns {this} - `this`
+     */
     public unsigned(unsigned: boolean = true): this {
         this.map.unsigned = unsigned
         return this
@@ -132,6 +178,12 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add `this` a unique index
+     * @param primary - A boolean defining if is unique
+     * @default true
+     * @returns {this} - `this`
+     */
     public unique(unique: boolean = true): this {
         this.map.unique = unique
         return this
@@ -139,6 +191,12 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define `this` as a constrained foreign key
+     * @param table - Referenced foreign table
+     * @param column - Referenced foreign table column
+     * @returns {this} - `this`
+     */
     public foreignKey(
         table: string | EntityTarget,
         column: string
@@ -151,6 +209,11 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Defined `this` foreign key constraint ON UPDATE action listener
+     * @param {ForeignKeyActionListener} action - Action listener 
+     * @returns {this} - `this`
+     */
     public onUpdate(action: ForeignKeyActionListener): this {
         if (!this.map.isForeignKey) throw new Error
 
@@ -160,6 +223,11 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Defined `this` foreign key constraint ON DELETE action listener
+     * @param {ForeignKeyActionListener} action - Action listener 
+     * @returns {this} - `this`
+     */
     public onDelete(action: ForeignKeyActionListener): this {
         if (!this.map.isForeignKey) throw new Error
 
@@ -169,6 +237,11 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define `this` as a constrained foreign key and returns foreign key
+     * refrences shcema to handle
+     * @returns {ForeignKeyReferencesSchema} - Foreign key references schema
+     */
     public constrained(): ForeignKeyReferencesSchema {
         if (this.map.references) throw new Error
 
@@ -187,6 +260,10 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Alter `this` constraint foreign key
+     * @returns {ForeignKeyReferencesSchema} - Foreign key references schema
+     */
     public alterConstraint(): ForeignKeyReferencesSchema {
         if (!this.map.references) throw new Error
         this.actions.push(['ALTER', this.map.references])
@@ -196,6 +273,9 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Drop `this` constrained foreign key
+     */
     public dropConstraint(): void {
         if (!this.map.references) throw new Error
         this.actions.push(['DROP', this.map.references])
@@ -203,6 +283,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     public compare(schema?: ColumnSchema): [ActionType, ActionType] {
         if (!this._action) this._action = this.action(schema) as ActionType
 
@@ -214,6 +295,7 @@ export default class ColumnSchema {
     }
 
     // Protecteds -------------------------------------------------------------
+    /** @iternal */
     protected getTargetMetadata(target: EntityTarget): EntityMetadata {
         const meta = EntityMetadata.find(target)
         if (!meta) throw new Error
@@ -223,6 +305,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     protected action(schema?: ColumnSchema): Omit<ActionType, 'DROP'> {
         switch (true) {
             case !schema: return 'CREATE';
@@ -235,6 +318,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     protected foreignKeyAction(schema: ColumnSchema): (
         ActionType
     ) {
@@ -261,6 +345,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     protected shouldAlter(schema: ColumnSchema): boolean {
         const { references, ...map } = this.map
 
@@ -273,6 +358,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     protected shouldDropAndAdd(schema: ColumnSchema): boolean {
         if (!this.compareDataTypes(typeof schema.dataType === 'string'
             ? schema.map.columnType!
@@ -284,6 +370,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     protected shouldAlterForeignKey(references: ForeignKeyReferencesSchema): (
         boolean
     ) {
@@ -297,6 +384,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     protected compareDataTypes(
         dataTypeA: DataType | string,
         dataTypeB: DataType | string = this.dataType
@@ -323,6 +411,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     protected compareStrAndObjDataTypes(
         string: string,
         object: DataType
@@ -340,6 +429,7 @@ export default class ColumnSchema {
 
     // ------------------------------------------------------------------------
 
+    /** @iternal */
     protected compareValues(value: any, compare: any): boolean {
         switch (typeof value) {
             case "string":
@@ -355,6 +445,7 @@ export default class ColumnSchema {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
+    /** @iternal */
     public static buildFromMetadata<T extends Constructor<ColumnSchema>>(
         this: T,
         metadata: ColumnMetadata | JoinColumnMetadata

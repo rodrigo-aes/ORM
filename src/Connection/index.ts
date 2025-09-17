@@ -13,20 +13,17 @@ import { ProceduresHandler } from '../SQLBuilders'
 import Log from '../utils/Log'
 
 // Types
-import type {
-    MySQLConnectionConfig,
-    QueryOptions,
-    LogginOptions,
-    LogginConfig
-} from './types'
+import type { MySQLConnectionConfig } from './types'
 import type { EntityTarget } from '../types/General'
 
 export default class MySQLConnection {
+    /** @internal */
     private pool!: Pool
-    public entities: EntityTarget[] = []
 
+    public entities: EntityTarget[] = []
     public config!: MySQLConnectionConfig
 
+    /** @internal */
     private static defaultConfig: Partial<MySQLConnectionConfig> = {
         connectionLimit: 10,
         logging: true,
@@ -44,10 +41,13 @@ export default class MySQLConnection {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async query<T = any>(
-        sql: string,
-        params?: any[]
-    ): Promise<T[]> {
+    /**
+     * Execute a SQL query in database
+     * @param sql - SLQ
+     * @param params - Bind params
+     * @returns - Query result
+     */
+    public async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
         this.sqlLogging(sql)
 
         const [rows] = await this.pool.query(sql, params)
@@ -56,12 +56,20 @@ export default class MySQLConnection {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Close connection
+     */
     public async close() {
         await this.pool.end()
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Sync database tables
+     * @param mode - Case `alter` syncronize only database changes case `reset`
+     * drop all tables and syncronize all
+     */
     public async sync(mode: 'alter' | 'reset') {
         const syncronizer = new Syncronizer(this, {
             logging: true
@@ -74,6 +82,7 @@ export default class MySQLConnection {
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private setConfig(config: MySQLConnectionConfig): void {
         const { entities, logging, autoSync, ...c } = {
             ...MySQLConnection.defaultConfig,
@@ -91,6 +100,7 @@ export default class MySQLConnection {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private async init() {
         this.instantiatePool()
         await this.afterConnect()
@@ -100,6 +110,7 @@ export default class MySQLConnection {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private instantiatePool() {
         this.pool = createPool({
             ...this.config,
@@ -111,6 +122,7 @@ export default class MySQLConnection {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private async afterConnect() {
         MetadataHandler.normalizeMetadata()
         MetadataHandler.registerConnectionEntities(this, ...this.entities)
@@ -121,6 +133,7 @@ export default class MySQLConnection {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private sqlLogging(
         sql: string,
     ) {
@@ -143,6 +156,7 @@ export default class MySQLConnection {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
+    /** Instantiate a connection and returns */
     public static createConnection(
         name: string,
         config: MySQLConnectionConfig

@@ -5,9 +5,15 @@ export default abstract class Migration {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Define process to roll up migration
+     */
     public abstract up(): void
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define process to roll down migration
+     */
     public abstract down(): void
 }

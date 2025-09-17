@@ -30,23 +30,32 @@ import type {
 export default abstract class TriggerSQLBuilder<
     T extends BaseEntity
 > extends TriggerActionBuilder<Constructor<T>> {
+    /** @internal */
     public abstract timing?: TriggerTiming
+
+    /** @internal */
     public abstract event?: TriggerEvent
+
+    /** @internal */
     public abstract orientation?: TriggerOrientation
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
+    /** @internal */
     public abstract get name(): string
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public abstract get tableName(): string
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------  
+    /** @internal */
     protected abstract action(): string | TriggerAction<T>[]
 
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected createSQL(): string {
         return SQLStringHelper.normalizeSQL(`
             CREATE TRIGGER ${this.name}
@@ -58,18 +67,21 @@ export default abstract class TriggerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected alterSQL(): string {
         return `${this.createSQL()}; ${this.alterSQL()}`
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected dropSQL(): string {
         return `DROP TRIGGER ${this.name}`
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public actionSQL(): string {
         return SQLStringHelper.normalizeSQL(
             `BEGIN ${this.actionBodySQL()} END`
@@ -77,6 +89,7 @@ export default abstract class TriggerSQLBuilder<
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private actionBodySQL(): string {
         const action = this.action()
         if (typeof action === 'string') return action
@@ -88,6 +101,7 @@ export default abstract class TriggerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private handleActionSQL(action: TriggerAction<T>): string {
         if (typeof action === 'string') return action
 
@@ -112,12 +126,14 @@ export default abstract class TriggerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private setSQL({ attributes }: SetAction<T>): string {
         return `SET ${this.setValuesSQL(attributes)}`
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private insertIntoSQL({ target, attributes }: InsertIntoTableAction): (
         string
     ) {
@@ -132,6 +148,7 @@ export default abstract class TriggerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private updateTableSQL({ target, attributes, where }: UpdateTableAction): (
         string
     ) {
@@ -145,6 +162,7 @@ export default abstract class TriggerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private deleteFromSQL({ target, where }: DeleteFromAction): string {
         return new DeleteSQLBuilder(
             target,
@@ -155,6 +173,7 @@ export default abstract class TriggerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private setValuesSQL(config: TriggerActionOptions<UpdateAttributes<T>>): (
         string
     ) {

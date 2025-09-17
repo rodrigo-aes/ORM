@@ -76,8 +76,21 @@ import type {
     ConditionalQueryOptions,
 } from "../SQLBuilders"
 
+/**
+ * All polymorphic entities needs to extends BaseEntity class
+ * @example
+* class Authenticable extends BasePolymorphicEntity<[User, Admin]> {}
+*/
+
 export default abstract class BasePolymorphicEntity<Targets extends object[]> {
+    /**
+     * Entity primary key
+     */
     public primaryKey: any
+
+    /**
+     * Entity type
+     */
     public entityType!: string
 
     constructor(properties?: any) {
