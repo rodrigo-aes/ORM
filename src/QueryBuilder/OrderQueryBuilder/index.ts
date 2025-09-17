@@ -1,7 +1,7 @@
 import {
     Case,
 
-    type OrderQueryOptions,
+    type OrderQueryOptions as SQLBuilderQueryOptions,
     type OrderQueryOption,
 } from "../../SQLBuilders"
 
@@ -9,16 +9,12 @@ import {
 import CaseQueryBuilder from "../CaseQueryBuilder"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
-
+import type { Target } from "../../types/General"
 import type { CaseQueryHandler } from "../types"
+import type { OrderQueryOptions } from "./types"
 
-export default class OrderQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
+/** @internal */
+export default class OrderQueryBuilder<T extends Target> {
     private _options!: (
         OrderQueryOption<InstanceType<T>>[] |
         CaseQueryBuilder<T>
@@ -32,29 +28,20 @@ export default class OrderQueryBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public orderBy<
-        OrderClause extends (
-            OrderQueryOption<InstanceType<T>> |
-            CaseQueryHandler<T>
-        )
-    >(
-        order: OrderClause,
-        ...orders: OrderClause extends OrderQueryOption<InstanceType<T>>
-            ? OrderQueryOption<InstanceType<T>>[]
-            : never[]
-    ): this {
-        if (Array.isArray(order)) this.handleCommonOptions(
-            order,
-            ...orders as OrderQueryOption<InstanceType<T>>[]
+        Order extends OrderQueryOption<InstanceType<T>> | CaseQueryHandler<T>
+    >(...[first, ...rest]: OrderQueryOptions<T, Order>): this {
+        if (Array.isArray(first)) this.handleCommonOptions(
+            first, ...rest as OrderQueryOption<InstanceType<T>>[],
         )
 
-        else this.handleCaseOptions(order)
+        else this.handleCaseOptions(first as CaseQueryHandler<T>)
 
         return this
     }
 
     // -----------------------------------------------------------------------
 
-    public toQueryOptions(): OrderQueryOptions<InstanceType<T>> {
+    public toQueryOptions(): SQLBuilderQueryOptions<InstanceType<T>> {
         if (this._options instanceof CaseQueryBuilder) return {
             [Case]: this._options.toQueryOptions()
         }
@@ -82,4 +69,8 @@ export default class OrderQueryBuilder<
 
         clause(this._options)
     }
+}
+
+export type {
+    OrderQueryOptions
 }

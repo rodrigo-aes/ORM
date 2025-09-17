@@ -1,13 +1,15 @@
 import QueryBuilder from "../QueryBuilder"
 
 // Types
-import type { PolymorphicEntityTarget } from "../../types/General"
-import type { PolymorphicEntityMetadata } from "../../Metadata"
+import type {
+    PolymorphicEntityTarget,
+    TargetMetadata
+} from "../../types/General"
 
 export default class PolymorphicEntityQueryBuilder<
     T extends PolymorphicEntityTarget
 > extends QueryBuilder<T> {
-    declare protected metadata: PolymorphicEntityMetadata
+    declare protected metadata: TargetMetadata<T>
 
     constructor(public target: T, alias?: string) {
         super(target, alias)

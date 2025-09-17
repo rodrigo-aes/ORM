@@ -1,14 +1,10 @@
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
+import type { Target } from "../../types/General"
 
 import type { GroupQueryOptions } from "../../SQLBuilders"
 
-export default class GroupQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
+/** @internal */
+export default class GroupQueryBuilder<T extends Target> {
     private _options: GroupQueryOptions<InstanceType<T>> = []
 
     constructor(

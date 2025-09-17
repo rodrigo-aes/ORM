@@ -1,4 +1,4 @@
-import { EntityMetadata } from "../../Metadata"
+import { MetadataHandler, type EntityMetadata } from "../../Metadata"
 
 // SQL Builders
 import {
@@ -10,21 +10,34 @@ import {
 // Types
 import type { EntityTarget } from "../../types/General"
 
+/** @internal */
 export default abstract class CreateQueryBuilder<T extends EntityTarget> {
+    /** @internal */
     protected metadata: EntityMetadata
+
+    /** @internal */
     protected sqlBuilder: CreateSQLBuilder<T>
 
     constructor(
         public target: T,
         public alias?: string,
     ) {
-        this.metadata = this.loadMetadata()
-        this.sqlBuilder = this.buildSQLBuilder()
+        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.sqlBuilder = new CreateSQLBuilder(
+            this.target,
+            undefined,
+            this.alias
+        )
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public fields(...names: CreationAttibutesKey<InstanceType<T>>[]): (
+    /**
+     * Entity properties names to insert on table
+     * @param names - Properties names
+     * @returns {this} - `this`
+     */
+    public properties(...names: CreationAttibutesKey<InstanceType<T>>[]): (
         Omit<this, 'data'>
     ) {
         this.sqlBuilder.fields(...names)
@@ -33,38 +46,38 @@ export default abstract class CreateQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Entity properties values to insert resgister on table 
+     * @param values - Properties values
+     */
     public abstract values(...values: any[]): Omit<this, 'data'>
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Entity properties and values object data to insert on table
+     * @param attributes - Attributes data 
+     */
     public abstract data(
         attributes: CreationAttributesOptions<InstanceType<T>>
     ): Omit<this, 'fields' | 'values'>
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Convert `this` to operation SQL string
+     */
     public SQL(): string {
         return this.sqlBuilder.SQL()
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Convert `this` to `CreationAttributesOptions` object
+    * @returns - A object with creations attributes options
+    */
     public toQueryOptions(): CreationAttributesOptions<InstanceType<T>> {
         return this.sqlBuilder.mapAttributes()
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
-    private buildSQLBuilder(): CreateSQLBuilder<T> {
-        return new CreateSQLBuilder(
-            this.target,
-            undefined,
-            this.alias
-        )
     }
 }

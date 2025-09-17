@@ -1,33 +1,36 @@
-import {
-    MetadataHandler,
-
-    type EntityMetadata,
-    type PolymorphicEntityMetadata
-} from "../../Metadata"
+import { MetadataHandler } from "../../Metadata"
 
 // Query Handlers
 import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
-
+import type { Target, TargetMetadata } from "../../types/General"
 import type { CaseQueryOptions, ElseQueryOption } from "../../SQLBuilders"
 import type { CaseQueryTuple } from "./types"
 import type { WhereQueryHandler } from "../types"
 
-export default class CaseQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
+/**
+ * Build a `CASE` conditional options
+ */
+export default class CaseQueryBuilder<T extends Target> {
+    /** @internal */
+    protected metadata: TargetMetadata<T>
 
+    /** @internal */
     private _whens!: CaseQueryTuple<T>[]
+
+    /** @internal */
     private _else?: ElseQueryOption
+
+    /** @internal */
     public _as?: string
 
+    /** @internal */
     constructor(
+        /** @internal */
         public target: T,
+
+        /** @internal */
         public alias?: string
     ) {
         this.metadata = MetadataHandler.loadMetadata(this.target)
@@ -35,6 +38,12 @@ export default class CaseQueryBuilder<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Add a CASE WHEN clause and THEN value
+     * @param caseClause - Where query handler to define WHEN caluse
+     * @param then - THEN value
+     * @returns {this} - `this`
+     */
     public when(caseClause: WhereQueryHandler<T>, then: any): this {
         const where = new ConditionalQueryHandler(
             this.target,
@@ -53,6 +62,11 @@ export default class CaseQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a ELSE fallback clause case all WHENs clauses not matched
+     * @param value - ELSE value
+     * @returns {this} - `this`
+     */
     public else(value: any): Omit<this, 'when'> {
         this._else = value
         return this
@@ -60,12 +74,20 @@ export default class CaseQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define a AS alias to conditional result
+     * @param name - Alias/Name
+     */
     public as(name: string): void {
         this._as = name
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Convert `this` to `CaseQueryOptions` object
+     * @returns - A object with case options
+     */
     public toQueryOptions(): CaseQueryOptions<InstanceType<T>> {
         return [
             ...this._whens.map(([when, then]) => [

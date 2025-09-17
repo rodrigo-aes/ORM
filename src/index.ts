@@ -43,7 +43,7 @@ import Repository from './Repository'
 import PolymorphicRepository from './PolymorphicRepository'
 
 // Query Builders
-import type {
+import {
     EntityQueryBuilder,
     PolymorphicEntityQueryBuilder,
     ConnectionQueryBuilder,
@@ -56,20 +56,20 @@ import type {
     UpdateOrCreateQueryBuilder,
     DeleteQueryBuilder,
 
-    SelectQueryBuilder,
-    CountQueryBuilder,
-    AndQueryBuilder,
-    CaseQueryBuilder,
-    ConditionalQueryHandler,
-    JoinQueryBuilder,
+    type SelectQueryBuilder,
+    type CountQueryBuilder,
+    type AndQueryBuilder,
+    type CaseQueryBuilder,
+    type ConditionalQueryHandler,
+    type JoinQueryBuilder,
 
-    SelectQueryHandler,
-    CountQueryHandler,
-    AndQueryHandler,
-    CaseQueryHandler,
-    WhereQueryHandler,
-    JoinQueryHandler,
-    PaginateQueryBuilder
+    type SelectQueryHandler,
+    type CountQueryHandler,
+    type AndQueryHandler,
+    type CaseQueryHandler,
+    type WhereQueryHandler,
+    type JoinQueryHandler,
+    type PaginateQueryBuilder
 } from './QueryBuilder'
 
 // Relations
@@ -277,6 +277,18 @@ export {
     Repository,
     PolymorphicRepository,
 
+    EntityQueryBuilder,
+    PolymorphicEntityQueryBuilder,
+    ConnectionQueryBuilder,
+
+    FindOneQueryBuilder,
+    FindQueryBuilder,
+    BulkInsertQueryBuilder,
+    InsertQueryBuilder,
+    UpdateQueryBuilder,
+    UpdateOrCreateQueryBuilder,
+    DeleteQueryBuilder,
+
     Trigger,
     Procedure,
 
@@ -421,18 +433,6 @@ export {
     type PolymorphicHasOneOptions,
     type PolymorphicHasManyOptions,
     type PolymorphicBelongsToOptions,
-
-    type EntityQueryBuilder,
-    type PolymorphicEntityQueryBuilder,
-    type ConnectionQueryBuilder,
-
-    type FindOneQueryBuilder,
-    type FindQueryBuilder,
-    type BulkInsertQueryBuilder,
-    type InsertQueryBuilder,
-    type UpdateQueryBuilder,
-    type UpdateOrCreateQueryBuilder,
-    type DeleteQueryBuilder,
 
     type SelectQueryBuilder,
     type CountQueryBuilder,

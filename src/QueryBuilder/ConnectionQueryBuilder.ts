@@ -2,10 +2,7 @@ import QueryBuilder from "./QueryBuilder"
 import EntityQueryBuilder from "./EntityQueryBuilder"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../types/General"
+import type { Target, EntityTarget } from "../types/General"
 
 import type FindOneQueryBuilder from "./FindOneQueryBuilder"
 import type FindQueryBuilder from "./FindQueryBuilder"
@@ -24,25 +21,43 @@ import type DeleteQueryBuilder from "./DeleteQueryBuilder"
 export default class ConnectionQueryBuilder {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public findOneFrom<
-        T extends EntityTarget | PolymorphicEntityTarget
-    >(target: T, alias?: string): FindOneQueryBuilder<T> {
+    /**
+     * Instantiate a `FindOneQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {FindOneQueryBuilder<T>} - FindOneQueryBuilder
+     */
+    public findOneFrom<T extends Target>(target: T, alias?: string): (
+        FindOneQueryBuilder<T>
+    ) {
         return new QueryBuilder(target, alias).findOne()
     }
 
     // ------------------------------------------------------------------------
 
-    public findFrom<
-        T extends EntityTarget | PolymorphicEntityTarget
-    >(target: T, alias?: string): FindQueryBuilder<T> {
+    /**
+     * Instantiate a `FindQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {FindQueryBuilder<T>} - FindQueryBuilder
+     */
+    public findFrom<T extends Target>(target: T, alias?: string): (
+        FindQueryBuilder<T>
+    ) {
         return new QueryBuilder(target, alias).find()
     }
 
     // ------------------------------------------------------------------------
 
-    public paginateFrom<
-        T extends EntityTarget | PolymorphicEntityTarget
-    >(
+    /**
+     * Instantiate a `PaginateQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param page - Current page
+     * @param perPage - Results per page
+     * @param alias - Entity query alias
+     * @returns {PaginateQueryBuilder<T>} - PaginateQueryBuilder
+     */
+    public paginateFrom<T extends Target>(
         target: T,
         page: number = 1,
         perPage: number = 26,
@@ -55,22 +70,40 @@ export default class ConnectionQueryBuilder {
 
     // ------------------------------------------------------------------------
 
-    public countFrom<
-        T extends EntityTarget | PolymorphicEntityTarget
-    >(target: T, alias?: string): CountQueryBuilder<T> {
+    /**
+     * Instantiate a `CountQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {CountQueryBuilder<T>} - CountQueryBuilder
+     */
+    public countFrom<T extends Target>(target: T, alias?: string): (
+        CountQueryBuilder<T>
+    ) {
         return new QueryBuilder(target, alias).count()
     }
 
     // ------------------------------------------------------------------------
 
-    public countManyFrom<
-        T extends EntityTarget | PolymorphicEntityTarget
-    >(target: T, alias?: string): CountManyQueryBuilder<T> {
+    /**
+     * Instantiate a `CountManyQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {CountManyQueryBuilder<T>} - CountManyQueryBuilder
+     */
+    public countManyFrom<T extends Target>(target: T, alias?: string): (
+        CountManyQueryBuilder<T>
+    ) {
         return new QueryBuilder(target, alias).countMany()
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Instantiate a `InsertQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {InsertQueryBuilder<T>} - InsertQueryBuilder
+     */
     public insertInto<T extends EntityTarget>(target: T, alias?: string): (
         InsertQueryBuilder<T>
     ) {
@@ -79,6 +112,12 @@ export default class ConnectionQueryBuilder {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Instantiate a `BulkInsertQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {BulkInsertQueryBuilder<T>} - BulkInsertQueryBuilder
+     */
     public bulkInsertInto<T extends EntityTarget>(target: T, alias?: string): (
         BulkInsertQueryBuilder<T>
     ) {
@@ -87,6 +126,12 @@ export default class ConnectionQueryBuilder {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Instantiate a `UpdateQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {UpdateQueryBuilder<T>} - UpdateQueryBuilder
+     */
     public updateOn<T extends EntityTarget>(target: T, alias?: string): (
         UpdateQueryBuilder<T>
     ) {
@@ -95,6 +140,12 @@ export default class ConnectionQueryBuilder {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Instantiate a `UpdateOrCreateQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {UpdateOrCreateQueryBuilder<T>} - UpdateOrCreateQueryBuilder
+     */
     public updateOrCreateOn<T extends EntityTarget>(
         target: T,
         alias?: string
@@ -104,6 +155,12 @@ export default class ConnectionQueryBuilder {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Instantiate a `DeleteQueryBuilder` to target entity and return
+     * @param target - Target table entity
+     * @param alias - Entity query alias
+     * @returns {DeleteQueryBuilder<T>} - DeleteQueryBuilder
+     */
     public deleteFrom<T extends EntityTarget>(target: T, alias?: string): (
         DeleteQueryBuilder<T>
     ) {

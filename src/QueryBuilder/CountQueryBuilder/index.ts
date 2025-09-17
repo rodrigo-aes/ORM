@@ -18,6 +18,7 @@ import { MySQL2QueryExecutionHandler } from "../../Handlers"
 
 // Types
 import type {
+    Target,
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../types/General"
@@ -31,16 +32,21 @@ type WhereMethods = 'where' | 'whereExists' | 'and' | 'andExists' | 'orWhere'
 type CaseMethods = 'case'
 type CountMethods = 'count'
 
-export default class CountQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
+/**
+ * Build a `COUNT` option
+ */
+export default class CountQueryBuilder<T extends Target> {
+    /** @internal */
     public _as?: string
+
+    /** @internal */
     private _conditional?: (
         string |
         ConditionalQueryHandler<T> |
         CaseQueryBuilder<T>
     )
 
+    /** @internal */
     public type!: 'prop' | 'where' | 'case'
 
     constructor(
@@ -50,6 +56,11 @@ export default class CountQueryBuilder<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Select a entity property to count
+     * @param name 
+     * @returns 
+     */
     public property(name: string): Omit<this, WhereMethods | CaseMethods> {
         this._conditional = name
         this.type = 'prop'
@@ -58,7 +69,13 @@ export default class CountQueryBuilder<
     }
 
     // ------------------------------------------------------------------------
-
+    /**
+     * Add a conditional where option to match
+     * @param propertie - Entity propertie
+     * @param conditional - Value or operator
+     * @param value - Value case operator included
+     * @returns {this} - `this`
+     */
     public where<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -86,18 +103,15 @@ export default class CountQueryBuilder<
 
     // ------------------------------------------------------------------------
 
-    public whereExists<
-        Source extends (
-            EntityTarget |
-            PolymorphicEntityTarget |
-            WhereQueryHandler<T>
-        )
-    >(
+    /**
+     * Add a exists conditional option to match
+     * @param exists - A entity target or where query handler
+     * @param conditional - Where query case another table entity included
+     * @returns {this} - `this`
+     */
+    public whereExists<Source extends Target | WhereQueryHandler<T>>(
         exists: Source,
-        conditional: typeof exists extends (
-            EntityTarget |
-            PolymorphicEntityTarget
-        )
+        conditional: typeof exists extends Target
             ? WhereQueryHandler<Source>
             : never
     ): this {
@@ -111,14 +125,27 @@ export default class CountQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and where conditional option
+     */
     public and = this.where
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and exists contional option
+     */
     public andExists = this.whereExists
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Initialize and define a new OR where condtional options
+     * @param propertie - Entity propertie
+     * @param conditional - Value or operator
+     * @param value - Value case operator included
+     * @returns {this} - `this`
+     */
     public orWhere<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -144,6 +171,11 @@ export default class CountQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define a CASE clause conditional option
+     * @param caseClause - Case query handler
+     * @returns {this} - `this`
+     */
     public case(caseClause: CaseQueryHandler<T>): (
         Omit<this, WhereMethods | CountMethods>
     ) {
@@ -158,12 +190,20 @@ export default class CountQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define a AS alias/name to count result
+     * @param name - Alias/Name
+     */
     public as(name: string): void {
         this._as = name
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Execute defined operation in database
+     * @returns - Count result
+     */
     public async exec(): Promise<number> {
         return (
             await new MySQL2QueryExecutionHandler(
@@ -178,12 +218,16 @@ export default class CountQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Convert `this` to operation SQL string
+     */
     public SQL(): string {
         return this.toSQLBuilder().SQL()
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public toSQLBuilder(): CountSQLBuilder<T> {
         return CountSQLBuilder.countBuilder(
             this.target,
@@ -194,6 +238,10 @@ export default class CountQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Convert `this` to `CountQueryOption` object
+    * @returns - A object with count option
+    */
     public toQueryOptions(): CountQueryOption<InstanceType<T>> {
         if (typeof this._conditional === 'string') return this._conditional
 
@@ -210,6 +258,7 @@ export default class CountQueryBuilder<
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private verifyWhere(): void {
         if (!this._conditional) this._conditional = new ConditionalQueryHandler(
             this.target,

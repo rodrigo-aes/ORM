@@ -18,7 +18,7 @@ import {
 
 // Query Builders
 import SelectQueryBuilder from "../SelectQueryBuilder"
-import ConditionalQueryHandler from "../ConditionalQueryBuilder"
+import ConditionalQueryBuilder from "../ConditionalQueryBuilder"
 import JoinQueryBuilder from "../JoinQueryBuilder"
 import GroupQueryBuilder from "../GroupQueryBuilder"
 
@@ -31,8 +31,9 @@ import {
 
 // Types
 import type {
+    Target,
+    TargetMetadata,
     EntityTarget,
-    PolymorphicEntityTarget
 } from "../../types/General"
 
 import type { JoinQueryOptions } from "../JoinQueryBuilder"
@@ -50,12 +51,16 @@ import type {
 } from "../OperatorQueryBuilder"
 
 import type { SelectPropertiesOptions } from "../SelectQueryBuilder"
+import type { WhereQueryHandler } from "../types"
 
-export default class FindOneQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
+/**
+ * Build FindOne query
+ */
+export default class FindOneQueryBuilder<T extends Target> {
+    /** @internal */
+    protected metadata: TargetMetadata<T>
 
+    /** @internal */
     protected _options: FindOneQueryOptions<T> = {}
 
     constructor(
@@ -65,48 +70,80 @@ export default class FindOneQueryBuilder<
         this.metadata = MetadataHandler.loadMetadata(this.target)
     }
 
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    protected get selectOptions(): SelectQueryBuilder<T> {
+        if (!this._options.select) this._options.select = (
+            new SelectQueryBuilder(
+                this.target,
+                this.alias
+            )
+        )
+
+        return this._options.select
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get whereOptions(): ConditionalQueryBuilder<T> {
+        if (!this._options.where) this._options.where = (
+            new ConditionalQueryBuilder(
+                this.target,
+                this.alias
+            )
+        )
+
+        return this._options.where
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Define `SELECT` options
+     * @param selectClause - Select query handler
+     * @returns {this} - `this`
+     */
     public select(selectClause: SelectQueryHandler<T>): this {
-        this._options.select = new SelectQueryBuilder(
-            this.target,
-            this.alias
-        )
-
-        selectClause(this._options.select)
-
+        selectClause(this.selectOptions)
         return this
     }
 
     // ------------------------------------------------------------------------
-
+    /**
+     * Define entity properties in `SELECT` options
+     * @param properties - Properties names 
+     * @returns {this} - `this`
+     */
     public properties(...properties: SelectPropertiesOptions<T>[]): this {
-        if (!this._options.select) this._options.select = (
-            new SelectQueryBuilder(this.target, this.alias)
-        )
-
-        this._options.select.properties(...properties)
-
+        this.selectOptions.properties(...properties)
         return this
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define to select a inline `COUNT` with entity properties
+     * @param count - Entity property name to count or count query handler
+     * @param as - Alias/Name to count result
+     * @returns {this} - `this`
+     */
     public count(
         countClause: CountQueryHandler<T> | string,
         as?: string
     ): this {
-        if (!this._options.select) this._options.select = (
-            new SelectQueryBuilder(this.target, this.alias)
-        )
-
-        this._options.select.count(countClause, as)
-
+        this.selectOptions.count(countClause, as)
         return this
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a conditional where option to match
+     * @param propertie - Entity propertie
+     * @param conditional - Value or operator
+     * @param value - Value case operator included
+     * @returns {this} - `this`
+     */
     public where<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -120,30 +157,64 @@ export default class FindOneQueryBuilder<
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        if (!this._options.where) this._options.where = new ConditionalQueryHandler(
-            this.target, this.alias
-        )
-
-        this._options.where.where(propertie, conditional, value)
-
+        this.whereOptions.where(propertie, conditional, value)
         return this
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a exists conditional option to match
+     * @param exists - A entity target or where query handler
+     * @param conditional - Where query case another table entity included
+     * @returns {this} - `this`
+     */
+    public whereExists<Source extends Target | WhereQueryHandler<T>>(
+        exists: Source,
+        conditional: typeof exists extends Target
+            ? WhereQueryHandler<Source>
+            : never
+    ): this {
+        this.whereOptions.whereExists(exists, conditional)
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Add a and where conditional option
+     */
     public and = this.where
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and exists contional option
+     */
+    public andExists = this.whereExists
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Initialize a new OR where condtional options
+     * @returns 
+     */
     public or(): this {
         if (!this._options.where) throw new Error
-        this._options.where.or()
+        this.whereOptions.or()
 
         return this
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+    * * Initialize and define a new OR where condtional options
+    * @param propertie - Entity propertie
+    * @param conditional - Value or operator
+    * @param value - Value case operator included
+    * @returns {this} - `this`
+    */
     public orWhere<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -170,6 +241,12 @@ export default class FindOneQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add required to current entity `INNER JOIN` to query options
+     * @param related - Related entity target
+     * @param joinClause - Join query handler
+     * @returns {this} - `this`
+     */
     public innerJoin<T extends EntityTarget>(
         related: T,
         joinClause?: JoinQueryHandler<T>
@@ -189,6 +266,12 @@ export default class FindOneQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add optional to current entity `LEFT JOIN` to query options
+     * @param related - Related entity target
+     * @param joinClause - Join query handler
+     * @returns {this} - `this`
+     */
     public leftJoin<T extends EntityTarget>(
         related: T,
         joinClause?: JoinQueryHandler<T>
@@ -208,6 +291,11 @@ export default class FindOneQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add `GROUP BY` option
+     * @param columns - Properties names
+     * @returns {this} - `this`
+     */
     public groupBy(...columns: GroupQueryOptions<InstanceType<T>>): this {
         this._options.group = new GroupQueryBuilder(this.target, this.alias)
             .groupBy(...columns)
@@ -217,6 +305,12 @@ export default class FindOneQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Excute operation in database and returns Find one result
+     * @param mapTo - Switch data mapped return
+     * @default 'entity'
+     * @returns - A entity instance or `null`
+     */
     public exec<MapTo extends ResultMapOption>(mapTo: MapTo): (
         Promise<FindOneResult<T, MapTo>>
     ) {
@@ -230,12 +324,19 @@ export default class FindOneQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Convert `this` to operation SQL string
+     */
     public SQL(): string {
         return this.toSQLBuilder().SQL()
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Convert `this` to `FindOneQueryOptions` object
+    * @returns - A object with find one options
+    */
     public toQueryOptions(): SQLBuilderOptions<InstanceType<T>> {
         const { select, where, group } = this._options
 
@@ -248,6 +349,7 @@ export default class FindOneQueryBuilder<
     }
 
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected toSQLBuilder(): FindOneSQLBuilder<T> {
         return new FindOneSQLBuilder(
             this.target,
@@ -258,6 +360,7 @@ export default class FindOneQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     protected relationsToOptions(): (
         RelationsOptions<InstanceType<T>> | undefined
     ) {
@@ -278,6 +381,7 @@ export default class FindOneQueryBuilder<
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private handleRelated<Target extends EntityTarget>(
         related: Target
     ): [keyof JoinQueryOptions<T>, Target] {

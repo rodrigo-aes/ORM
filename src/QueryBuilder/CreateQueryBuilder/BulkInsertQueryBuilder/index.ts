@@ -10,11 +10,19 @@ import type {
     CreationAttributes
 } from "../../../SQLBuilders"
 
+/**
+ * Build a `BULK INSERT` query
+ */
 export default class BulkInsertQueryBuilder<
     T extends EntityTarget
 > extends CreateQueryBuilder<T> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * An array of entity properties values array to insert many registers on 
+     * table 
+     * @param values - Array of properties values
+     */
     public values(...values: any[][]): this {
         this.sqlBuilder.values(...values)
         return this
@@ -31,6 +39,10 @@ export default class BulkInsertQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Execute defined operation in database
+    * @returns - Create many result
+    */
     public async exec(): Promise<InstanceType<T>[]> {
         this.sqlBuilder.bulk = true
 

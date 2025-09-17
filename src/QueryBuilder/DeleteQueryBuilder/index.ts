@@ -7,7 +7,7 @@ import {
 } from "../../SQLBuilders"
 
 // Query Builders
-import ConditionalQueryHandler from "../ConditionalQueryBuilder"
+import ConditionalQueryBuilder from "../ConditionalQueryBuilder"
 
 // Handlers
 import {
@@ -23,10 +23,15 @@ import type {
     CompatibleOperators
 } from "../OperatorQueryBuilder"
 
+/**
+ * Build a `DELETE` query
+ */
 export default class DeleteQueryBuilder<T extends EntityTarget> {
+    /** @internal */
     private _sqlBuilder?: DeleteSQLBuilder<T>
-    private _where?: ConditionalQueryHandler<T>
 
+    /** @internal */
+    private _where?: ConditionalQueryBuilder<T>
 
     constructor(
         public target: T,
@@ -34,13 +39,32 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
     ) { }
 
     // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    /** @internal */
+    protected get whereOptions(): ConditionalQueryBuilder<T> {
+        if (!this._where) this._where = new ConditionalQueryBuilder(
+            this.target,
+            this.alias
+        )
+
+        return this._where
+    }
+
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private get sqlBuilder(): DeleteSQLBuilder<T> {
-        return this._sqlBuilder ?? this.buildSQLBuilder()
+        return this._sqlBuilder ?? this.instantiateSQLBuilder()
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Add a conditional where option to match
+     * @param propertie - Entity propertie
+     * @param conditional - Value or operator
+     * @param value - Value case operator included
+     * @returns {this} - `this`
+     */
     public where<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -54,31 +78,24 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        if (!this._where) this._where = new ConditionalQueryHandler(
-            this.target, this.alias
-        )
-
-        this._where.where(propertie, conditional, value)
-
+        this.whereOptions.where(propertie, conditional, value)
         return this
     }
 
     // ------------------------------------------------------------------------
-
-    public whereExists<
-        Source extends (
-            EntityTarget |
-            WhereQueryHandler<T>
-        )
-    >(
+    /**
+     * Add a exists conditional option to match
+     * @param exists - A entity target or where query handler
+     * @param conditional - Where query case another table entity included
+     * @returns {this} - `this`
+     */
+    public whereExists<Source extends EntityTarget | WhereQueryHandler<T>>(
         exists: Source,
-        conditional: typeof exists extends (
-            EntityTarget
-        )
+        conditional: typeof exists extends EntityTarget
             ? WhereQueryHandler<Source>
             : never
     ): this {
-        (this._where as ConditionalQueryHandler<T>).whereExists(
+        this.whereOptions.whereExists(
             exists as EntityTarget,
             conditional as WhereQueryHandler<EntityTarget>
         )
@@ -88,21 +105,38 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and where conditional option
+     */
     public and = this.where
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and exists contional option
+     */
     public andExists = this.whereExists
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Initialize a new OR where condtional options
+     * @returns 
+     */
     public or(): this {
-        this._where!.or()
+        this.whereOptions.or()
         return this
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Initialize and define a new OR where condtional options
+     * @param propertie - Entity propertie
+     * @param conditional - Value or operator
+     * @param value - Value case operator included
+     * @returns {this} - `this`
+     */
     public orWhere<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -116,12 +150,16 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
             ? OperatorType[typeof conditional]
             : never
     ) {
-        this._where!.orWhere(propertie, conditional, value)
+        this.whereOptions.orWhere(propertie, conditional, value)
         return this
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Execute defined operation in database
+    * @returns - Delete result
+    */
     public exec(): Promise<DeleteResult> {
         return new MySQL2QueryExecutionHandler(
             this.target,
@@ -133,12 +171,16 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Convert `this` to operation SQL string
+     */
     public SQL(): string {
         return this.sqlBuilder.SQL()
     }
 
     // Privates ---------------------------------------------------------------
-    private buildSQLBuilder(): DeleteSQLBuilder<T> {
+    /** @internal */
+    private instantiateSQLBuilder(): DeleteSQLBuilder<T> {
         this._sqlBuilder = new DeleteSQLBuilder(
             this.target,
             this._where?.toQueryOptions() ?? {},

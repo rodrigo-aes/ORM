@@ -1,10 +1,4 @@
-import {
-    MetadataHandler,
-
-    type EntityMetadata,
-    type PolymorphicEntityMetadata
-} from "../../Metadata"
-
+import { MetadataHandler } from "../../Metadata"
 import BaseEntity from "../../BaseEntity"
 import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 
@@ -22,17 +16,15 @@ import {
 import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
+import type { Target, TargetMetadata } from "../../types/General"
 
 import type { WhereQueryHandler } from "../types"
 
-export default class ExistsQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
+/** @internal */
+export default class ExistsQueryBuilder<T extends Target> {
+
+    protected metadata: TargetMetadata<T>
+
     private _options!: string | (
         ConditionalQueryOptions<InstanceType<T>> &
         CrossExistsQueryOptions
@@ -53,37 +45,19 @@ export default class ExistsQueryBuilder<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public exists<
-        Source extends (
-            EntityTarget |
-            PolymorphicEntityTarget |
-            WhereQueryHandler<T>
-        )
-    >(
+    public exists<Source extends Target | WhereQueryHandler<T>>(
         exists: Source,
-        conditional: typeof exists extends (
-            EntityTarget |
-            PolymorphicEntityTarget
-        )
-            ? WhereQueryHandler<Extract<Source, (
-                EntityTarget |
-                PolymorphicEntityTarget
-            )>>
+        conditional: typeof exists extends Target
+            ? WhereQueryHandler<Extract<Source, Target>>
             : never
     ): this {
-        if (
-            BaseEntity.prototype.isPrototypeOf(exists.prototype) ||
-            BasePolymorphicEntity.prototype.isPrototypeOf(exists.prototype)
-        ) {
+        if (this.asTarget(exists)) {
             const where = new ConditionalQueryHandler(
-                exists as EntityTarget | PolymorphicEntityTarget,
+                exists as Target,
                 this.alias
             );
 
-            (conditional as WhereQueryHandler<(
-                EntityTarget |
-                PolymorphicEntityTarget
-            )>)(where)
+            (conditional as WhereQueryHandler<Target>)(where)
 
             const opt = {
                 target: exists,
@@ -91,11 +65,11 @@ export default class ExistsQueryBuilder<
             }
 
             if ((this._options as CrossExistsQueryOptions)[Cross]) (
-                (this._options as CrossExistsQueryOptions
-                )[Cross]?.push(opt)
+                (this._options as CrossExistsQueryOptions)[Cross]?.push(opt)
             );
 
             (this._options as CrossExistsQueryOptions)[Cross] = [opt]
+
             return this
         }
 
@@ -114,5 +88,13 @@ export default class ExistsQueryBuilder<
 
     public toQueryOptions(): ExistsQueryOptions<InstanceType<T>> {
         return this.options
+    }
+
+    // Privates ---------------------------------------------------------------
+    private asTarget(target: Function): boolean {
+        return (
+            BaseEntity.prototype.isPrototypeOf(target.prototype) ||
+            BasePolymorphicEntity.prototype.isPrototypeOf(target.prototype)
+        )
     }
 }

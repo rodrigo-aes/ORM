@@ -14,6 +14,9 @@ import type {
     CreationAttributes
 } from "../../../SQLBuilders"
 
+/**
+ * Build `INSERT` query
+ */
 export default class InsertQueryBuilder<
     T extends EntityTarget
 > extends CreateQueryBuilder<T> {
@@ -35,6 +38,10 @@ export default class InsertQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Execute defined operation in database
+    * @returns - Create result
+    */
     public async exec(): Promise<InstanceType<T>> {
         this.sqlBuilder.bulk = false
 

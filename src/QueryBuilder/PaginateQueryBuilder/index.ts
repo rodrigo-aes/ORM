@@ -7,13 +7,13 @@ import {
 } from "../../SQLBuilders"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
+import type { Target } from "../../types/General"
 
+/**
+ * Build Paginate query
+ */
 export default class PaginateQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
+    T extends Target
 > extends FindQueryBuilder<T> {
     constructor(
         public target: T,

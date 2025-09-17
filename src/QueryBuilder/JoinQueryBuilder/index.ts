@@ -1,9 +1,4 @@
-import {
-    MetadataHandler,
-
-    type EntityMetadata,
-    type PolymorphicEntityMetadata
-} from "../../Metadata"
+import { MetadataHandler } from "../../Metadata"
 
 // Query Handlers
 import SelectQueryBuilder from "../SelectQueryBuilder"
@@ -11,6 +6,8 @@ import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Types
 import type {
+    Target,
+    TargetMetadata,
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../types/General"
@@ -27,22 +24,30 @@ import type {
 
 import type {
     SelectQueryHandler,
-    WhereQueryHandler,
+    OnQueryHandler,
     JoinQueryHandler
 } from "../types"
 
-export default class JoinQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
+/**
+ * Build `JOIN` options
+ */
+export default class JoinQueryBuilder<T extends Target> {
+    /** @internal */
+    protected metadata: TargetMetadata<T>
 
+    /** @internal */
     private _options: JoinQueryClause<T> = {
         relations: {}
     }
 
+    /** @internal */
     constructor(
+        /** @internal */
         public target: T,
+
+        /** @internal */
         public alias?: string,
+
         required?: boolean
     ) {
         this.metadata = MetadataHandler.loadMetadata(this.target)
@@ -51,6 +56,12 @@ export default class JoinQueryBuilder<
 
     // Instace Methods ========================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Add required to current entity `INNER JOIN` to query options
+     * @param related - Related entity target
+     * @param joinClause - Join query handler
+     * @returns {this} - `this`
+     */
     public innerJoin<T extends EntityTarget>(
         related: T,
         joinClause?: JoinQueryHandler<T>
@@ -70,6 +81,12 @@ export default class JoinQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add optional to current entity `LEFT JOIN` to query options
+     * @param related - Related entity target
+     * @param joinClause - Join query handler
+     * @returns {this} - `this`
+     */
     public leftJoin<T extends EntityTarget>(
         related: T,
         joinClause?: JoinQueryHandler<T>
@@ -89,6 +106,11 @@ export default class JoinQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Handle select options to related join entity
+     * @param selectClause - Select query handler
+     * @returns {this} - `this`
+     */
     public select(selectClause: SelectQueryHandler<T>): this {
         this._options.select = new SelectQueryBuilder(
             this.target,
@@ -102,7 +124,12 @@ export default class JoinQueryBuilder<
 
     // ------------------------------------------------------------------------
 
-    public on(onClause: WhereQueryHandler<T>): this {
+    /**
+     * Define conditional `ON` clause to options
+     * @param onClause - On query handler
+     * @returns {this} - `this`
+     */
+    public on(onClause: OnQueryHandler<T>): this {
         this._options.on = new ConditionalQueryHandler(
             this.target,
             this.alias
@@ -115,6 +142,10 @@ export default class JoinQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Convert `this` to `RelationOptions` object
+    * @returns - A object with relation options
+    */
     public toQueryOptions(): RelationOptions<InstanceType<T>> {
         const { required, select, on } = this._options
 
@@ -127,6 +158,7 @@ export default class JoinQueryBuilder<
     }
 
     // Privates ---------------------------------------------------------------
+    /** @internal */
     private handleRelated<Target extends EntityTarget>(
         related: Target
     ): [keyof JoinQueryOptions<T>, Target] {
@@ -148,6 +180,7 @@ export default class JoinQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private relationsToOptions(): (
         RelationsOptions<InstanceType<T>> | undefined
     ) {

@@ -86,7 +86,7 @@ export default class Repository<T extends EntityTarget> {
     /**
     *  Search the first register matched by options in database
     * @param options - Find one options
-    * @param mapTo @param mapTo - Switch data mapped return
+    * @param mapTo - Switch data mapped return
     * @default 'entity'
     * @returns - A entity instance or `null`
     */

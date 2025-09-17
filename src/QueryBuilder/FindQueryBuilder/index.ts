@@ -9,48 +9,52 @@ import {
 } from "../../SQLBuilders"
 
 // Query Builders
-import OrderQueryBuilder from "../OrderQueryBuilder"
+import OrderQueryBuilder, {
+    type OrderQueryOptions
+} from "../OrderQueryBuilder"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
-
+import type { Target } from "../../types/General"
 import type { CaseQueryHandler } from "../types"
 import type { FindQueryOptions } from "./types"
 
+/**
+ * Build Find query
+ */
 export default class FindQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
+    T extends Target
 > extends FindOneQueryBuilder<T> {
+    /** @internal */
     protected override _options: FindQueryOptions<T> = {
         relations: {}
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Define `ORDER BY` options
+     * @param order - Order options
+     * @returns {this} - `this`
+     */
     public orderBy<
-        OrderClause extends (
-            OrderQueryOption<InstanceType<T>> |
-            CaseQueryHandler<T>
-        )
-    >(
-        order: OrderClause,
-        ...orders: OrderClause extends OrderQueryOption<InstanceType<T>>
-            ? OrderQueryOption<InstanceType<T>>[]
-            : never[]
-    ): this {
+        Order extends OrderQueryOption<InstanceType<T>> | CaseQueryHandler<T>
+    >(...order: OrderQueryOptions<T, Order>): this {
         this._options.order = new OrderQueryBuilder(
             this.target,
             this.alias
         )
-            .orderBy(order, ...orders)
+            .orderBy(...order)
 
         return this
     }
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define `LIMIT` query option
+     * @param limit - Integer limit
+     * @returns {this} - `this`
+     */
     public limit(limit: number): this {
         this._options.limit = limit
         return this
@@ -58,6 +62,11 @@ export default class FindQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define `OFFSET` query option
+     * @param limit - Integer offset
+     * @returns {this} - `this`
+     */
     public offset(offset: number): this {
         this._options.offset = offset
         return this
@@ -65,6 +74,10 @@ export default class FindQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Convert `this` to `FindQueryOptions` object
+    * @returns - A object with find options
+    */
     public override toQueryOptions(): SQLBuilderOptions<InstanceType<T>> {
         const { select, where, group, order, limit, offset } = this._options
 
@@ -80,6 +93,7 @@ export default class FindQueryBuilder<
     }
 
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected override toSQLBuilder(): FindSQLBuilder<T> {
         return new FindSQLBuilder(
             this.target,

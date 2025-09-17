@@ -12,19 +12,34 @@ import { MySQL2QueryExecutionHandler } from "../../Handlers"
 // Types
 import type { EntityTarget, AsEntityTarget } from "../../types/General"
 
+/**
+ * Build a Update or Create query
+ */
 export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
+    /**
+     * @internal
+     */
     private sqlBuilder: UpdateOrCreateSQLBuilder<T>
 
     constructor(
         public target: T,
         public alias?: string
     ) {
-        this.sqlBuilder = this.instantiateSQLBuilder()
+        this.sqlBuilder = new UpdateOrCreateSQLBuilder(
+            this.target,
+            {},
+            this.alias
+        )
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public fields(...names: EntityPropertiesKeys<InstanceType<T>>[]): (
+    /**
+     * Entity properties names to insert on table
+     * @param names - Properties names
+     * @returns {this} - `this`
+     */
+    public properties(...names: EntityPropertiesKeys<InstanceType<T>>[]): (
         Omit<this, 'data'>
     ) {
         this.sqlBuilder.fields(...names)
@@ -32,7 +47,11 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
     }
 
     // ------------------------------------------------------------------------
-
+    /**
+     * Entity properties values to insert resgister on table 
+     * @param values - Properties values
+     * @returns {this} - `this`
+     */
     public values(...values: any[]): Omit<this, 'data'> {
         this.sqlBuilder.values(...values)
         return this
@@ -40,6 +59,11 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Entity properties and values object data to insert on table
+     * @param attributes - Attributes data 
+     * @returns {this} - `this`
+     */
     public data(attributes: UpdateOrCreateAttibutes<InstanceType<T>>): (
         Omit<this, 'fields' | 'values'>
     ) {
@@ -49,6 +73,10 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Execute defined operation in database
+    * @returns - Update or create result
+    */
     public exec(): Promise<InstanceType<T>> {
         return new MySQL2QueryExecutionHandler(
             this.target,
@@ -62,16 +90,10 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Convert `this` to operation SQL string
+     */
     public SQL(): string {
         return this.sqlBuilder.SQL()
-    }
-
-    // Privates ---------------------------------------------------------------
-    private instantiateSQLBuilder(): UpdateOrCreateSQLBuilder<T> {
-        return new UpdateOrCreateSQLBuilder(
-            this.target,
-            {},
-            this.alias
-        )
     }
 }

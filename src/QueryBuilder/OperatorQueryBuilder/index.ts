@@ -4,6 +4,7 @@ import { Op } from "../../SQLBuilders"
 // Types
 import type { OperatorType, CompatibleOperators } from "./types"
 
+/** @internal */
 export default class OperatorQueryBuilder {
     public static '=' = Op.Equal
     public static '!=' = Op.NotEqual

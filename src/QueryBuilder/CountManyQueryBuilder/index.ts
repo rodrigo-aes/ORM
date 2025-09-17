@@ -17,33 +17,35 @@ import {
 } from "../../Handlers"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
-import type { CaseQueryHandler, WhereQueryHandler } from "../types"
+import type { Target } from "../../types/General"
+
 import type {
     CompatibleOperators,
     OperatorType
 } from "../OperatorQueryBuilder"
 
-type WhereMethods = 'where' | 'whereExists' | 'and' | 'andExists' | 'orWhere'
-type CaseMethods = 'case'
-type CountMethods = 'count'
+import type { CaseQueryHandler, WhereQueryHandler } from "../types"
+import type { WhereMethods, CaseMethods, CountMethods } from "./types"
 
-export default class CountManyQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
+/**
+ * Build many `COUNT`s options
+ */
+export default class CountManyQueryBuilder<T extends Target> {
+    /** @internal */
     protected _options: CountQueryBuilder<T>[] = []
+
+    /** @internal */
     protected currentCount?: CountQueryBuilder<T>
 
-    constructor(
-        public target: T,
-        public alias?: string
-    ) { }
+    constructor(public target: T, public alias?: string) { }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Select a entity property to count
+     * @param name 
+     * @returns 
+     */
     public property(name: string): Omit<this, WhereMethods | CaseMethods> {
         this.handleCurrentCount()
         this.currentCount!.property(name)
@@ -53,6 +55,13 @@ export default class CountManyQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a conditional where option to match
+     * @param propertie - Entity propertie
+     * @param conditional - Value or operator
+     * @param value - Value case operator included
+     * @returns {this} - `this`
+     */
     public where<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -74,18 +83,15 @@ export default class CountManyQueryBuilder<
 
     // ------------------------------------------------------------------------
 
-    public whereExists<
-        Source extends (
-            EntityTarget |
-            PolymorphicEntityTarget |
-            WhereQueryHandler<T>
-        )
-    >(
+    /**
+     * Add a exists conditional option to match
+     * @param exists - A entity target or where query handler
+     * @param conditional - Where query case another table entity included
+     * @returns {this} - `this`
+     */
+    public whereExists<Source extends Target | WhereQueryHandler<T>>(
         exists: Source,
-        conditional: typeof exists extends (
-            EntityTarget |
-            PolymorphicEntityTarget
-        )
+        conditional: typeof exists extends Target
             ? WhereQueryHandler<Source>
             : never
     ): this {
@@ -97,14 +103,27 @@ export default class CountManyQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and where conditional option
+     */
     public and = this.where
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and exists contional option
+     */
     public andExists = this.whereExists
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Initialize and define a new OR where condtional options
+     * @param propertie - Entity propertie
+     * @param conditional - Value or operator
+     * @param value - Value case operator included
+     * @returns {this} - `this`
+     */
     public orWhere<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -126,6 +145,11 @@ export default class CountManyQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define a CASE clause conditional option
+     * @param caseClause - Case query handler
+     * @returns {this} - `this`
+     */
     public case(caseClause: CaseQueryHandler<T>): (
         Omit<this, WhereMethods | CountMethods>
     ) {
@@ -137,6 +161,10 @@ export default class CountManyQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Define a AS alias/name to count result
+     * @param name - Alias/Name
+     */
     public as(name: string): this {
         this.handleCurrentCount()
         this.currentCount!.as(name)
@@ -148,6 +176,10 @@ export default class CountManyQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Execute defined operation in database
+     * @returns - Count result
+     */
     public exec<T extends CountResult = CountResult>(): Promise<T> {
         return new MySQL2QueryExecutionHandler(
             this.target,
@@ -159,12 +191,16 @@ export default class CountManyQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Convert `this` to operation SQL string
+     */
     public SQL(): string {
         return this.toSQLBuilder().SQL()
     }
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     public toSQLBuilder(): CountSQLBuilder<T> {
         return CountSQLBuilder.countManyBuilder(
             this.target,
@@ -175,6 +211,10 @@ export default class CountManyQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+    * Convert `this` to `CountQueryOptions` object
+    * @returns - A object with count options
+    */
     public toQueryOptions(): CountQueryOptions<InstanceType<T>> {
         return Object.fromEntries(
             this._options.map(count => {
@@ -186,6 +226,7 @@ export default class CountManyQueryBuilder<
     }
 
     // Protecteds -------------------------------------------------------------
+    /** @internal */
     protected handleCurrentCount(): void {
         if (!this.currentCount) this.currentCount = new CountQueryBuilder(
             this.target,

@@ -1,9 +1,4 @@
-import {
-    MetadataHandler,
-
-    type EntityMetadata,
-    type PolymorphicEntityMetadata
-} from "../../Metadata"
+import { MetadataHandler } from "../../Metadata"
 
 // SQL Builders
 import { Op } from "../../SQLBuilders"
@@ -13,10 +8,7 @@ import OperatorQueryBuilder from "../OperatorQueryBuilder"
 import ExistsQueryBuilder from "../ExistsQueryBuilder"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
+import type { Target, TargetMetadata } from "../../types/General"
 
 import type {
     AndQueryOptions,
@@ -31,15 +23,25 @@ import type {
 
 import { WhereQueryHandler } from "../types"
 
-export default class AndQueryBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
+/**
+ * Build a `AND` conditional options
+ */
+export default class AndQueryBuilder<T extends Target> {
+    /** @internal */
+    protected metadata: TargetMetadata<T>
+
+    /** @internal */
     public _options: AndQueryOptions<InstanceType<T>> = {}
+
+    /** @internal */
     private exists?: ExistsQueryBuilder<T>
 
+    /** @internal */
     constructor(
+        /** @internal */
         public target: T,
+
+        /** @internal */
         public alias?: string
     ) {
         this.metadata = MetadataHandler.loadMetadata(this.target)
@@ -47,6 +49,7 @@ export default class AndQueryBuilder<
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
+    /** @internal */
     public get options(): AndQueryOptions<InstanceType<T>> {
         return {
             ...this._options,
@@ -56,6 +59,13 @@ export default class AndQueryBuilder<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    /**
+     * Add a conditional where option to match
+     * @param propertie - Entity propertie
+     * @param conditional - Value or operator
+     * @param value - Value case operator included
+     * @returns {this} - `this`
+     */
     public where<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
@@ -90,18 +100,15 @@ export default class AndQueryBuilder<
 
     // ------------------------------------------------------------------------
 
-    public whereExists<
-        Source extends (
-            EntityTarget |
-            PolymorphicEntityTarget |
-            WhereQueryHandler<T>
-        )
-    >(
+    /**
+     * Add a exists conditional option to match
+     * @param exists - A entity target or where query handler
+     * @param conditional - Where query case another table entity included
+     * @returns {this} - `this`
+     */
+    public whereExists<Source extends Target | WhereQueryHandler<T>>(
         exists: Source,
-        conditional: typeof exists extends (
-            EntityTarget |
-            PolymorphicEntityTarget
-        )
+        conditional: typeof exists extends Target
             ? WhereQueryHandler<Source>
             : never
     ): this {
@@ -117,17 +124,21 @@ export default class AndQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a AND required match or options
+     * @param propertie - Entity propertie
+     * @param conditional - Conditinal query options array to match one or many
+     * @returns {this} - `this`
+     */
     public andOr<
         K extends EntityPropertiesKeys<InstanceType<T>>,
         Cond extends (
-            (
-                EntityProperties<InstanceType<T>>[K] |
-                [
-                    CompatibleOperators<EntityProperties<InstanceType<T>>[K]>,
-                    EntityProperties<InstanceType<T>>[K]
-                ]
-            )[]
-        )
+            EntityProperties<InstanceType<T>>[K] |
+            [
+                CompatibleOperators<EntityProperties<InstanceType<T>>[K]>,
+                EntityProperties<InstanceType<T>>[K]
+            ]
+        )[]
     >(
         propertie: K,
         conditional: Cond
@@ -149,15 +160,25 @@ export default class AndQueryBuilder<
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and where conditional option
+     */
     public and = this.where
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Add a and exists contional option
+     */
     public andExists = this.whereExists
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Convert `this` to `AndQueryOptions` object
+     * @returns - A object with and options
+     */
     public toQueryOptions(): AndQueryOptions<InstanceType<T>> {
-        return this._options
+        return this.options
     }
 }
