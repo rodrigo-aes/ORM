@@ -10,11 +10,18 @@ import type { PolyORMConfig } from "./types"
 
 class Config {
     private config: PolyORMConfig = defaultConfig
+    public loaded: boolean = false
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get createConnections(): PolyORMConfig['createConnections'] {
         return this.config.createConnections
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get migrationsDir(): string {
+        return resolve(this.config.paths.migrationsDir)
     }
 
     // Instance Methods =======================================================
@@ -28,6 +35,8 @@ class Config {
                 ))
                     .default
             }
+
+            this.loaded = true
 
         } catch (error) { }
 

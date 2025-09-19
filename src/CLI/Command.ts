@@ -1,18 +1,30 @@
+// Utils
+import { isRegExp } from "util/types"
+
 // Types
 import type {
     CommandOptionsMap,
     CommandOptionType,
-    ComandOptionValue
+    ComandOptionValue,
+    ArgPattern
 } from "./types"
 
 export default abstract class Command {
-    private argsMap: { [position: number]: string[] } = {}
+    private argsMap: { [position: number]: ArgPattern | string[] } = {}
     private optsMap: CommandOptionsMap = {}
 
+    private handled: Set<string> = new Set
     private currentPosition: number = 0
 
-    protected args: string[] = []
+    protected args: (ArgPattern | string | number)[] = []
     protected opts: { [key: string]: any } = {}
+
+    private static isInt: Function = /^-?\d+$/.test
+    private static isFloat: Function = (
+        /^[ \t\n\r]*[+-]?(Infinity|(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)/
+    )
+        .test
+
 
     constructor(protected method?: string) { }
 
@@ -25,12 +37,15 @@ export default abstract class Command {
     public parseCommand(): void {
         this.define()
 
-        for (const part of process.argv.slice(3)) {
+        for (const [key, part] of Object.entries(process.argv.slice(3))) {
+            if (this.handled.has(key)) continue
+
             if (part.startsWith('--') || part.startsWith('-')) (
                 this.handleOption(part)
             )
-
             else this.handleArg(part)
+
+            this.handled.add(key)
         }
     }
 
@@ -39,7 +54,7 @@ export default abstract class Command {
 
     // ------------------------------------------------------------------------
 
-    protected arg(options: string[]) {
+    protected arg(options: ArgPattern | string[]) {
         const position = parseInt(Object.keys(this.argsMap).pop() ?? '0')
         this.argsMap[position + 1] = options
     }
@@ -61,14 +76,33 @@ export default abstract class Command {
     // Privates ---------------------------------------------------------------
     private handleArg(arg: string): void {
         this.currentPosition++
-        if (
-            this.argsMap[this.currentPosition] &&
-            this.argsMap[this.currentPosition].includes(arg)
-        ) (
-            this.args.push(arg)
+
+        if (this.argsMap[this.currentPosition]) this.args.push(
+            this.parseArg(this.argsMap[this.currentPosition], arg)
         )
 
         else throw new Error
+    }
+
+    // ------------------------------------------------------------------------
+
+    private parseArg(mapped: ArgPattern | string[], arg: string): (
+        string | number
+    ) {
+        if (Array.isArray(mapped) && mapped.includes(arg)) return arg
+        if (isRegExp(mapped) && mapped.test(arg)) return arg
+
+        switch (mapped) {
+            case '<?>': return arg
+
+            case "<int>": if (Command.isInt(arg)) return parseInt(arg)
+                break
+
+            case "<float>": if (Command.isFloat(arg)) return parseFloat(arg)
+                break
+        }
+
+        throw new Error
     }
 
     // ------------------------------------------------------------------------
@@ -78,31 +112,31 @@ export default abstract class Command {
         if (!this.optsMap[key]) throw new Error
 
         if (this.optsMap[key].type === 'boolean') {
+            if (value) throw new Error
             this.optsMap[key].value = true
             return
         }
 
-        value = value ?? process.argv[
-            process.argv.indexOf(option) + 1
-        ]
+        if (!value) {
+            const next = process.argv.indexOf(option) + 1
+            value = process.argv[next]
+            this.handled.add((next - 3).toString())
+        }
 
         if (!value) throw new Error
 
         switch (this.optsMap[key].type) {
             case "string":
-                if (!(value.startsWith('"') || value.startsWith("'"))) throw (
-                    new Error
-                )
-
-                this.opts[key] = value.slice(1, value.length - 1)
-                return
+                value.replace(/^(['"])(.*)\1$/, "$2")
+                this.opts[key] = value
+                break
 
             case "number":
                 value = parseFloat(value)
                 if (isNaN(value)) throw new Error
 
                 this.opts[key] = value
-                return
+                break
         }
     }
 }

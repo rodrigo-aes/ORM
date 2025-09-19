@@ -96,7 +96,7 @@ export default class TableSchema<
      * @param name - Optional id name
      * @default - 'id'
      */
-    public polymorphicId(target: EntityTarget, name?: string): void {
+    public polymorphicId(target: EntityTarget | string, name?: string): void {
         this.buildColumn('id', DataType.VARCHAR()).primary()
 
         this.buildTrigger(`${this.name}_polymorphic_pk`)
@@ -105,7 +105,7 @@ export default class TableSchema<
             .execute(PolymorphicId.actionSQL(
                 this.name,
                 name ?? 'id',
-                target.name,
+                typeof target === 'string' ? target : target.name,
             ))
     }
 

@@ -32,6 +32,12 @@ export default class TriggersMetadata extends Array<Constructor<Trigger>> {
         this.push(...triggers)
     }
 
+    // ------------------------------------------------------------------------
+
+    public toJSON(): (typeof Trigger)[] {
+        return Array.from(this)
+    }
+
     // Privates ---------------------------------------------------------------
     private register(): void {
         Reflect.defineMetadata('triggers-metadata', this, this.target)

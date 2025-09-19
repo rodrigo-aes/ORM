@@ -14,18 +14,40 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async migrate(): Promise<void> {
-        for (const [action, { name }] of this.actions) (
-            await this.execTableAction(name, action)
+    public async executeActions(): Promise<void> {
+        for (const [action, schema] of this.actions) (
+            await this.execTableAction(
+                action,
+                schema instanceof TableMigrator
+                    ? schema
+                    : TableMigrator.buildFromSchema(this, schema)
+            )
         )
     }
 
+    // ------------------------------------------------------------------------
+
+    public async dropAll(): Promise<void> {
+        for (const table of this) {
+            await table.drop(this.connection)
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    public clearActions(): void {
+        this.actions = []
+
+        for (const table of this) {
+            for (const column of table) column.actions = []
+            table.actions = []
+        }
+    }
+
     // Privates ---------------------------------------------------------------
-    private execTableAction(name: string, action: ActionType): (
+    private execTableAction(action: ActionType, table: TableMigrator): (
         Promise<void> | void
     ) {
-        const table = this.findOrThrow(name)
-
         switch (action) {
             case "CREATE": return table.create(this.connection)
             case "ALTER": return table.alter(this.connection, action)
@@ -45,7 +67,9 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
             schema => TableMigrator.buildFromSchema(migrator, schema)
         ))
 
-        migrator.actions = schema.actions
+        migrator.actions = schema.actions.map(([action, schema]) => [
+            action, TableMigrator.buildFromSchema(migrator, schema)
+        ])
 
         return migrator
     }

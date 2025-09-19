@@ -1,1 +1,1 @@
-export type DeleteMigrationArgs = [string]
+export type DeleteMigrationArgs = [string | number]

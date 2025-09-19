@@ -98,7 +98,10 @@ export default class ColumnSchema {
 
     /** @internal */
     public get dependence(): string | undefined {
-        if (this.map.isForeignKey) return (
+        if (
+            this.map.isForeignKey &&
+            this.map.references?.map.constrained
+        ) return (
             this.map.references!.map.tableName as string
         )
     }

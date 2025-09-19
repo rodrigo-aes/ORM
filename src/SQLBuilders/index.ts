@@ -53,8 +53,7 @@ import {
     ProceduresHandler,
     InsertMigration,
     DeleteMigration,
-    MigrateRollProcedure,
-    MigrateRollbackProcedure
+    MoveMigration,
 } from "./Procedures"
 
 import {
@@ -135,8 +134,7 @@ export {
     ProceduresHandler,
     InsertMigration,
     DeleteMigration,
-    MigrateRollProcedure,
-    MigrateRollbackProcedure,
+    MoveMigration,
 
     TableSQLBuilder,
     ColumnSQLBuilder,

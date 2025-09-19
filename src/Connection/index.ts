@@ -1,4 +1,8 @@
+import 'reflect-metadata'
 import { createPool, type Pool } from 'mysql2/promise'
+
+// Config
+import Config from '../Config'
 
 // Metadata
 import { ConnectionsMetadata, MetadataHandler } from '../Metadata'
@@ -102,6 +106,7 @@ export default class MySQLConnection {
 
     /** @internal */
     private async init() {
+        await Config.load()
         this.instantiatePool()
         await this.afterConnect()
 

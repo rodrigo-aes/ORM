@@ -2,9 +2,6 @@ import 'reflect-metadata'
 
 import type MySQLConnection from '../../Connection'
 
-// Handlers
-import MetadataHandler from '../MetadataHandler'
-
 // Objects
 // Data Type
 import DataType, {
@@ -137,22 +134,27 @@ import ScopesMetadata, {
     type ScopesMetadataJSON
 } from './ScopesMetadata'
 
+// Computed Properties
 import ComputedPropertiesMetadata, {
     type ComputedPropertyFunction,
     type ComputedPropertiesJSON
 } from './ComputedPropertiesMetadata'
 
+// Triggers
 import TriggersMetadata from './TriggersMetadata'
 
+// Collections
 import CollectionsMetadata, {
     CollectionsMetadataHandler,
     type CollectionsMetadataJSON
 } from './CollectionsMetadata'
 
+// Pagintions
 import PaginationsMetadata, {
     PaginationMetadataHandler
 } from './PaginationsMetadata'
 
+// Processes
 import { EntityToJSONProcessMetadata } from '../ProcessMetadata'
 
 // Types
@@ -161,45 +163,20 @@ import type { EntityMetadataInitMap, EntityMetadataJSON } from './types'
 
 export default class EntityMetadata {
     public connection?: MySQLConnection
-
     public tableName!: string
-
-    public columns: ColumnsMetadata = ColumnsMetadata.findOrBuild(this.target)
-
-    public relations?: RelationsMetadata = RelationsMetadata.find(this.target)
-
-    public joinTables?: JoinTableMetadata[]
-
-    public repository!: typeof Repository<any>
-
-    public hooks?: HooksMetadata = HooksMetadata.find(this.target)
-
-    public scopes?: ScopesMetadata = ScopesMetadata.find(this.target)
-
-    public computedProperties?: ComputedPropertiesMetadata = (
-        ComputedPropertiesMetadata.find(this.target)
-    )
-
-    public triggers: TriggersMetadata = TriggersMetadata.findOrBuild(
-        this.target
-    )
-
-    public collections?: CollectionsMetadata = CollectionsMetadata.find(
-        this.target
-    )
-
-    public paginations?: PaginationsMetadata = PaginationsMetadata.find(
-        this.target
-    )
 
     constructor(
         public target: EntityTarget,
         initMap?: EntityMetadataInitMap
     ) {
         this.fill(initMap)
-        this.loadJoinTables()
-        this.loadRepository()
         this.register()
+
+        if (!this.joinTables) Reflect.defineMetadata(
+            'join-tables',
+            [],
+            this.target
+        )
     }
 
     // Getters ================================================================
@@ -210,8 +187,68 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
+    public get columns(): ColumnsMetadata {
+        return ColumnsMetadata.findOrBuild(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relations(): RelationsMetadata | undefined {
+        return RelationsMetadata.find(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get joinTables(): JoinTableMetadata[] {
+        return Reflect.getOwnMetadata('join-tables', this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get repository(): typeof Repository<any> {
+        return Reflect.getOwnMetadata('repository', this.target) ?? Repository
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get hooks(): HooksMetadata | undefined {
+        return HooksMetadata.find(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get scopes(): ScopesMetadata | undefined {
+        return ScopesMetadata.find(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get computedProperties(): ComputedPropertiesMetadata | undefined {
+        return ComputedPropertiesMetadata.find(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get triggers(): TriggersMetadata {
+        return TriggersMetadata.findOrBuild(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get collections(): CollectionsMetadata | undefined {
+        return CollectionsMetadata.find(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get paginations(): PaginationsMetadata | undefined {
+        return PaginationsMetadata.find(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
     public get foreignKeys(): ColumnMetadata[] {
-        return [...this.columns].filter(({ isForeignKey }) => isForeignKey)
+        return this.columns.filter(({ isForeignKey }) => isForeignKey)
     }
 
     // ------------------------------------------------------------------------
@@ -246,7 +283,7 @@ export default class EntityMetadata {
     // ------------------------------------------------------------------------
 
     public defineRepository(repository: typeof Repository<any>): void {
-        this.repository = repository
+        Reflect.defineMetadata('repository', repository, this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -292,8 +329,6 @@ export default class EntityMetadata {
         name?: string
     ) {
         const joinTable = new JoinTableMetadata(relateds, name)
-
-        if (!this.joinTables) this.joinTables = []
         this.joinTables.push(joinTable)
 
         return joinTable
@@ -324,21 +359,6 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    private loadJoinTables() {
-        this.joinTables = Reflect.getOwnMetadata('join-tables', this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadRepository() {
-        this.repository = Reflect.getOwnMetadata(
-            'repository', this.target
-        )
-            ?? Repository
-    }
-
-    // ------------------------------------------------------------------------
-
     private buildJSON<T extends EntityTarget = any>(): (
         EntityMetadataJSON | undefined
     ) {
@@ -346,14 +366,14 @@ export default class EntityMetadata {
             target: this.target as T,
             name: this.name,
             tableName: this.tableName,
+            repository: this.repository,
             columns: this.columns.toJSON(),
             relations: this.relations?.toJSON(),
             joinTables: this.joinTables?.map(table => table.toJSON()),
-            repository: this.repository,
             hooks: this.hooks?.toJSON(),
             scopes: this.scopes?.toJSON(),
             computedProperties: this.computedProperties?.toJSON(),
-            triggers: [...this.triggers ?? []],
+            triggers: this.triggers.toJSON(),
             collections: this.collections?.toJSON(),
             paginations: this.paginations?.toJSON(),
         }

@@ -3,8 +3,7 @@ import SyncManyToMany from "../SyncManyToMany"
 import {
     InsertMigration,
     DeleteMigration,
-    MigrateRollProcedure,
-    MigrateRollbackProcedure
+    MoveMigration
 } from "../MigrationProcedures"
 
 // Types
@@ -21,8 +20,7 @@ export default class ProceduresHandler {
 
         InsertMigration,
         DeleteMigration,
-        MigrateRollProcedure,
-        MigrateRollbackProcedure
+        MoveMigration
     ]
 
     // Static Methods =========================================================

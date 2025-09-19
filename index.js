@@ -1,1 +1,1 @@
-import { MySQLConnection } from 'poly-orm'
+import 'poly-orm'

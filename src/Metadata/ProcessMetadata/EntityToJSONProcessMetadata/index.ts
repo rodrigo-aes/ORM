@@ -27,8 +27,8 @@ class EntityToJSONProcessMetadata extends AsyncLocalStorage<
 
     public shouldAdd(entityName: string): boolean {
         if (this.addedEntities.has(entityName)) return false
-
         this.addedEntities.add(entityName)
+
         return true
     }
 

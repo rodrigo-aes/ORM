@@ -1,7 +1,7 @@
 import Procedure from "../../Procedure"
 
 // Helpers
-import { SQLStringHelper, PropertySQLHelper } from "../../../../Helpers"
+import { PropertySQLHelper } from "../../../../Helpers"
 
 // Types
 import type MySQLConnection from "../../../../Connection"
@@ -21,8 +21,11 @@ export default class InsertMigration extends Procedure {
 
             IF new_order IS NOT NULL THEN
                 UPDATE __migrations
-                SET \`order\` = \`order\` + 1
-                WHERE \`order\` >= new_order;
+                SET 
+                    \`order\` = \`order\` + 1,
+                    \`updatedAt\` = NOW()
+                WHERE \`order\` >= new_order
+                ORDER BY \`order\` DESC;
 
                 INSERT INTO __migrations (
                     \`name\`, \`order\`, \`createdAt\`, \`updatedAt\`
@@ -40,9 +43,18 @@ export default class InsertMigration extends Procedure {
                 VALUES (new_name, last_order, NOW(), NOW());
             END IF;
 
-            SELECT * FROM __migrations
-            WHERE id = LAST_INSERT_ID()
-            LIMIT 1;
+            IF new_order IS NOT NULL THEN
+                SELECT \`name\`, \`order\`, \`fileName\`, \`name\` 
+                FROM __migrations
+                WHERE \`order\` >= new_order
+                ORDER BY
+                    CASE WHEN id = LAST_INSERT_ID() THEN 0 ELSE 1 END,
+                    \`order\`;
+            ELSE
+                SELECT \`name\`, \`order\`, \`fileName\`, \`name\` 
+                FROM __migrations
+                WHERE id = LAST_INSERT_ID();
+            END IF;
         `
     }
 
@@ -58,10 +70,8 @@ export default class InsertMigration extends Procedure {
     // ------------------------------------------------------------------------
 
     public static SQL(...args: InsertMigrationArgs): string {
-        return SQLStringHelper.normalizeSQL(`
-            CALL ${this.name} (
-                ${args.map(arg => arg ? PropertySQLHelper.valueSQL(arg) : 'NULL')}
-            )
-        `)
+        return `CALL ${this.name} (${(
+            args.map(arg => arg ? PropertySQLHelper.valueSQL(arg) : 'NULL')
+        )})`
     }
 }

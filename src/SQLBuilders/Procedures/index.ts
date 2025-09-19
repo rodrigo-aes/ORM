@@ -12,8 +12,7 @@ import SyncManyToMany, {
 import {
     InsertMigration,
     DeleteMigration,
-    MigrateRollProcedure,
-    MigrateRollbackProcedure
+    MoveMigration
 } from "./MigrationProcedures"
 
 export {
@@ -24,8 +23,7 @@ export {
 
     InsertMigration,
     DeleteMigration,
-    MigrateRollProcedure,
-    MigrateRollbackProcedure,
+    MoveMigration,
 
     type UpdateOrCreateArgs,
     type SyncManyToManyArgs

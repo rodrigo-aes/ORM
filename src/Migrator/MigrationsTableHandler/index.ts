@@ -1,0 +1,296 @@
+// Metadata
+import { DataType } from "../../Metadata"
+
+// Migrators
+import { TableMigrator, ColumnMigrator } from "../DatabaseMigrator"
+
+// Procedures
+import {
+    InsertMigration,
+    DeleteMigration,
+    MoveMigration,
+} from "../../SQLBuilders"
+
+// Helpers
+import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
+
+// Types
+import type MySQLConnection from "../../Connection"
+import type { MigrationProps, MigrationData } from "./types"
+
+export default class MigrationsTableHandler {
+    public static readonly tableName: string = '__migrations'
+
+    constructor(private connection: MySQLConnection) { }
+
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public create(): Promise<void> {
+        return MigrationsTableHandler.buildMigrator().create(this.connection)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public drop(): Promise<void> {
+        return MigrationsTableHandler.buildMigrator().drop(this.connection)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async findOne(name: string): Promise<MigrationProps> {
+        const [{ order, name: _name, fileName }] = await this.connection.query(
+            MigrationsTableHandler.findOneSQL(name)
+        )
+
+        return [order, _name, fileName]
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async insert(name: string, position?: number) {
+        const [[inserted, ...reordered]] = await InsertMigration
+            .call(this.connection, name, position)
+
+        return [inserted, reordered] as [MigrationData, MigrationData[]]
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async delete(id: string | number): Promise<number> {
+        const [_, [{ ['@deleted']: deleted }]] = (
+            await DeleteMigration.call(this.connection, id)
+        )
+
+        return deleted
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async move(from: number, to: number): Promise<void> {
+        await MoveMigration.call(this.connection, from, to)
+        console.log(await this.connection.query('SELECT `order`, `name` from __migrations'))
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async toRoll(): Promise<MigrationData[]> {
+        return this.connection.query(MigrationsTableHandler.toRollSQL())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async toRollback(): Promise<MigrationData[]> {
+        return this.connection.query(MigrationsTableHandler.toRollbackSQL())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async setMigrated(id: string | number, time: number): Promise<void> {
+        await this.connection.query(
+            MigrationsTableHandler.setMigratedSQL(id, time)
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async unsetMigrated(id: string | number): Promise<void> {
+        await this.connection.query(
+            MigrationsTableHandler.unsetMigratedSQL(id)
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async unsetMigratedAll(): Promise<void> {
+        await this.connection.query(
+            MigrationsTableHandler.unsetMigratedAllSQL()
+        )
+    }
+
+    public async nextMigrationTime(): Promise<number> {
+        const [{ next }] = await this.connection.query(
+            MigrationsTableHandler.nextMigrationTimeSQL()
+        )
+
+        return next
+    }
+
+    // Static Methods =========================================================
+    // Privates ---------------------------------------------------------------
+    private static findOneSQL(name: string): string {
+        name = PropertySQLHelper.valueSQL(name)
+
+        return SQLStringHelper.normalizeSQL(`
+            SELECT \`order\`, \`name\`, \`fileName\` FROM ${this.name}
+            WHERE \`name\` = ${name} OR \`fileName\` = ${name};
+        `)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static toRollSQL(): string {
+        return SQLStringHelper.normalizeSQL(`
+            SELECT \`name\`, \`order\`, \`fileName\` FROM __migrations
+            WHERE migrated = FALSE
+        `)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static toRollbackSQL(): string {
+        return SQLStringHelper.normalizeSQL(`
+            SELECT \`name\`, \`order\`, \`fileName\` FROM __migrations
+            WHERE 
+                migrated = TRUE 
+                AND migratedTime = COALESCE(
+                    (SELECT MAX(migratedTime) FROM __migrations), 1
+                )
+        `)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static setMigratedSQL(id: string | number, time: number): string {
+        return SQLStringHelper.normalizeSQL(`
+            UPDATE __migrations
+            SET
+                migrated = TRUE,
+                migratedTime = ${time},
+                migratedAt = NOW(),
+                updatedAt = NOW()
+            WHERE \`name\` = "${id}"
+                OR \`fileName\` = "${id}"
+                OR (
+                    "${id}" REGEXP '^[0-9]+$' AND 
+                    \`order\` = CAST("${id}" AS UNSIGNED)
+                );   
+        `)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static unsetMigratedSQL(id: string | number): string {
+        return SQLStringHelper.normalizeSQL(`
+            UPDATE __migrations
+            SET
+                migrated = FALSE,
+                migratedTime = NULL,
+                migratedAt = NULL
+            WHERE \`name\` = "${id}"
+                OR \`fileName\` = "${id}"
+                OR (
+                    "${id}" REGEXP '^[0-9]+$' AND 
+                    \`order\` = CAST("${id}" AS UNSIGNED)
+                );  
+        `)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static unsetMigratedAllSQL(): string {
+        return SQLStringHelper.normalizeSQL(`
+            UPDATE __migrations SET
+                migrated = FALSE,
+                migratedTime = NULL,
+                migratedAt = NULL;  
+        `)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static nextMigrationTimeSQL(): string {
+        return SQLStringHelper.normalizeSQL(`
+            SELECT COALESCE(MAX(migratedTime), 1) + 1 AS next
+            FROM __migrations    
+        `)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static buildMigrator(): TableMigrator {
+        const { tableName } = MigrationsTableHandler
+
+        return new TableMigrator(
+            undefined,
+            tableName,
+
+            new ColumnMigrator({
+                tableName,
+                name: 'id',
+                dataType: DataType.INT('BIG'),
+                unsigned: true,
+                autoIncrement: true,
+                primary: true
+            }),
+
+            new ColumnMigrator({
+                tableName,
+                name: 'name',
+                dataType: DataType.VARCHAR(),
+                unique: true
+            }),
+
+            new ColumnMigrator({
+                tableName,
+                name: 'order',
+                dataType: DataType.INT(),
+                unique: true
+            }),
+
+            new ColumnMigrator({
+                tableName,
+                name: 'fileName',
+                dataType: DataType.COMPUTED(
+                    DataType.VARCHAR(),
+                    `CONCAT(\`order\`, '-', \`name\`, '-',
+                         DATE_FORMAT(\`createdAt\`, '%Y-%m-%d')
+                    )
+                    `,
+                    "STORED"
+                ),
+            }),
+
+            new ColumnMigrator({
+                tableName,
+                name: 'migrated',
+                dataType: DataType.BOOLEAN(),
+                defaultValue: false
+            }),
+
+            new ColumnMigrator({
+                tableName,
+                name: 'migratedTime',
+                dataType: DataType.INT(),
+                nullable: true,
+                defaultValue: null
+            }),
+
+            new ColumnMigrator({
+                tableName,
+                name: 'migratedAt',
+                dataType: DataType.TIMESTAMP(),
+                nullable: true,
+                defaultValue: null,
+            }),
+
+            new ColumnMigrator({
+                tableName,
+                name: 'createdAt',
+                dataType: DataType.TIMESTAMP(),
+                defaultValue: Date.now,
+            }),
+
+            new ColumnMigrator({
+                tableName,
+                name: 'updatedAt',
+                dataType: DataType.TIMESTAMP(),
+                defaultValue: Date.now,
+            }),
+        )
+    }
+}
+
+export {
+    type MigrationData,
+    type MigrationProps
+}

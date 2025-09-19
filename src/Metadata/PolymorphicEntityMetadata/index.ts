@@ -40,17 +40,7 @@ export default class PolymorphicEntityMetadata {
     private _columns?: PolymorphicColumnsMetadata
     private _relations?: PolymorphicRelationsMetadata
 
-    public repository!: typeof PolymorphicRepository<any>
-
-    public hooks?: HooksMetadata
-    public scopes?: ScopesMetadata
-
     public exclude?: string[] = []
-    public combined?: CombinedColumns
-
-    public computedProperties?: ComputedPropertiesMetadata
-    public collections?: CollectionsMetadata
-    public paginations?: PaginationsMetadata
 
     constructor(
         public tableName: string,
@@ -62,21 +52,9 @@ export default class PolymorphicEntityMetadata {
         this.loadColumns()
         this.loadRelations()
 
-        if (this.target) {
-            this.hooks = HooksMetadata.find(this.target)
-            this.scopes = ScopesMetadata.find(this.target)
-            this.computedProperties = ComputedPropertiesMetadata.find(
-                this.target
-            )
-            this.collections = CollectionsMetadata.find(this.target)
-            this.paginations = PaginationsMetadata.find(this.target)
-
-            this.loadCombined()
-            this.mergeCombined()
-        }
+        if (this.target) this.mergeCombined()
 
         this.register()
-        this.loadRepository()
 
     }
 
@@ -89,7 +67,7 @@ export default class PolymorphicEntityMetadata {
     // ------------------------------------------------------------------------
 
     public get targetName(): string {
-        return this.target?.name.toLowerCase() ?? this.tableName
+        return this.target?.name ?? this.tableName
             .split('_')
             .map(word => (
                 word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
@@ -132,6 +110,49 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
+    public get repository(): typeof PolymorphicRepository<any> {
+        return Reflect.getOwnMetadata('repository', this.target!)
+            ?? PolymorphicRepository
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get hooks(): HooksMetadata | undefined {
+        return HooksMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get scopes(): ScopesMetadata | undefined {
+        return ScopesMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get combined(): CombinedColumns {
+        return Reflect.getOwnMetadata('combined-columns', this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get computedProperties(): ComputedPropertiesMetadata | undefined {
+        return ComputedPropertiesMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get collections(): CollectionsMetadata | undefined {
+        return CollectionsMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get paginations(): PaginationsMetadata | undefined {
+        return PaginationsMetadata.find(this.target!)
+    }
+
+    // ------------------------------------------------------------------------
+
     public get foreignKeys(): PolymorphicColumnMetadata[] {
         return this.columns.filter(({ isForeignKey }) => isForeignKey)
     }
@@ -163,7 +184,7 @@ export default class PolymorphicEntityMetadata {
     public defineRepository(repository: typeof PolymorphicRepository<any>): (
         void
     ) {
-        this.repository = repository
+        Reflect.defineMetadata('repository', repository, this.target!)
     }
 
     // ------------------------------------------------------------------------
@@ -183,7 +204,6 @@ export default class PolymorphicEntityMetadata {
     // ------------------------------------------------------------------------
 
     public combineColumn(name: string, options: CombinedColumnOptions): void {
-        if (!this.combined) this.combined = {}
         this.combined[name] = options
     }
 
@@ -218,9 +238,9 @@ export default class PolymorphicEntityMetadata {
                 this.sources = this.sources()
             )
 
-            this._entities = Object.fromEntries(this.sources.map(
-                source => [source.name, source]
-            ))
+            this._entities = Object.fromEntries(
+                this.sources.map(source => [source.name, source])
+            )
 
         } catch (error) {
             this._entities = {}
@@ -251,23 +271,12 @@ export default class PolymorphicEntityMetadata {
 
         this._columns = new PolymorphicColumnsMetadata(
             this.target,
-            metas.flatMap(meta => [
-                ...[...meta.columns].filter(
-                    ({ name }) => !this.exclude?.includes(name)
-                )
-            ])
+            metas.flatMap(meta => meta.columns
+                .filter(({ name }) => !this.exclude?.includes(name))
+            )
         )
 
         return this._columns
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadRepository() {
-        this.repository = Reflect.getOwnMetadata(
-            'repository', this.target!
-        )
-            ?? PolymorphicRepository
     }
 
     // ------------------------------------------------------------------------
@@ -280,25 +289,13 @@ export default class PolymorphicEntityMetadata {
 
     private loadRelations(): PolymorphicRelationsMetadata | undefined {
         const metas = Object.values(this.sourcesMetadata)
-        const relations = metas.flatMap(meta => [...meta.relations ?? []])
+        const relations = metas.flatMap(meta => meta.relations ?? [])
 
         if (relations.length > 0) this._relations = (
-            new PolymorphicRelationsMetadata(
-                this.target,
-                ...relations
-            )
+            new PolymorphicRelationsMetadata(this.target, ...relations)
         )
 
         return this._relations
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadCombined() {
-        this.combined = Reflect.getOwnMetadata(
-            'combined-column',
-            this.target!
-        )
     }
 
     // ------------------------------------------------------------------------

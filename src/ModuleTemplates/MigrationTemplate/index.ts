@@ -1,10 +1,13 @@
 import ModuleTemplate from "../ModuleTemplate"
 
-// Components
-import TableMigrationImplements from "./TableMigrationImplements"
+// Config
+import Config from "../../Config"
 
 // Utils
-import { resolve } from "path"
+import { join } from "path"
+
+// Components
+import TableMigrationImplements from "./TableMigrationImplements"
 
 // Types
 import type { EntityMetadata, DataType } from "../../Metadata"
@@ -37,7 +40,7 @@ export default class MigrationTemplate extends ModuleTemplate {
     // ------------------------------------------------------------------------
 
     protected get path(): string {
-        return resolve(`src/TestTools/Migrations/${this.dir}`)
+        return join(Config.migrationsDir, this.dir)
     }
 
     // ------------------------------------------------------------------------
@@ -53,9 +56,12 @@ export default class MigrationTemplate extends ModuleTemplate {
     // ------------------------------------------------------------------------
 
     protected get shouldImportDataType(): boolean {
-        return [...this.schema, ...this.previous ?? []].some(
-            ({ dataType }) => ['computed', 'json-ref'].includes(
-                (dataType as DataType).type
+        return (
+            this.implements === 'sync' &&
+            [...this.schema, ...this.previous ?? []].some(
+                ({ dataType }) => ['computed', 'json-ref'].includes(
+                    (dataType as DataType).type
+                )
             )
         )
     }
@@ -145,7 +151,7 @@ export default class MigrationTemplate extends ModuleTemplate {
         const reverse = name === 'down'
 
         return this.indentMany([
-            `public ${name}(): void {`,
+            `public ${name}() {`,
             [
                 sync
                     ? this.syncImplement(reverse)
@@ -161,7 +167,7 @@ export default class MigrationTemplate extends ModuleTemplate {
     private defaultImplement(reverse: boolean = false): string {
         switch (reverse ? this.invertAction() : this.action) {
             case "CREATE": return this.defaultCreateTableMethod
-            case "ALTER": return this.defaultCreateTableMethod
+            case "ALTER": return this.defaultAlterTableMethod
             case "DROP": return this.defaultDropTableMethod
 
             default: throw new Error

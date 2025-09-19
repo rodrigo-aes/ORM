@@ -1,1 +1,3 @@
-export type MigrationCommanderMethod = 'create' | 'sync'
+export type MigrationCommanderMethod = (
+    'init' | 'run' | 'back' | 'reset' | 'sync' | 'create' | 'delete' | 'move'
+)

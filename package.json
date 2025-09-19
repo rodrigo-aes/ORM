@@ -8,7 +8,8 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "test": "tsx ./src/TestTools/index.ts"
+    "test": "tsx ./src/TestTools/index.ts",
+    "build": "tsc && tsx ./scripts/FixDistImportErrors.ts"
   },
   "bin": {
     "poly-cli": "cli.js"

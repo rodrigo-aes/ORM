@@ -15,3 +15,5 @@ export type CommandOptionsMap = {
         defaultValue?: ComandOptionValue
     }
 }
+
+export type ArgPattern = RegExp | '<?>' | '<int>' | '<float>'

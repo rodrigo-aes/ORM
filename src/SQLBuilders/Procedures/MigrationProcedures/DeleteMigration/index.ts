@@ -1,5 +1,8 @@
 import Procedure from "../../Procedure"
 
+// Helpers
+import { SQLStringHelper } from "../../../../Helpers"
+
 // Types
 import type MySQLConnection from "../../../../Connection"
 import type { DeleteMigrationArgs } from "./types"
@@ -7,21 +10,28 @@ import type { DeleteMigrationArgs } from "./types"
 export default class DeleteMigration extends Procedure {
     public argsSQL(): string {
         return `
-            IN unique_identifier VARCHAR(255)
+            IN unique_identifier VARCHAR(255),
+            OUT deleted_order INT
         `
     }
 
     public proccessSQL(): string {
         return `
-            DECLARE deleted_order INT;
-
             SELECT \`order\` INTO deleted_order FROM __migrations
                 WHERE \`name\` = unique_identifier
-                OR \`fileName\` = unique_identifier;    
+                OR \`fileName\` = unique_identifier
+                OR (
+                    unique_identifier REGEXP '^[0-9]+$' AND 
+                    \`order\` = CAST(unique_identifier AS UNSIGNED)
+                );   
 
             DELETE FROM __migrations
                 WHERE \`name\` = unique_identifier
-                OR \`fileName\` = unique_identifier;
+                OR \`fileName\` = unique_identifier
+                OR (
+                    unique_identifier REGEXP '^[0-9]+$' AND 
+                    \`order\` = CAST(unique_identifier AS UNSIGNED)
+                );
 
             UPDATE __migrations 
                 SET \`order\` = \`order\` - 1
@@ -41,6 +51,9 @@ export default class DeleteMigration extends Procedure {
     // ------------------------------------------------------------------------
 
     public static SQL(...args: DeleteMigrationArgs): string {
-        return `CALL ${this.name} (${args.map(arg => `"${arg}"`)})`
+        return SQLStringHelper.normalizeSQL(`
+            CALL ${this.name} (${args.map(arg => `"${arg}"`)}, @deleted);
+            SELECT @deleted    
+        `)
     }
 }

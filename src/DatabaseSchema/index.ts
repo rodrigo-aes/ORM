@@ -173,7 +173,7 @@ export default class DatabaseSchema<
     protected triggersSchema(): TriggersSchema {
         if (this.triggers) return this.triggers
 
-        this.triggers = TriggersSchema.buildFromMetadatas(
+        return this.triggers = TriggersSchema.buildFromMetadatas(
             this.connection,
             ...this.connection.entities.flatMap(
                 target => {
@@ -182,8 +182,6 @@ export default class DatabaseSchema<
                 }
             )
         )
-
-        return this.triggers
     }
 
     // Static Methods =========================================================

@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+
 import CLI, {
     MigrationCommander
 } from './src/CLI'
