@@ -6,7 +6,12 @@ import ColumnMigrator from "./ColumnMigrator"
 // Types
 import type MySQLConnection from "../../../Connection"
 import type DatabaseSchema from "../../../DatabaseSchema"
-import type { TableSchema, ActionType } from "../../../DatabaseSchema"
+import {
+    TableSchema,
+    ColumnSchema,
+    ForeignKeyReferencesSchema,
+    ActionType
+} from "../../../DatabaseSchema"
 export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
@@ -26,6 +31,7 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
         connection: MySQLConnection,
         action: Omit<ActionType, 'CREATE'>
     ): Promise<void> {
+        this.prepareChildsActions()
         await connection.query(this.migrateAlterSQL(action))
     }
 
@@ -40,11 +46,23 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
     public action(connection: MySQLConnection, action: ActionType): (
         Promise<void> | void
     ) {
+        this.prepareChildsActions()
+
         switch (action) {
             case "CREATE": return this.create(connection)
             case "ALTER": return this.alter(connection, action)
             case "DROP": return this.drop(connection)
         }
+    }
+
+    // Privates ---------------------------------------------------------------
+    private prepareChildsActions(): void {
+        this.actions = this.actions.map(([action, schema]) => [
+            action,
+            schema instanceof ColumnSchema
+                ? ColumnMigrator.buildFromSchema(schema)
+                : schema
+        ])
     }
 
     // Static Methods =========================================================

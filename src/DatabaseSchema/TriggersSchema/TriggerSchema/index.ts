@@ -41,7 +41,8 @@ export default class TriggerSchema<
     /** @internal */
     constructor(initMap: TriggerSchemaInitMap) {
         super()
-        Object.assign(this, initMap)
+        const { action, ...rest } = initMap
+        Object.assign(this, { _action: action, ...rest })
     }
 
     // Instance Methods =======================================================

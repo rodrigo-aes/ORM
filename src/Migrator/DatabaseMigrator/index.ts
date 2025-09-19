@@ -1,5 +1,6 @@
 import DatabaseSchema, { type TableSchema } from "../../DatabaseSchema"
 import TableMigrator, { ColumnMigrator } from "./TableMigrator"
+import TriggersMigrator from "./TriggersMigrator"
 
 // Types
 import type MySQLConnection from "../../Connection"
@@ -14,15 +15,22 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async executeActions(): Promise<void> {
+    public async executeActions(clear: boolean = false): Promise<void> {
         for (const [action, schema] of this.actions) (
-            await this.execTableAction(
-                action,
-                schema instanceof TableMigrator
-                    ? schema
-                    : TableMigrator.buildFromSchema(this, schema)
+            await (schema instanceof TableMigrator
+                ? schema
+                : TableMigrator.buildFromSchema(this, schema)
             )
+                .action(this.connection, action)
         )
+
+        if (clear) this.clearActions()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async executeTriggersActions(): Promise<void> {
+        return TriggersMigrator.buildFromSchema(this.triggers).executeActions()
     }
 
     // ------------------------------------------------------------------------
@@ -35,23 +43,14 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
 
     // ------------------------------------------------------------------------
 
+    // ------------------------------------------------------------------------
+
     public clearActions(): void {
         this.actions = []
 
         for (const table of this) {
             for (const column of table) column.actions = []
             table.actions = []
-        }
-    }
-
-    // Privates ---------------------------------------------------------------
-    private execTableAction(action: ActionType, table: TableMigrator): (
-        Promise<void> | void
-    ) {
-        switch (action) {
-            case "CREATE": return table.create(this.connection)
-            case "ALTER": return table.alter(this.connection, action)
-            case "DROP": return table.drop(this.connection)
         }
     }
 
@@ -66,10 +65,6 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
         migrator.push(...schema.map(
             schema => TableMigrator.buildFromSchema(migrator, schema)
         ))
-
-        migrator.actions = schema.actions.map(([action, schema]) => [
-            action, TableMigrator.buildFromSchema(migrator, schema)
-        ])
 
         return migrator
     }

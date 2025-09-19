@@ -69,7 +69,7 @@ export default abstract class TriggerSQLBuilder<
 
     /** @internal */
     protected alterSQL(): string {
-        return `${this.createSQL()}; ${this.alterSQL()}`
+        return `${this.dropSQL()}; ${this.createSQL()}`
     }
 
     // ------------------------------------------------------------------------
@@ -88,9 +88,10 @@ export default abstract class TriggerSQLBuilder<
         )
     }
 
-    // Privates ---------------------------------------------------------------
+    // ------------------------------------------------------------------------
+
     /** @internal */
-    private actionBodySQL(): string {
+    public actionBodySQL(): string {
         const action = this.action()
         if (typeof action === 'string') return action
 
@@ -99,8 +100,7 @@ export default abstract class TriggerSQLBuilder<
             + ';'
     }
 
-    // ------------------------------------------------------------------------
-
+    // Privates ---------------------------------------------------------------
     /** @internal */
     private handleActionSQL(action: TriggerAction<T>): string {
         if (typeof action === 'string') return action

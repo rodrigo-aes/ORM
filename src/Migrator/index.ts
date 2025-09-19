@@ -112,7 +112,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
         if (!this.database) await this.loadDatabaseSchema()
         await this.loadMigrations('run')
 
-        const migrator = DatabaseMigrator.buildFromSchema(this.database)
+        const migrator = new DatabaseMigrator(this.connection)
         const time = await this.tableHandler.nextMigrationTime()
 
         for (const Migration of this) {
@@ -120,11 +120,11 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
             new Migration(migrator).up()
 
-            await migrator.executeActions()
+            await migrator.executeActions(true)
             await this.tableHandler.setMigrated(Migration.name, time)
-
-            migrator.clearActions()
         }
+
+        await migrator.executeTriggersActions()
     }
 
     // ------------------------------------------------------------------------
@@ -140,11 +140,11 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
             new Migration(migrator).down()
 
-            await migrator.executeActions()
+            await migrator.executeActions(true)
             await this.tableHandler.unsetMigrated(Migration.name)
-
-            migrator.clearActions()
         }
+
+        await migrator.executeTriggersActions()
     }
 
     // ------------------------------------------------------------------------

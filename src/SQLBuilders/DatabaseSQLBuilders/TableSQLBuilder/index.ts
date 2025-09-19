@@ -15,6 +15,7 @@ import { SQLStringHelper } from "../../../Helpers"
 
 // Types
 import type { ActionType } from "../../../DatabaseSchema"
+import type { ColumnMigrator } from "../../../Migrator/DatabaseMigrator"
 
 export default class TableSQLBuilder<
     T extends ColumnSQLBuilder = ColumnSQLBuilder
@@ -83,7 +84,10 @@ export default class TableSQLBuilder<
         return this.actions.map(([action, source]) => {
             switch (true) {
                 case source instanceof ColumnSchema: return (
-                    this.migrateAlterColumnSQL(source.name, action)
+                    this.migrateAlterColumnSQL(
+                        source as ColumnMigrator,
+                        action
+                    )
                 )
 
                 case source instanceof ForeignKeyReferencesSchema: return (
@@ -101,31 +105,28 @@ export default class TableSQLBuilder<
     // ------------------------------------------------------------------------
 
     private migrateAlterColumnSQL(
-        name: string,
+        schema: ColumnMigrator,
         action: ActionType | (
             'ADD-PK' | 'ADD-UNIQUE' | 'DROP-PK' | 'DROP-UNIQUE'
         )
     ): string | undefined {
-        const column = this.findColumn(name)
-        if (!column) throw new Error
-
         switch (action) {
-            case "CREATE": return column?.addSQL()
+            case "CREATE": return schema?.addSQL()
 
             case "ALTER":
             case 'DROP/CREATE':
-            case "DROP": return column.migrateAlterSQL(action)
+            case "DROP": return schema.migrateAlterSQL(action)
 
-            case "ADD-PK": return column.map.primary
-                ? column.addIndexSQL('PRIMARY')
+            case "ADD-PK": return schema.map.primary
+                ? schema.addIndexSQL('PRIMARY')
                 : undefined
 
-            case "ADD-UNIQUE": column.map.unique
-                ? column.addIndexSQL('UNIQUE')
+            case "ADD-UNIQUE": schema.map.unique
+                ? schema.addIndexSQL('UNIQUE')
                 : undefined
 
-            case "DROP-PK": return column.dropIndexSQL('PRIMARY')
-            case "DROP-UNIQUE": return column.dropIndexSQL('UNIQUE')
+            case "DROP-PK": return schema.dropIndexSQL('PRIMARY')
+            case "DROP-UNIQUE": return schema.dropIndexSQL('UNIQUE')
 
             case "NONE": return ''
         }

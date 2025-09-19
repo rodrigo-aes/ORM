@@ -1,11 +1,10 @@
-import { Trigger } from "../../Triggers"
 import TriggerSchema, { type TriggerSchemaInitMap } from "./TriggerSchema"
 
 // Static
 import { triggersSchemaQuery } from "./static"
 
 // Types
-import type { EntityTarget, Constructor } from "../../types/General"
+import type { Constructor } from "../../types/General"
 import type { TriggersMetadata } from "../../Metadata"
 import type MySQLConnection from "../../Connection"
 import type { TriggersSchemaAction } from "./types"
@@ -39,32 +38,45 @@ export default class TriggersSchema<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public add<T extends EntityTarget>(
-        target: T,
-        trigger: Constructor<Trigger>
-    ): void {
-        const t = TriggerSchema.buildFromTrigger(new trigger(target))
-        this.actions.push(['CREATE', t])
-    }
-
-    // ------------------------------------------------------------------------
-
     public create(tableName: string, name: string): T {
-        return this.buildTrigger(tableName, name)
+        const trigger = new TriggerSchema({ tableName, name }) as T
+
+        this.push(trigger)
+        this.actions.push(['CREATE', trigger])
+
+        return trigger
     }
 
     // ------------------------------------------------------------------------
 
-    public findTrigger(name: string): TriggerSchema | undefined {
-        return this.find(t => t.name === name)
+    public alter(tableName: string, name: string): T {
+        const trigger = this.findOrThrow(tableName, name)
+        this.actions.push(['ALTER', trigger])
+
+        return trigger as T
+    }
+
+    // ------------------------------------------------------------------------
+
+    public drop(tableName: string, name: string): void {
+        const trigger = this.findOrThrow(tableName, name)
+        this.actions.push(['DROP', trigger])
+    }
+
+    // ------------------------------------------------------------------------
+
+    public findTrigger(tableName: string, name: string): (
+        TriggerSchema | undefined
+    ) {
+        return this.find(t => t.tableName === tableName && t.name === name)
     }
 
     // Protecteds -------------------------------------------------------------
-    protected buildTrigger(tableName: string, name: string): T {
-        const trigger = new TriggerSchema({ tableName, name })
-        this.actions.push(['CREATE', trigger])
+    protected findOrThrow(tableName: string, name: string): TriggerSchema {
+        const trigger = this.findTrigger(tableName, name)
+        if (!trigger) throw new Error
 
-        return trigger as T
+        return trigger
     }
 
     // ------------------------------------------------------------------------

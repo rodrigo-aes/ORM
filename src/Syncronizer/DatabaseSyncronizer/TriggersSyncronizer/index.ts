@@ -65,7 +65,7 @@ export default class TriggersSyncronizer extends TriggersSchema<
     // Privates ---------------------------------------------------------------
     private async dropInexistents(): Promise<void> {
         for (const trigger of ((await this.previousSchemas()).filter(
-            ({ name }) => !this.findTrigger(name)
+            ({ name: name }) => !this.findTrigger(name)
         ))) (
             await trigger.drop(this.connection)
         )

@@ -34,10 +34,10 @@ export default class DatabaseSchema<
     public actions: DatabaseSchemaAction[] = []
 
     /** @internal */
-    protected previous?: DatabaseSchema<T>
+    public triggers!: TriggersSchema
 
     /** @internal */
-    protected triggers!: TriggersSchema
+    protected previous?: DatabaseSchema<T>
 
     /** @internal */
     constructor(
@@ -122,6 +122,18 @@ export default class DatabaseSchema<
      */
     public createTrigger(tableName: string, name: string): TriggerSchema {
         return this.triggersSchema().create(tableName, name)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public alterTrigger(tableName: string, name: string): TriggerSchema {
+        return this.triggersSchema().alter(tableName, name)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public dropTrigger(tableName: string, name: string): void {
+        this.triggersSchema().drop(tableName, name)
     }
 
     // ------------------------------------------------------------------------
