@@ -12,11 +12,11 @@ import {
 } from "../../SQLBuilders"
 
 // Helpers
-import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
+import { SQLStringHelper } from "../../Helpers"
 
 // Types
 import type MySQLConnection from "../../Connection"
-import type { MigrationProps, MigrationData } from "./types"
+import type { MigrationData } from "./types"
 
 export default class MigrationsTableHandler {
     public static readonly tableName: string = '__migrations'
@@ -37,19 +37,15 @@ export default class MigrationsTableHandler {
 
     // ------------------------------------------------------------------------
 
-    public async findOne(name: string): Promise<MigrationProps> {
-        const [{ order, name: _name, fileName }] = await this.connection.query(
-            MigrationsTableHandler.findOneSQL(name)
-        )
-
-        return [order, _name, fileName]
+    public async findAll(): Promise<MigrationData[]> {
+        return this.connection.query(MigrationsTableHandler.findAllSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    public async insert(name: string, position?: number) {
+    public async insert(name: string, at?: number, createdAt?: string) {
         const [[inserted, ...reordered]] = await InsertMigration
-            .call(this.connection, name, position)
+            .call(this.connection, name, at, createdAt)
 
         return [inserted, reordered] as [MigrationData, MigrationData[]]
     }
@@ -68,7 +64,6 @@ export default class MigrationsTableHandler {
 
     public async move(from: number, to: number): Promise<void> {
         await MoveMigration.call(this.connection, from, to)
-        console.log(await this.connection.query('SELECT `order`, `name` from __migrations'))
     }
 
     // ------------------------------------------------------------------------
@@ -107,6 +102,8 @@ export default class MigrationsTableHandler {
         )
     }
 
+    // ------------------------------------------------------------------------
+
     public async nextMigrationTime(): Promise<number> {
         const [{ next }] = await this.connection.query(
             MigrationsTableHandler.nextMigrationTimeSQL()
@@ -117,12 +114,9 @@ export default class MigrationsTableHandler {
 
     // Static Methods =========================================================
     // Privates ---------------------------------------------------------------
-    private static findOneSQL(name: string): string {
-        name = PropertySQLHelper.valueSQL(name)
-
+    private static findAllSQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            SELECT \`order\`, \`name\`, \`fileName\` FROM ${this.name}
-            WHERE \`name\` = ${name} OR \`fileName\` = ${name};
+            SELECT \`order\`, \`name\`, \`fileName\` FROM __migrations;
         `)
     }
 
@@ -291,6 +285,5 @@ export default class MigrationsTableHandler {
 }
 
 export {
-    type MigrationData,
-    type MigrationProps
+    type MigrationData
 }

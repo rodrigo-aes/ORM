@@ -5,7 +5,7 @@ import Config from "../Config"
 import { EntityMetadata } from "../Metadata"
 
 // Database Schema
-import DatabaseSchema, { TableSchema, type ActionType } from "../DatabaseSchema"
+import DatabaseSchema, { type ActionType } from "../DatabaseSchema"
 
 // Migrators
 import DatabaseMigrator from "./DatabaseMigrator"
@@ -15,12 +15,14 @@ import Migration from "./Migration"
 
 // Handlers
 import MigrationFileHandler from "./MigrationFileHandler"
-import MigrationsTableHandler from "./MigrationsTableHandler"
+import MigrationsTableHandler, { MigrationData } from "./MigrationsTableHandler"
 
 // Utils
 import { join } from "path"
 import { readdirSync } from "fs"
 import { pathToFileURL } from "url"
+import readline from 'readline'
+import chalk from "chalk"
 
 // Types
 import type MySQLConnection from "../Connection"
@@ -28,6 +30,10 @@ import type { Constructor } from "../types/General"
 import type { MigrationRunMethod, MigrationSyncAction } from "./types"
 
 export default class Migrator extends Array<Constructor<Migration>> {
+    private static readonly registerUnknownQuestion = chalk.yellow(
+        'You have unregistered migrations for this connection, would you like to register? [Y]es | [N]o\n'
+    )
+
     private database!: DatabaseSchema | DatabaseMigrator
 
     private _metadatas?: EntityMetadata[]
@@ -36,6 +42,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
     private _fileHandler?: MigrationFileHandler
 
     private _files?: string[]
+    private _registers?: string[]
 
     constructor(private connection: MySQLConnection) {
         super()
@@ -98,6 +105,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
     // ------------------------------------------------------------------------
 
     public async reset(): Promise<void> {
+        await this.verifyUnknown()
         await this.loadDatabaseSchema()
 
         await DatabaseMigrator.buildFromSchema(this.database).dropAll()
@@ -109,6 +117,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
     // ------------------------------------------------------------------------
 
     public async run(): Promise<void> {
+        await this.verifyUnknown()
         if (!this.database) await this.loadDatabaseSchema()
         await this.loadMigrations('run')
 
@@ -130,6 +139,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
     // ------------------------------------------------------------------------
 
     public async back(): Promise<void> {
+        await this.verifyUnknown()
         await this.loadDatabaseSchema()
         await this.loadMigrations('back')
 
@@ -150,7 +160,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
     // ------------------------------------------------------------------------
 
     public async sync(): Promise<void> {
-        await this.init()
+        await this.verifyUnknown()
         await this.loadMigrations()
 
         this.database = new DatabaseSchema(this.connection)
@@ -181,6 +191,40 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
+    public async registerUnknown(): Promise<void> {
+        const registered = await this.registered()
+        const unknown = this.files.filter(
+            file => !registered.includes(file.split('.')[0])
+        )
+
+        if (unknown.length === 0) return
+
+        const last = registered.length
+        for (const file of unknown) {
+            const [order, name, ...rest] = file
+                .split('.')[0]
+                .split('-')
+
+            if (!order) throw new Error
+            if (!name) throw new Error
+
+            const at = parseInt(order)
+            const createdAt = rest.length === 3 ? rest.join('-') : undefined
+
+            if (createdAt && isNaN(new Date(createdAt).getTime())) throw (
+                new Error
+            )
+
+            await this.tableHandler.insert(
+                name,
+                at <= last ? at : undefined,
+                createdAt
+            )
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
     public async delete(id: string | number): Promise<void> {
         const deleted = await this.tableHandler.delete(id)
         this.fileHandler.delete(deleted)
@@ -200,6 +244,15 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
+    private async registered(): Promise<string[]> {
+        if (this._registers) return this._registers
+        return this._registers = (await this.tableHandler.findAll()).map(
+            ({ fileName }) => fileName
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     private async loadDatabaseSchema(): Promise<void> {
         this.database = await DatabaseSchema.buildFromDatabase(this.connection)
         this.database.splice(
@@ -212,12 +265,28 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
-    private execMethods(method: MigrationRunMethod): (
-        ['up', 'setMigrated'] | ['down', 'unsetMigrated']
-    ) {
-        switch (method) {
-            case "run": return ['up', 'setMigrated']
-            case "back": return ['down', 'unsetMigrated']
+    private async verifyUnknown(): Promise<void> {
+        const registered = await this.registered()
+
+        if (
+            this.files.some(file => !registered.includes(file.split('.')[0]))
+        ) {
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout,
+            })
+
+            return new Promise(resolve => rl.question(
+                Migrator.registerUnknownQuestion,
+                async answer => {
+                    if (answer.toLowerCase().startsWith('y')) (
+                        await this.registerUnknown()
+                    )
+
+                    rl.close()
+                    resolve()
+                }
+            ))
         }
     }
 
@@ -232,14 +301,12 @@ export default class Migrator extends Array<Constructor<Migration>> {
             ? this.files.filter(name => included.includes(name.split('.')[0]))
             : this.files
 
-        this.push(
-            ...await Promise.all(
-                files.map(async file =>
-                    (await import(pathToFileURL(join(this.dir, file)).href))
-                        .default
-                )
+        this.push(...await Promise.all(
+            files.map(async file =>
+                (await import(pathToFileURL(join(this.dir, file)).href))
+                    .default
             )
-        )
+        ))
     }
 
     // ------------------------------------------------------------------------

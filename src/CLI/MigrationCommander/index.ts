@@ -28,7 +28,7 @@ export default class MigrationCommander extends Command {
             case 'back':
             case 'reset':
             case 'sync': return this.executeMethod()
-
+            case 'register': return this.executeRegisterUnknown()
             case 'create': return this.executeCreate()
             case 'delete': return this.executeDelete()
             case 'move': return this.executeMove()
@@ -109,6 +109,15 @@ export default class MigrationCommander extends Command {
                 'init' | 'run' | 'back' | 'reset' | 'sync'
             )]()
 
+            await connection.close()
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async executeRegisterUnknown(): Promise<void> {
+        for (const connection of await this.getConnections()) {
+            await new Migrator(connection).registerUnknown()
             await connection.close()
         }
     }

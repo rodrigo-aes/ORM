@@ -1,7 +1,7 @@
 import Procedure from "../../Procedure"
 
 // Helpers
-import { PropertySQLHelper } from "../../../../Helpers"
+import { SQLStringHelper } from "../../../../Helpers"
 
 // Types
 import type MySQLConnection from "../../../../Connection"
@@ -11,7 +11,8 @@ export default class InsertMigration extends Procedure {
     public argsSQL(): string {
         return `
             IN new_name VARCHAR(255),
-            IN new_order INT
+            IN new_order INT,
+            IN new_created_at DATE
         `
     }
 
@@ -30,7 +31,12 @@ export default class InsertMigration extends Procedure {
                 INSERT INTO __migrations (
                     \`name\`, \`order\`, \`createdAt\`, \`updatedAt\`
                 )
-                VALUES (new_name, new_order, NOW(), NOW());
+                VALUES (
+                    new_name,
+                    new_order,
+                    IFNULL(new_created_at, NOW()),
+                    NOW()
+                );
 
             ELSE
                 SELECT COALESCE(MAX(\`order\`), 0) + 1
@@ -40,7 +46,12 @@ export default class InsertMigration extends Procedure {
                 INSERT INTO __migrations (
                     \`name\`, \`order\`, \`createdAt\`, \`updatedAt\`
                 )
-                VALUES (new_name, last_order, NOW(), NOW());
+                VALUES (
+                    new_name,
+                    last_order,
+                    IFNULL(new_created_at, NOW()),
+                    NOW()
+                );
             END IF;
 
             IF new_order IS NOT NULL THEN
@@ -62,16 +73,24 @@ export default class InsertMigration extends Procedure {
     // Publics ----------------------------------------------------------------
     public static call(
         connection: MySQLConnection,
-        ...args: InsertMigrationArgs
+        name: string,
+        position?: number,
+        createdAt?: string
     ): Promise<any[]> {
-        return connection.query(this.SQL(...args))
+        return connection.query(this.SQL(name, position, createdAt))
     }
 
     // ------------------------------------------------------------------------
 
-    public static SQL(...args: InsertMigrationArgs): string {
-        return `CALL ${this.name} (${(
-            args.map(arg => arg ? PropertySQLHelper.valueSQL(arg) : 'NULL')
-        )})`
+    public static SQL(
+        name: string,
+        position?: number,
+        createdAt?: string
+    ): string {
+        return SQLStringHelper.normalizeSQL(`CALL ${this.name} (
+            "${name}",
+            ${position ?? 'NULL'},
+            ${createdAt ? `"${createdAt}"` : 'NULL'}
+        )`)
     }
 }
