@@ -8,7 +8,7 @@ export default class DatabaseSyncronizer extends DatabaseSchema<
     TableSyncronizer
 > {
     declare protected previous?: DatabaseSyncronizer;
-    declare protected triggers: TriggersSyncronizer;
+    declare public triggers: TriggersSyncronizer;
 
     // Static Getters =========================================================
     // Publics ----------------------------------------------------------------
@@ -33,7 +33,7 @@ export default class DatabaseSyncronizer extends DatabaseSchema<
             (await this.previuosSchema()).findTable(table.name)
         )
 
-        await this.triggersSchema().alter()
+        await this.triggersSchema().alterAll()
     }
 
     // ------------------------------------------------------------------------

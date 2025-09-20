@@ -81,7 +81,7 @@ export default class TriggersSchema<
 
     // ------------------------------------------------------------------------
 
-    protected async previousSchemas() {
+    protected async previousSchema() {
         if (this.previous) return this.previous
 
         this.previous = new TriggersSchema(

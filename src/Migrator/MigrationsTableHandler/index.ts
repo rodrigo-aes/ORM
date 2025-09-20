@@ -80,7 +80,9 @@ export default class MigrationsTableHandler {
 
     // ------------------------------------------------------------------------
 
-    public async setMigrated(id: string | number, time: number): Promise<void> {
+    public async setMigrated(id: string | number, time: number): (
+        Promise<void>
+    ) {
         await this.connection.query(
             MigrationsTableHandler.setMigratedSQL(id, time)
         )
@@ -238,8 +240,7 @@ export default class MigrationsTableHandler {
                     DataType.VARCHAR(),
                     `CONCAT(\`order\`, '-', \`name\`, '-',
                          DATE_FORMAT(\`createdAt\`, '%Y-%m-%d')
-                    )
-                    `,
+                    )`,
                     "STORED"
                 ),
             }),
