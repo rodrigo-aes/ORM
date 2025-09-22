@@ -25,7 +25,7 @@ import type {
 } from "./types"
 
 // Exceptions
-import PolyORMException, { MySQLErrorCodes } from "../Errors"
+import PolyORMException from "../Errors"
 
 export default class DatabaseSchema<
     T extends TableSchema = TableSchema
@@ -155,10 +155,8 @@ export default class DatabaseSchema<
     public findOrThrow(name: string): T {
         const table = this.findTable(name)
 
-        if (!table) PolyORMException.throwMySQLException(
-            MySQLErrorCodes.UNKNOWN_TABLE,
-            this.connection.name,
-            `Unknown table '${this.connection.database}.${name}'`
+        if (!table) PolyORMException.throwByCode(
+            this.connection, 'UNKNOWN_TABLE', undefined, [name]
         )
 
         return table as T

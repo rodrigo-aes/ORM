@@ -1,9 +1,14 @@
 import 'reflect-metadata'
+import './src/Errors'
+import Config from './src/Config'
 
 import CLI, {
     MigrationCommander
 } from './src/CLI'
 
-new CLI({
-    migrations: MigrationCommander
-})
+(async () => {
+    await Config.load()
+    new CLI({
+        migrations: MigrationCommander
+    })
+})()

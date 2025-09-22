@@ -38,7 +38,7 @@ import type { Constructor } from "../types/General"
 import type { MigrationRunMethod, MigrationSyncAction } from "./types"
 
 // Exceptions
-import PolyORMException, {
+import {
     AcknowledgedExceptionHandler,
     type AcknowledgedErrorTuple
 } from "../Errors"
@@ -119,6 +119,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
     @Logs.InitProccess
     public async init(): Promise<void> {
         this.verifyDir()
+        await this.tableHandler.drop()
         await this.tableHandler.createIfNotExists()
         await this.verifyUnknown()
     }
@@ -285,20 +286,18 @@ export default class Migrator extends Array<Constructor<Migration>> {
     // ------------------------------------------------------------------------
 
     private async verifyUnknown(): Promise<void> {
-        if ((await this.unknownMigrationFiles(true)).length > 0) return (
-            new Promise(
-                resolve => this.interface.question(
-                    registerUnknownQuestion(this.connection.name),
-                    async answer => {
-                        if (answer.toLowerCase().startsWith('y')) (
-                            await this.register()
-                        )
+        if ((await this.unknownMigrationFiles()).length > 0) return (
+            new Promise(resolve => this.interface.question(
+                registerUnknownQuestion(this.connection.name),
+                async answer => {
+                    if (answer.toLowerCase().startsWith('y')) (
+                        await this.register()
+                    )
 
-                        this.interface.close()
-                        resolve()
-                    }
-                )
-            )
+                    this.interface.close()
+                    resolve()
+                }
+            ))
         )
     }
 
@@ -486,21 +485,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
         const acknowledged = AcknowledgedExceptionHandler.handle(error)
 
         switch (acknowledged[0]) {
-            case 'MySQL': return (
-                this.handleMySQLProcessException(acknowledged, ...args)
-            )
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private handleMySQLProcessException(
-        acknowledged: AcknowledgedErrorTuple,
-        ...args: any[]
-    ): Promise<void> {
-        switch (acknowledged[1].code) {
-            case 'ER_TABLE_EXISTS_ERROR':
-            case "ER_BAD_TABLE_ERROR": return this.askAlreadyRunned(
+            case 'MySQL': return this.askAlreadyRunned(
                 acknowledged,
                 args
             )
@@ -513,11 +498,15 @@ export default class Migrator extends Array<Constructor<Migration>> {
         acknowledged: AcknowledgedErrorTuple,
         args: any[]
     ): Promise<void> {
-        const [_, { name, code, message }] = acknowledged
+        const [_, exception] = acknowledged
+
+        const { name, code, message } = exception
         const [migration, method, time] = args
 
         return new Promise(resolve => this.interface.question(
-            setAlreadyRunnedQuestion(name, code, message, migration, method),
+            setAlreadyRunnedQuestion(
+                name, code, message, migration, method
+            ),
             async answer => {
                 if (answer.toLowerCase().startsWith('y')) switch (method) {
                     case 'UP': await this.tableHandler.setMigrated(
@@ -532,15 +521,13 @@ export default class Migrator extends Array<Constructor<Migration>> {
                         break
                 }
 
-                else throw PolyORMException.throwAcknowledged(
-                    acknowledged,
-                    this.connection.name
-                )
+                else exception.throw()
 
                 this.interface.close()
                 resolve()
             }
-        ))
+        )
+        )
     }
 }
 

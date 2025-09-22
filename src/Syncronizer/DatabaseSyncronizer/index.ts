@@ -4,6 +4,8 @@ import TriggersSyncronizer from "./TriggersSyncronizer";
 
 import { EntityMetadata } from "../../Metadata";
 
+import PolyORMException from "../../Errors";
+
 export default class DatabaseSyncronizer extends DatabaseSchema<
     TableSyncronizer
 > {
@@ -20,6 +22,7 @@ export default class DatabaseSyncronizer extends DatabaseSchema<
     // Publics ----------------------------------------------------------------
     public async reset(): Promise<void> {
         await this.dropAll()
+        PolyORMException
         await this.crateAll()
     }
 

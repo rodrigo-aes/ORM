@@ -1,73 +1,61 @@
 // Exceptions
 // - MySQL
-import PolyORMMySQLExeception, {
-    MySQLErrorCodes,
-    type MySQLErrorCode
-} from "./MySQL"
+import PolyORMMySQLException, {
+    type PolyORMMySQLErrorCode,
+    type PolyORMMySQLExceptionsArgs
+} from './MySQL'
 
 // Handlers
 import { AcknowledgedExceptionHandler } from "./Handlers"
 
 // Types
-import type MySQLConnection from "../Connection"
-import type { AcknowledgedErrorTuple, MySQLErrorArgOrNever } from "./types"
+import MySQLConnection from '../Connection'
+import type { AcknowledgedErrorTuple } from "./types"
 
 
 export default class PolyORMException {
     private constructor() {
-        throw new Error('Not instantiable Error class')
+        throw new Error('Not instantiable class')
     }
 
     // Static Getters =========================================================
     // Publics ----------------------------------------------------------------
-    public static get MySQL(): typeof PolyORMMySQLExeception {
-        return PolyORMMySQLExeception
+    public static get MySQL(): typeof PolyORMMySQLException {
+        return PolyORMMySQLException
     }
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static throwAcknowledged(
-        acknowledged: AcknowledgedErrorTuple,
-        connection: string
-    ): void {
-        const [origin, exception] = acknowledged
-
-        switch (origin) {
-            case 'MySQL': return this.MySQL.throwByError(
-                exception,
-                connection
+    public static throwByCode(
+        connection: MySQLConnection,
+        code: PolyORMMySQLErrorCode,
+        ...args: PolyORMMySQLExceptionsArgs
+    ) {
+        switch (true) {
+            case connection instanceof MySQLConnection: return (
+                this.MySQL.throwByCode(code, connection.name, ...args)
             )
         }
     }
 
     // ------------------------------------------------------------------------
 
-    public static throwMySQLException<Source extends MySQLErrorCode | Error>(
-        source: Source,
-        connection: string,
-        message: MySQLErrorArgOrNever<Source>,
-        sql?: MySQLErrorArgOrNever<Source>,
-        sqlState?: MySQLErrorArgOrNever<Source>,
-    ): void {
-        switch (typeof source) {
-            case "string": return this.MySQL.throwByCode(
-                source,
-                connection,
-                message,
-                sql,
-                sqlState,
+    public static throwByError(
+        connection: MySQLConnection,
+        error: any
+    ) {
+        switch (true) {
+            case connection instanceof MySQLConnection: return (
+                this.MySQL.throwByError(error, connection.name)
             )
-
-            case "object": return this.MySQL.throwByError(source, connection)
         }
     }
 }
 
 export {
-    PolyORMMySQLExeception,
+    PolyORMMySQLException,
     AcknowledgedExceptionHandler,
-    MySQLErrorCodes,
+    PolyORMMySQLErrorCode,
 
     type AcknowledgedErrorTuple,
-    type MySQLErrorCode
 }

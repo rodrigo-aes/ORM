@@ -15,8 +15,6 @@ export default class CLI {
     // Instance Methods =======================================================
     // Privates ---------------------------------------------------------------
     private async execute(): Promise<void> {
-        await Config.load()
-
         let [command, method] = process.argv[2].split(':')
         if (!Object.keys(this.commands).includes(command)) throw new Error
 
