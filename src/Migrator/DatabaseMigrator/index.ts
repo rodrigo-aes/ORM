@@ -2,9 +2,11 @@ import DatabaseSchema, { type TableSchema } from "../../DatabaseSchema"
 import TableMigrator, { ColumnMigrator } from "./TableMigrator"
 import TriggersMigrator from "./TriggersMigrator"
 
+// Decorators
+import { Logs } from "../Decorators"
+
 // Types
 import type MySQLConnection from "../../Connection"
-import type { ActionType } from "../../DatabaseSchema"
 
 export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
     // Static Getters =========================================================
@@ -30,18 +32,17 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
     // ------------------------------------------------------------------------
 
     public async executeTriggersActions(): Promise<void> {
-        return TriggersMigrator.buildFromSchema(this.triggers).executeActions()
+        return TriggersMigrator
+            .buildFromSchema(this.triggers, this.connection)
+            .executeActions()
     }
 
     // ------------------------------------------------------------------------
 
+    @Logs.SQLTableOperation
     public async dropAll(): Promise<void> {
-        for (const table of this) {
-            await table.drop(this.connection)
-        }
+        for (const table of this) await table.drop(this.connection)
     }
-
-    // ------------------------------------------------------------------------
 
     // ------------------------------------------------------------------------
 

@@ -27,8 +27,8 @@ export default class MigrationCommander extends Command {
             case 'run':
             case 'back':
             case 'reset':
+            case 'register':
             case 'sync': return this.executeMethod()
-            case 'register': return this.executeRegisterUnknown()
             case 'create': return this.executeCreate()
             case 'delete': return this.executeDelete()
             case 'move': return this.executeMove()
@@ -39,10 +39,9 @@ export default class MigrationCommander extends Command {
 
     // Protecteds -------------------------------------------------------------
     protected define(): void {
-        switch (this.method) {
-            case 'sync': this.syncDefine()
-                break
+        this.connectionsDefine()
 
+        switch (this.method) {
             case 'create': this.createDefine()
                 break
 
@@ -72,7 +71,7 @@ export default class MigrationCommander extends Command {
 
     // ------------------------------------------------------------------------
 
-    private syncDefine(): void {
+    private connectionsDefine(): void {
         this.option('connections', 'string')
     }
 
@@ -106,18 +105,9 @@ export default class MigrationCommander extends Command {
     private async executeMethod(): Promise<void> {
         for (const connection of await this.getConnections()) {
             await new Migrator(connection)[this.method as (
-                'init' | 'run' | 'back' | 'reset' | 'sync'
+                'init' | 'run' | 'back' | 'reset' | 'sync' | 'register'
             )]()
 
-            await connection.close()
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private async executeRegisterUnknown(): Promise<void> {
-        for (const connection of await this.getConnections()) {
-            await new Migrator(connection).registerUnknown()
             await connection.close()
         }
     }
@@ -171,7 +161,7 @@ export default class MigrationCommander extends Command {
         if (!to) throw new Error
 
         for (const connection of await this.getConnections()) {
-            await new Migrator(connection).move(from, from)
+            await new Migrator(connection).move(from, to)
             await connection.close()
         }
     }

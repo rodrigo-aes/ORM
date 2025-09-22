@@ -1,5 +1,5 @@
 // Utils
-import { renameSync, existsSync, readdirSync, unlinkSync } from "fs"
+import { renameSync, readdirSync, unlinkSync } from "fs"
 import { join } from "path"
 
 // Config
@@ -8,20 +8,20 @@ import Config from "../../Config"
 // Template
 import { MigrationTemplate } from "../../ModuleTemplates"
 
+// Decorators
+import { Logs } from "../Decorators"
+
 // Types
 import type MySQLConnection from "../../Connection"
-import type { EntityMetadata } from "../../Metadata"
-import type { TableSchema } from "../../DatabaseSchema"
-import type { MigrationData } from "../MigrationsTableHandler"
 import type { ActionType } from "../../DatabaseSchema"
+import type { ModuleExtension } from "../../ModuleTemplates/types"
+import type { CreateMigrationFileProps, SyncMigrationFileProps } from "./types"
 
 export default class MigrationFileHandler {
     private readonly BASE_DIR = Config.migrationsDir
-    public static readonly extensions: string[] = [
+    public static readonly extensions: ModuleExtension[] = [
         '.ts', '.js', '.cts', '.cjs', '.mts', '.mjs'
     ]
-
-    private _files?: string[]
 
     constructor(private connection: MySQLConnection) { }
 
@@ -40,14 +40,13 @@ export default class MigrationFileHandler {
     // ------------------------------------------------------------------------
 
     public get files(): string[] {
-        if (this._files) return this._files
-        return this._files = readdirSync(join(this.BASE_DIR, this.dir))
+        return readdirSync(join(this.BASE_DIR, this.dir))
     }
 
     // ------------------------------------------------------------------------
 
     public get orderedFiles(): [number, string][] {
-        return this.files.map(file => [parseInt(file.charAt(0)), file])
+        return this.files.map(file => [parseInt(file.split('-')[0]), file])
     }
 
     // ------------------------------------------------------------------------
@@ -58,21 +57,21 @@ export default class MigrationFileHandler {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    @Logs.CreateMigrationFile
     public create(
         dir: string,
         action: ActionType,
-        tableName: string,
-        properties: MigrationData,
+        properties: CreateMigrationFileProps,
     ): void {
-        const { order, name, fileName } = properties
+        const { order, name, fileName, tableName } = properties
 
-        if (order <= this.lastOrder) this.incrementOrder(order, Infinity)
+        if (order <= this.lastOrder) this.incrementOrder(order, this.lastOrder)
 
         return new MigrationTemplate(
             dir,
+            action,
             name,
             fileName,
-            action,
             tableName
         )
             .create()
@@ -80,32 +79,38 @@ export default class MigrationFileHandler {
 
     // ------------------------------------------------------------------------
 
+    @Logs.DeleteMigrationFile
     public delete(deleted: number): void {
         const [_, file] = this.orderedFiles.find(
             ([order]) => order === deleted
         )!
 
         unlinkSync(join(this.absolute, file))
-        this.decrementOrder(deleted, Infinity)
+        this.decrementOrder(deleted, this.lastOrder)
     }
 
     // ------------------------------------------------------------------------
 
+    @Logs.CreateMigrationFile
     public sync(
         dir: string,
-        metadata: EntityMetadata,
-        [schema, prevSchema]: [TableSchema, TableSchema | undefined],
         action: ActionType,
-        properties: MigrationData
+        properties: SyncMigrationFileProps,
     ): void {
-        const { name, fileName } = properties
+        const {
+            name,
+            fileName,
+            tableName,
+            metadata,
+            schemas: [schema, prevSchema]
+        } = properties
 
         return new MigrationTemplate(
             dir,
+            action,
             name,
             fileName,
-            action,
-            schema.name
+            tableName
         )
             .sync(metadata, schema, prevSchema)
             .create()
@@ -136,7 +141,9 @@ export default class MigrationFileHandler {
         ) (
             renameSync(
                 join(this.absolute, file),
-                join(this.absolute, (order + 1) + file.slice(1))
+                join(this.absolute, (
+                    (order + 1) + '-' + file.split('-').slice(1).join('-')
+                ))
             )
         )
     }
@@ -150,7 +157,10 @@ export default class MigrationFileHandler {
         ) (
             renameSync(
                 join(this.absolute, file),
-                join(this.absolute, (order - 1) + file.slice(1))
+                join(
+                    this.absolute, (
+                    (order - 1) + '-' + file.split('-').slice(1).join('-')
+                ))
             )
         )
     }
@@ -158,7 +168,7 @@ export default class MigrationFileHandler {
     // ------------------------------------------------------------------------
 
     private addOrder(name: string, order: number): string {
-        const added = order + name
+        const added = order + '-' + name
         renameSync(
             join(this.absolute, name),
             join(this.absolute, added)
@@ -170,7 +180,7 @@ export default class MigrationFileHandler {
     // ------------------------------------------------------------------------
 
     private removeOrder(name: string): string {
-        const removed = name.slice(1)
+        const removed = name.split('-').slice(1).join('-')
         renameSync(
             join(this.absolute, name),
             join(this.absolute, removed)
@@ -178,4 +188,23 @@ export default class MigrationFileHandler {
 
         return removed
     }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static buildClassName(action: ActionType, tableName: string): (
+        string
+    ) {
+        return MigrationTemplate.buildClassName(action, tableName)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static toPascalCase(...parts: string[]): string {
+        return MigrationTemplate.toPascalCase(...parts)
+    }
+}
+
+export type {
+    CreateMigrationFileProps,
+    SyncMigrationFileProps
 }

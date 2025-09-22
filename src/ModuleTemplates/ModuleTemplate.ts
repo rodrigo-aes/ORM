@@ -1,8 +1,14 @@
 import { resolve } from "path"
 import { writeFileSync, mkdirSync, existsSync } from "fs"
 
+// Config
+import Config from "../Config"
+
 // Helpers
 import { ModuleStringHelper } from "./Helpers"
+
+// Types
+import type { ModuleExtension } from "./types"
 
 export default abstract class ModuleTemplate {
     // Getters ================================================================
@@ -15,13 +21,19 @@ export default abstract class ModuleTemplate {
 
     // ------------------------------------------------------------------------
 
+    protected get ext(): ModuleExtension {
+        return Config.defaultExt
+    }
+
+    // ------------------------------------------------------------------------
+
     protected get AlreadyExistsError(): [typeof Error, any[]] {
         return [Error, []]
     }
 
     // Privates ---------------------------------------------------------------
     private get filePath(): string {
-        return `${resolve(this.path, this.name)}.ts`
+        return resolve(this.path, this.name + this.ext)
     }
 
     // Instance Methods =======================================================
@@ -55,5 +67,11 @@ export default abstract class ModuleTemplate {
             const [Error, args] = this.AlreadyExistsError
             throw new Error(...args)
         }
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static toPascalCase(...parts: string[]): string {
+        return ModuleStringHelper.toPascalCase(...parts)
     }
 }

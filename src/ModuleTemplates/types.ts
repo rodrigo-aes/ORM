@@ -1,0 +1,1 @@
+export type ModuleExtension = '.ts' | '.js' | '.cts' | '.cjs' | '.mts' | '.mjs'

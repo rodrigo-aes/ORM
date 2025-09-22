@@ -28,6 +28,15 @@ export default class TableSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    public createIfNotExistsSQL(): string {
+        return SQLStringHelper.normalizeSQL(`
+            CREATE TABLE IF NOT EXISTS ${this.name} 
+            (${this.createColumnsSQL()})
+        `)
+    }
+
+    // ------------------------------------------------------------------------
+
     public syncAlterSQL(schema: TableSchema) {
         return SQLStringHelper.normalizeSQL(`  
             ALTER TABLE ${this.name} ${this.alterColumnsSQL(schema)}

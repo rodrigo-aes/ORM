@@ -14,6 +14,9 @@ import {
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
 
+// Decorators
+import { Logs } from "../Decorators"
+
 // Types
 import type MySQLConnection from "../../Connection"
 import type { MigrationData } from "./types"
@@ -25,8 +28,10 @@ export default class MigrationsTableHandler {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public create(): Promise<void> {
-        return MigrationsTableHandler.buildMigrator().create(this.connection)
+    public createIfNotExists(): Promise<void> {
+        return MigrationsTableHandler.buildMigrator().createIfNotExists(
+            this.connection
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -43,6 +48,7 @@ export default class MigrationsTableHandler {
 
     // ------------------------------------------------------------------------
 
+    @Logs.RegisterMigration
     public async insert(name: string, at?: number, createdAt?: string) {
         const [[inserted, ...reordered]] = await InsertMigration
             .call(this.connection, name, at, createdAt)
@@ -52,6 +58,7 @@ export default class MigrationsTableHandler {
 
     // ------------------------------------------------------------------------
 
+    @Logs.EraseMigration
     public async delete(id: string | number): Promise<number> {
         const [_, [{ ['@deleted']: deleted }]] = (
             await DeleteMigration.call(this.connection, id)
@@ -169,7 +176,7 @@ export default class MigrationsTableHandler {
         return SQLStringHelper.normalizeSQL(`
             UPDATE __migrations
             SET
-                migrated = FALSE,
+                migrated = 0,
                 migratedTime = NULL,
                 migratedAt = NULL
             WHERE \`name\` = "${id}"
@@ -196,7 +203,7 @@ export default class MigrationsTableHandler {
 
     private static nextMigrationTimeSQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            SELECT COALESCE(MAX(migratedTime), 1) + 1 AS next
+            SELECT COALESCE(MAX(migratedTime), 0) + 1 AS next
             FROM __migrations    
         `)
     }

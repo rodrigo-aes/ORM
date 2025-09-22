@@ -13,15 +13,15 @@ import type {
  */
 class Log {
     public static colors: Record<LogColor, ChalkInstance> = {
-        info: chalk.cyan,
+        info: chalk.cyanBright,
         success: chalk.green,
         warning: chalk.yellow,
         danger: chalk.red,
         default: chalk.white,
     }
 
-    private static colorPattern = /#\[(\w+)\](.+?)(?=#\[|$)/g
-    private static stripAnsiPattern = /\x1b\[[0-9;]*m/g
+    private static colorPattern = /#\[(\w+)\](.+?)(?=#\[|$)/gs
+    private static stripAnsiPattern = /\x1b\[[0-9;]*m/gs
 
     /**
      * 
@@ -44,12 +44,12 @@ class Log {
 
         const messageLen = this.visibleLength(this.parseMessage(message))
         const assetsLen = this.visibleLength(this.parseMessage(assets))
-        const charLen = process.stdout.columns - (
+        const lineLen = process.stdout.columns - (
             messageLen + assetsLen + 2
         )
 
         console.log(
-            this.parseMessage(`${message} ${'-'.repeat(charLen)} ${assets}`)
+            this.parseMessage(`${message} ${'-'.repeat(lineLen)} ${assets}`)
         )
     }
 
@@ -73,9 +73,10 @@ class Log {
     private static handleComposedConfig(
         config: ComposedLineConfig | ComposedLineConfig[]
     ) {
-        if (Array.isArray(config)) return config.map(
-            conf => this.handleComposition(conf)
-        ).join(' ')
+        if (Array.isArray(config)) return config.map(conf =>
+            this.handleComposition(conf)
+        )
+            .join(' ')
 
         else return this.handleComposition(config)
     }
@@ -84,14 +85,14 @@ class Log {
 
     private static handleComposition(config: ComposedLineConfig) {
         switch (typeof config) {
-            case "string": return this.composetAsset(config)
+            case "string": return this.composedAsset(config)
             case "object": return this.customAsset(config)
         }
     }
 
     // ------------------------------------------------------------------------
 
-    private static composetAsset(asset: ComposedLineAsset) {
+    private static composedAsset(asset: ComposedLineAsset) {
         switch (asset) {
             case "date": return new Date().toLocaleDateString()
             case "time": return new Date().toLocaleTimeString()
@@ -103,8 +104,8 @@ class Log {
 
     private static customAsset({ asset, color, content }: ComposedLineCustom) {
         color = color ? `#[${color}]` : ''
-        const apllyAsset = asset ? this.composetAsset(asset) : ''
-        return `${color} ${apllyAsset ?? content}`
+        const apllyAsset = asset ? this.composedAsset(asset) : undefined
+        return `${color}${apllyAsset ?? content}`
     }
 
     // ------------------------------------------------------------------------
@@ -116,7 +117,7 @@ class Log {
     // ------------------------------------------------------------------------
 
     private static visibleLength(message: string) {
-        return this.stripAnsiCodes(message).length
+        return this.stripAnsiCodes(message).replace(/\r?\n/g, "").length
     }
 }
 

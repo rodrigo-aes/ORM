@@ -3,13 +3,15 @@ import { TableSQLBuilder } from "../../../SQLBuilders"
 // Migrators
 import ColumnMigrator from "./ColumnMigrator"
 
+// Decorators
+import { Logs } from "../../Decorators"
+
 // Types
 import type MySQLConnection from "../../../Connection"
 import type DatabaseSchema from "../../../DatabaseSchema"
 import {
     TableSchema,
     ColumnSchema,
-    ForeignKeyReferencesSchema,
     ActionType
 } from "../../../DatabaseSchema"
 export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
@@ -21,12 +23,20 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    @Logs.SQLTableOperation
     public async create(connection: MySQLConnection): Promise<void> {
         await connection.query(this.createSQL())
     }
 
     // ------------------------------------------------------------------------
 
+    public async createIfNotExists(connection: MySQLConnection): Promise<void> {
+        await connection.query(this.createIfNotExistsSQL())
+    }
+
+    // ------------------------------------------------------------------------
+
+    @Logs.SQLTableOperation
     public async alter(
         connection: MySQLConnection,
         action: Omit<ActionType, 'CREATE'>
@@ -37,6 +47,7 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
 
     // ------------------------------------------------------------------------
 
+    @Logs.SQLTableOperation
     public async drop(connection: MySQLConnection): Promise<void> {
         await connection.query(this.dropSQL())
     }
@@ -69,7 +80,7 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
     // Publics ----------------------------------------------------------------
     public static buildFromSchema(
         database: DatabaseSchema,
-        schema: TableSchema
+        schema: TableSchema,
     ): TableMigrator {
         const migrator = new TableMigrator(
             database,

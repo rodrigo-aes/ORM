@@ -19,11 +19,15 @@ export default abstract class Command {
     protected args: (ArgPattern | string | number)[] = []
     protected opts: { [key: string]: any } = {}
 
-    private static isInt: Function = /^-?\d+$/.test
-    private static isFloat: Function = (
-        /^[ \t\n\r]*[+-]?(Infinity|(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)/
-    )
-        .test
+    private static get isInt() {
+        return this.regExpTest(/^-?\d+$/)
+    }
+
+    private static get isFloat() {
+        return this.regExpTest(
+            /^[ \t\n\r]*[+-]?(Infinity|(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)/
+        )
+    }
 
 
     constructor(protected method?: string) { }
@@ -138,5 +142,11 @@ export default abstract class Command {
                 this.opts[key] = value
                 break
         }
+    }
+
+    // Static Methods =========================================================
+    // Privates ---------------------------------------------------------------
+    private static regExpTest(regExp: RegExp): Function {
+        return regExp.test.bind(regExp)
     }
 }

@@ -12,6 +12,7 @@ import TableMigrationImplements from "./TableMigrationImplements"
 // Types
 import type { EntityMetadata, DataType } from "../../Metadata"
 import type { TableSchema, ActionType } from "../../DatabaseSchema"
+import type { ModuleExtension } from "../types"
 
 export default class MigrationTemplate extends ModuleTemplate {
     private readonly packageImportPath = '../../../Migrator'
@@ -23,9 +24,9 @@ export default class MigrationTemplate extends ModuleTemplate {
 
     constructor(
         private dir: string,
+        private action: ActionType,
         private className: string,
         private fileName: string,
-        private action: ActionType,
         private tableName: string,
     ) {
         super()
@@ -41,6 +42,12 @@ export default class MigrationTemplate extends ModuleTemplate {
 
     protected get path(): string {
         return join(Config.migrationsDir, this.dir)
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected override get ext(): ModuleExtension {
+        return Config.migrationsExt
     }
 
     // ------------------------------------------------------------------------
@@ -197,5 +204,18 @@ export default class MigrationTemplate extends ModuleTemplate {
             case "ALTER":
             case "NONE": return this.action
         }
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static buildClassName(action: ActionType, tableName: string): (
+        string
+    ) {
+        return this.toPascalCase(
+            action.toLocaleLowerCase(),
+            tableName,
+            'table',
+            '_' + Date.now()
+        )
     }
 }

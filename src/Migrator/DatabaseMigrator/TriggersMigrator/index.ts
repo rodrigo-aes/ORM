@@ -29,11 +29,11 @@ export default class TriggersMigrator extends TriggersSchema<TriggerMigrator> {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static buildFromSchema(
-        schema: TriggersSchema,
+        schema?: TriggersSchema,
         connection?: MySQLConnection
     ): TriggersMigrator {
-        const migrator = new TriggersMigrator(connection ?? schema.connection)
-        migrator.actions = schema.actions
+        const migrator = new TriggersMigrator(connection ?? schema!.connection)
+        migrator.actions = schema?.actions ?? []
 
         return migrator
     }

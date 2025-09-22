@@ -1,7 +1,14 @@
+import type { ModuleExtension } from "../ModuleTemplates"
+
 export type PolyORMConfig = {
     createConnections: () => Promise<void>
 
-    paths: {
-        migrationsDir: string
+    default?: {
+        ext?: ModuleExtension
+    }
+
+    migrations?: {
+        baseDir?: string,
+        ext?: ModuleExtension
     }
 }

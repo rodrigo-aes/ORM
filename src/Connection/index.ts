@@ -43,6 +43,12 @@ export default class MySQLConnection {
         ConnectionsMetadata.set(name, this)
     }
 
+    // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get database(): string {
+        return this.config.database
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     /**

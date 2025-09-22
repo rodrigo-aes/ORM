@@ -76,7 +76,7 @@ export default abstract class TriggerSQLBuilder<
 
     /** @internal */
     protected dropSQL(): string {
-        return `DROP TRIGGER ${this.name}`
+        return `DROP TRIGGER IF EXISTS ${this.name}`
     }
 
     // ------------------------------------------------------------------------

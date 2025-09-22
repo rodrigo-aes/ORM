@@ -8,7 +8,7 @@ export default class TriggerMigrator extends TriggerSchema {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public async create(connection: MySQLConnection): Promise<void> {
-        console.log(this.createSQL())
+        await connection.query(this.dropSQL())
         await connection.query(this.createSQL())
     }
 

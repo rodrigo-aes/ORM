@@ -15,25 +15,35 @@ import Migration from "./Migration"
 
 // Handlers
 import MigrationFileHandler from "./MigrationFileHandler"
-import MigrationsTableHandler, { MigrationData } from "./MigrationsTableHandler"
+import MigrationsTableHandler from "./MigrationsTableHandler"
+
+// Decorators
+import { Logs } from "./Decorators"
 
 // Utils
 import { join } from "path"
-import { readdirSync } from "fs"
+import { readdirSync, mkdirSync, existsSync } from "fs"
 import { pathToFileURL } from "url"
 import readline from 'readline'
-import chalk from "chalk"
+
+// Static
+import {
+    registerUnknownQuestion,
+    setAlreadyRunnedQuestion,
+} from "./Static"
 
 // Types
 import type MySQLConnection from "../Connection"
 import type { Constructor } from "../types/General"
 import type { MigrationRunMethod, MigrationSyncAction } from "./types"
 
-export default class Migrator extends Array<Constructor<Migration>> {
-    private static readonly registerUnknownQuestion = chalk.yellow(
-        'You have unregistered migrations for this connection, would you like to register? [Y]es | [N]o\n'
-    )
+// Exceptions
+import PolyORMException, {
+    AcknowledgedExceptionHandler,
+    type AcknowledgedErrorTuple
+} from "../Errors"
 
+export default class Migrator extends Array<Constructor<Migration>> {
     private database!: DatabaseSchema | DatabaseMigrator
 
     private _metadatas?: EntityMetadata[]
@@ -56,6 +66,15 @@ export default class Migrator extends Array<Constructor<Migration>> {
         return this._metadatas = this.connection.entities.map(
             entity => EntityMetadata.find(entity)!
         )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get interface(): readline.Interface {
+        return readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        })
     }
 
     // ------------------------------------------------------------------------
@@ -97,16 +116,18 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    @Logs.InitProccess
     public async init(): Promise<void> {
-        await this.tableHandler.drop()
-        return this.tableHandler.create()
+        this.verifyDir()
+        await this.tableHandler.createIfNotExists()
+        await this.verifyUnknown()
     }
 
     // ------------------------------------------------------------------------
 
+    @Logs.RunMainProcess
     public async reset(): Promise<void> {
-        await this.verifyUnknown()
-        await this.loadDatabaseSchema()
+        await this.loadProcessDependencies()
 
         await DatabaseMigrator.buildFromSchema(this.database).dropAll()
         await this.tableHandler.unsetMigratedAll()
@@ -116,52 +137,39 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
+    @Logs.RunMainProcess
     public async run(): Promise<void> {
-        await this.verifyUnknown()
-        if (!this.database) await this.loadDatabaseSchema()
-        await this.loadMigrations('run')
+        await this.loadProcessDependencies('run')
 
         const migrator = new DatabaseMigrator(this.connection)
         const time = await this.tableHandler.nextMigrationTime()
 
-        for (const Migration of this) {
-            console.log(`Running up migration: ${Migration.name}`)
-
-            new Migration(migrator).up()
-
-            await migrator.executeActions(true)
-            await this.tableHandler.setMigrated(Migration.name, time)
-        }
-
-        await migrator.executeTriggersActions()
+        for (const Migration of this) await this.runMigration(
+            migrator,
+            Migration,
+            time
+        )
     }
 
     // ------------------------------------------------------------------------
 
+    @Logs.RunMainProcess
     public async back(): Promise<void> {
-        await this.verifyUnknown()
-        await this.loadDatabaseSchema()
-        await this.loadMigrations('back')
+        await this.loadProcessDependencies('back')
 
         const migrator = DatabaseMigrator.buildFromSchema(this.database)
 
-        for (const Migration of this.reverse()) {
-            console.log(`Running down migration: ${Migration.name}`)
-
-            new Migration(migrator).down()
-
-            await migrator.executeActions(true)
-            await this.tableHandler.unsetMigrated(Migration.name)
-        }
-
-        await migrator.executeTriggersActions()
+        for (const Migration of this.reverse()) await this.backMigration(
+            migrator,
+            Migration
+        )
     }
 
     // ------------------------------------------------------------------------
 
+    @Logs.SyncProccess
     public async sync(): Promise<void> {
-        await this.verifyUnknown()
-        await this.loadMigrations()
+        await this.loadProcessDependencies()
 
         this.database = new DatabaseSchema(this.connection)
         const schema = DatabaseSchema.buildFromConnectionMetadata(
@@ -175,6 +183,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
+    @Logs.CreateMigrationProcess
     public async create(
         action: ActionType,
         tableName: string,
@@ -182,38 +191,30 @@ export default class Migrator extends Array<Constructor<Migration>> {
         at?: number
     ) {
         const [props] = await this.tableHandler.insert(
-            className ?? this.buildClassName(action, tableName),
+            className ?? MigrationFileHandler.buildClassName(
+                action,
+                tableName
+            ),
             at
         )
 
-        this.fileHandler.create(this.connection.name, action, tableName, props)
+        this.fileHandler.create(this.connection.name, action, {
+            ...props,
+            tableName
+        })
     }
 
     // ------------------------------------------------------------------------
 
-    public async registerUnknown(): Promise<void> {
-        const registered = await this.registered()
-        const unknown = this.files.filter(
-            file => !registered.includes(file.split('.')[0])
-        )
-
+    @Logs.RegisterMigrationsProccess
+    public async register(): Promise<void> {
+        const unknown = await this.unknownMigrationFiles(false)
         if (unknown.length === 0) return
 
-        const last = registered.length
+        const last = (await this.registered()).length
+
         for (const file of unknown) {
-            const [order, name, ...rest] = file
-                .split('.')[0]
-                .split('-')
-
-            if (!order) throw new Error
-            if (!name) throw new Error
-
-            const at = parseInt(order)
-            const createdAt = rest.length === 3 ? rest.join('-') : undefined
-
-            if (createdAt && isNaN(new Date(createdAt).getTime())) throw (
-                new Error
-            )
+            const [at, name, createdAt] = this.fileNameToInsertProps(file)
 
             await this.tableHandler.insert(
                 name,
@@ -225,6 +226,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
+    @Logs.DeleteMigrationProcess
     public async delete(id: string | number): Promise<void> {
         const deleted = await this.tableHandler.delete(id)
         this.fileHandler.delete(deleted)
@@ -232,12 +234,29 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
+    @Logs.MoveMigrationProccess
     public async move(from: number, to: number): Promise<void> {
         await this.tableHandler.move(from, to)
         this.fileHandler.move(from, to)
     }
 
     // Privates ---------------------------------------------------------------
+    private verifyDir(): void {
+        if (!existsSync(this.dir)) mkdirSync(this.dir, { recursive: true })
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async loadProcessDependencies(method?: MigrationRunMethod): (
+        Promise<void>
+    ) {
+        await this.loadMigrations(method)
+        await this.verifyUnknown()
+        if (!this.database) await this.loadDatabaseSchema()
+    }
+
+    // ------------------------------------------------------------------------
+
     private async instantiate(): Promise<Migration[]> {
         return this.map(migration => new migration(this.database))
     }
@@ -266,51 +285,58 @@ export default class Migrator extends Array<Constructor<Migration>> {
     // ------------------------------------------------------------------------
 
     private async verifyUnknown(): Promise<void> {
-        const registered = await this.registered()
+        if ((await this.unknownMigrationFiles(true)).length > 0) return (
+            new Promise(
+                resolve => this.interface.question(
+                    registerUnknownQuestion(this.connection.name),
+                    async answer => {
+                        if (answer.toLowerCase().startsWith('y')) (
+                            await this.register()
+                        )
 
-        if (
-            this.files.some(file => !registered.includes(file.split('.')[0]))
-        ) {
-            const rl = readline.createInterface({
-                input: process.stdin,
-                output: process.stdout,
-            })
-
-            return new Promise(resolve => rl.question(
-                Migrator.registerUnknownQuestion,
-                async answer => {
-                    if (answer.toLowerCase().startsWith('y')) (
-                        await this.registerUnknown()
-                    )
-
-                    rl.close()
-                    resolve()
-                }
-            ))
-        }
+                        this.interface.close()
+                        resolve()
+                    }
+                )
+            )
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    private async loadMigrations(method?: MigrationRunMethod): Promise<void> {
-        const included = method
-            ? await this.included(method)
-            : undefined
-
-        const files = included
-            ? this.files.filter(name => included.includes(name.split('.')[0]))
-            : this.files
-
-        this.push(...await Promise.all(
-            files.map(async file =>
-                (await import(pathToFileURL(join(this.dir, file)).href))
-                    .default
-            )
+    @Logs.NothingToRegister
+    private async unknownMigrationFiles(silent: boolean = true): (
+        Promise<string[]>
+    ) {
+        const registered = await this.registered()
+        return this.files.filter(file => !registered.includes(
+            file.split('.')[0]
         ))
     }
 
     // ------------------------------------------------------------------------
 
+    private async loadMigrations(method?: MigrationRunMethod): Promise<void> {
+        const files = method ? await this.filterFiles(method) : undefined
+        if (method) this.splice(0, this.length)
+
+        this.push(...await Promise.all((files ?? this.files).map(async file =>
+            (await import(pathToFileURL(join(this.dir, file)).href)).default
+        )))
+    }
+
+    // ------------------------------------------------------------------------
+
+    private async filterFiles(method: MigrationRunMethod): Promise<string[]> {
+        const included = await this.included(method)
+        if (included.length === 0) return []
+
+        return this.files.filter(name => included.includes(name.split('.')[0]))
+    }
+
+    // ------------------------------------------------------------------------
+
+    @Logs.NothingToRun
     private async included(method: MigrationRunMethod): (
         Promise<string[]>
     ) {
@@ -325,21 +351,68 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
+    @Logs.RunChildProcess
+    private async runMigration(
+        migrator: DatabaseMigrator,
+        migration: Constructor<Migration>,
+        time: number
+    ): Promise<void> {
+        try {
+            new migration(migrator).up()
+
+            await migrator.executeActions(true)
+            await this.tableHandler.setMigrated(migration.name, time)
+            await migrator.executeTriggersActions()
+
+        } catch (error: any) {
+            await this.handleProccessException(
+                error,
+                migration.name,
+                'UP',
+                time
+            )
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    @Logs.RunChildProcess
+    private async backMigration(
+        migrator: DatabaseMigrator,
+        migration: Constructor<Migration>
+    ): Promise<void> {
+        try {
+            new migration(migrator).down()
+
+            await migrator.executeActions(true)
+            await this.tableHandler.unsetMigrated(migration.name)
+            await migrator.executeTriggersActions()
+
+        } catch (error: any) {
+            await this.handleProccessException(
+                error,
+                migration.name,
+                'DOWN'
+            )
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
     private async syncMigrations(schema: DatabaseSchema): Promise<void> {
         for (const [action, [table, prev]] of
             this.syncMigrationsActions(schema)
         ) {
             const [props] = await this.tableHandler.insert(
-                this.buildClassName(action, table.name)
+                MigrationFileHandler.buildClassName(action, table.name)
             )
 
-            this.fileHandler.sync(
-                this.connection.name,
-                this.findTableMetaOrThrow(table.name),
-                [table, prev],
-                action,
-                props
-            )
+            this.fileHandler.sync(this.connection.name, action, {
+                ...props,
+                tableName: table.name,
+                metadata: this.findTableMetaOrThrow(table.name),
+                schemas: [table, prev]
+            })
         }
     }
 
@@ -348,9 +421,8 @@ export default class Migrator extends Array<Constructor<Migration>> {
     private syncMigrationsActions(schema: DatabaseSchema): (
         MigrationSyncAction[]
     ) {
-        return this.toSyncAlterActions(schema).concat(
-            this.toSyncDropActions(schema)
-        )
+        return this.toSyncAlterActions(schema)
+            .concat(this.toSyncDropActions(schema))
     }
 
     // ------------------------------------------------------------------------
@@ -385,24 +457,90 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
-    private buildClassName(action: ActionType, tableName: string): string {
-        return this.toPascalCase(
-            action.toLocaleLowerCase(),
-            tableName,
-            'table',
-            '_' + Date.now()
+    private fileNameToInsertProps(fileName: string): (
+        [number, string, string | undefined]
+    ) {
+        const [order, name, ...rest] = fileName
+            .split('.')[0]
+            .split('-')
+
+        if (!order) throw new Error
+        if (!name) throw new Error
+
+        const at = parseInt(order)
+
+        const createdAt = rest.length === 3 ? rest.join('-') : undefined
+        if (createdAt && isNaN(new Date(createdAt).getTime())) throw (
+            new Error
         )
+
+        return [at, name, createdAt]
     }
 
     // ------------------------------------------------------------------------
 
-    private toPascalCase(...parts: string[]): string {
-        return parts
-            .flatMap(part => part.match(/[A-Z]?[a-z_]+|[0-9_]+/g) ?? [])
-            .map(part =>
-                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+    private handleProccessException(
+        error: any,
+        ...args: any[]
+    ): Promise<void> {
+        const acknowledged = AcknowledgedExceptionHandler.handle(error)
+
+        switch (acknowledged[0]) {
+            case 'MySQL': return (
+                this.handleMySQLProcessException(acknowledged, ...args)
             )
-            .join('')
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    private handleMySQLProcessException(
+        acknowledged: AcknowledgedErrorTuple,
+        ...args: any[]
+    ): Promise<void> {
+        switch (acknowledged[1].code) {
+            case 'ER_TABLE_EXISTS_ERROR':
+            case "ER_BAD_TABLE_ERROR": return this.askAlreadyRunned(
+                acknowledged,
+                args
+            )
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    private askAlreadyRunned(
+        acknowledged: AcknowledgedErrorTuple,
+        args: any[]
+    ): Promise<void> {
+        const [_, { name, code, message }] = acknowledged
+        const [migration, method, time] = args
+
+        return new Promise(resolve => this.interface.question(
+            setAlreadyRunnedQuestion(name, code, message, migration, method),
+            async answer => {
+                if (answer.toLowerCase().startsWith('y')) switch (method) {
+                    case 'UP': await this.tableHandler.setMigrated(
+                        migration,
+                        time
+                    )
+                        break
+
+                    case 'DOWN': await this.tableHandler.unsetMigrated(
+                        migration
+                    )
+                        break
+                }
+
+                else throw PolyORMException.throwAcknowledged(
+                    acknowledged,
+                    this.connection.name
+                )
+
+                this.interface.close()
+                resolve()
+            }
+        ))
     }
 }
 
