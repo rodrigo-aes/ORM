@@ -2,10 +2,10 @@
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type MySQLConnection from "../../Connection"
+import type { PolyORMConnection } from "../../Metadata"
 
 export default abstract class Procedure {
-    protected connection!: MySQLConnection
+    protected connection!: PolyORMConnection
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
@@ -24,7 +24,7 @@ export default abstract class Procedure {
 
     // ------------------------------------------------------------------------
 
-    public async register(connection: MySQLConnection): Promise<void> {
+    public async register(connection: PolyORMConnection): Promise<void> {
         this.connection = connection
 
         await this.connection.query(this.dropIfExistsSQL())

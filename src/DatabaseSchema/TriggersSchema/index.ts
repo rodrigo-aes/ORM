@@ -5,9 +5,11 @@ import { triggersSchemaQuery } from "./static"
 
 // Types
 import type { Constructor } from "../../types/General"
-import type { TriggersMetadata } from "../../Metadata"
-import type MySQLConnection from "../../Connection"
+import type { TriggersMetadata, PolyORMConnection } from "../../Metadata"
 import type { TriggersSchemaAction } from "./types"
+
+// Exceptions
+import PolyORMException from "../../Errors"
 
 export default class TriggersSchema<
     T extends TriggerSchema = TriggerSchema
@@ -16,7 +18,7 @@ export default class TriggersSchema<
     public actions: TriggersSchemaAction[] = []
 
     constructor(
-        public connection: MySQLConnection,
+        public connection: PolyORMConnection,
         ...triggers: (T | TriggerSchemaInitMap)[]
     ) {
         super(...triggers.map(trigger => trigger instanceof TriggerSchema
@@ -73,10 +75,10 @@ export default class TriggersSchema<
 
     // Protecteds -------------------------------------------------------------
     protected findOrThrow(tableName: string, name: string): TriggerSchema {
-        const trigger = this.findTrigger(tableName, name)
-        if (!trigger) throw new Error
-
-        return trigger
+        return this.findTrigger(tableName, name)!
+            ?? PolyORMException.MySQL.throwOutOfOperation(
+                'UNKNOWN_TRIGGER', tableName, name
+            )
     }
 
     // ------------------------------------------------------------------------
@@ -100,7 +102,7 @@ export default class TriggersSchema<
     // Publics ----------------------------------------------------------------
     public static buildFromMetadatas<T extends Constructor<TriggersSchema>>(
         this: T,
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         ...metadatas: TriggersMetadata[]
     ): InstanceType<T> {
         return new this(

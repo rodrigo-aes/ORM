@@ -262,7 +262,7 @@ import {
 } from './SQLBuilders'
 
 export {
-    MySQLConnection,
+    MySQLConnection as MySQLConnection,
 
     CLI,
     MigrationCommander,

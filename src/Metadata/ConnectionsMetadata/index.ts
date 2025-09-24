@@ -1,11 +1,26 @@
-import type { Connection } from "./types";
+import type { PolyORMConnection, MySQLConnection } from "./contracts"
 
-export class ConnectionsMetadata extends Map<string, Connection> {
+// Exceptions
+import PolyORMException from "../../Errors"
+
+class ConnectionsMetadata extends Map<string, PolyORMConnection> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public all(): Connection[] {
+    public all(): PolyORMConnection[] {
         return Array.from(this.values())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public findOrThrow(name: string): PolyORMConnection {
+        return this.get(name)! ?? PolyORMException.Metadata.throw(
+            'INEXISTENT_CONNECTION', name
+        )
     }
 }
 
 export default new ConnectionsMetadata
+export type {
+    PolyORMConnection,
+    MySQLConnection
+} 

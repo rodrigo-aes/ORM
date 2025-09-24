@@ -1,21 +1,25 @@
 // Exceptions
 // - MySQL
 import PolyORMMySQLException, {
-    type PolyORMMySQLErrorCode,
-    type PolyORMMySQLExceptionsArgs
+    type PolyORMMySQLErrorCode
 } from './MySQL'
+
+// - Common
+import CommonException, { type CommonErrorCode } from './Common'
+
+// - Metadata
+import MetadataException, { type MetadataErrorCode } from './Metadata'
 
 // Handlers
 import { AcknowledgedExceptionHandler } from "./Handlers"
 
 // Types
-import MySQLConnection from '../Connection'
 import type { AcknowledgedErrorTuple } from "./types"
 
 
 export default class PolyORMException {
     private constructor() {
-        throw new Error('Not instantiable class')
+        CommonException.throw('NOT_INSTANTIABLE_CLASS', this.constructor.name)
     }
 
     // Static Getters =========================================================
@@ -24,32 +28,18 @@ export default class PolyORMException {
         return PolyORMMySQLException
     }
 
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static throwByCode(
-        connection: MySQLConnection,
-        code: PolyORMMySQLErrorCode,
-        ...args: PolyORMMySQLExceptionsArgs
-    ) {
-        switch (true) {
-            case connection instanceof MySQLConnection: return (
-                this.MySQL.throwByCode(code, connection.name, ...args)
-            )
-        }
+    // ------------------------------------------------------------------------
+
+    public static get Common(): typeof CommonException {
+        return CommonException
     }
 
     // ------------------------------------------------------------------------
 
-    public static throwByError(
-        connection: MySQLConnection,
-        error: any
-    ) {
-        switch (true) {
-            case connection instanceof MySQLConnection: return (
-                this.MySQL.throwByError(error, connection.name)
-            )
-        }
+    public static get Metadata(): typeof MetadataException {
+        return MetadataException
     }
+
 }
 
 export {
@@ -58,4 +48,5 @@ export {
     PolyORMMySQLErrorCode,
 
     type AcknowledgedErrorTuple,
+    type MetadataErrorCode
 }

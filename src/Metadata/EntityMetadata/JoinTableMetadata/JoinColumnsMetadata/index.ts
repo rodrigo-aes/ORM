@@ -6,6 +6,10 @@ import type JoinTableMetadata from ".."
 import type { EntityTarget } from "../../../../types/General"
 
 import type { JoinColumnsMetadataJSON } from "./types"
+
+// Exceptions
+import PolyORMException from "../../../../Errors"
+
 export default class JoinColumnsMetadata<
     T extends JoinColumnMetadata = JoinColumnMetadata
 > extends Array<T> {
@@ -36,7 +40,13 @@ export default class JoinColumnsMetadata<
 
     public getColumn(columnName: string): JoinColumnMetadata {
         const column = this.findColumn(columnName)
-        if (!column) throw new Error
+        if (!column) throw PolyORMException.MySQL.instantiate(
+            'UNKNOW_COLUMN',
+            'No connection',
+            'No SQL operation',
+            columnName,
+            this.table.tableName
+        )
 
         return column
     }

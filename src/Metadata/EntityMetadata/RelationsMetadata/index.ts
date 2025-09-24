@@ -49,7 +49,10 @@ import RelationMetadata, {
 } from "./RelationMetadata"
 
 import type { RelationsMetadataJSON } from "./types"
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget, Target } from "../../../types/General"
+
+// Exceptions
+import PolyORMException from "../../../Errors"
 
 export default class RelationsMetadata extends Array<RelationMetadata> {
     constructor(
@@ -148,6 +151,40 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
         )) as (
                 PolymorphicBelongsToMetadata | undefined
             )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public search(name: string): RelationMetadata | undefined {
+        return this.find(rel => rel.name === name)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public searchByRelated(related: Target): (
+        RelationMetadata | undefined
+    ) {
+        return this.find(({ relatedTarget }) => relatedTarget === related)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public findOrThrow(name: string): RelationMetadata {
+        return this.search(name)! ?? PolyORMException.Metadata.throw(
+            'UNKNOWN_RELATION', name, this.target.name
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public findByRelatedOrthrow(related: Target): RelationMetadata {
+        return this.searchByRelated(related)! ?? (
+            PolyORMException.Metadata.throw(
+                'UNKNOWN_RELATION',
+                `${related.name} entity class`,
+                this.target.name
+            )
+        )
     }
 
     // Protecteds -------------------------------------------------------------

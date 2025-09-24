@@ -76,6 +76,9 @@ import type {
     ConditionalQueryOptions,
 } from "../SQLBuilders"
 
+// Exceptions
+import PolyORMException from "../Errors"
+
 /**
  * All polymorphic entities needs to extends BaseEntity class
  * @example
@@ -280,7 +283,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         related: Related
     ): HasOne<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasOneMetadata)) throw new Error
+        if (!(metadata instanceof HasOneMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'HasOne'
+            )
+        )
 
         return new HasOne(metadata, target, related) as HasOne<T, Related>
     }
@@ -302,7 +309,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         related: Related
     ): HasMany<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasManyMetadata)) throw new Error
+        if (!(metadata instanceof HasManyMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'HasMany'
+            )
+        )
 
         return new HasMany(metadata, target, related) as HasMany<T, Related>
     }
@@ -324,7 +335,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         related: Related
     ): BelongsTo<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof BelongsToMetadata)) throw new Error
+        if (!(metadata instanceof BelongsToMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'BelongsTo'
+            )
+        )
 
         return new BelongsTo(metadata, target, related) as BelongsTo<
             T,
@@ -349,7 +364,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         related: Related
     ): HasOneThrough<T, Related> {
         const [metadata] = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasOneThroughMetadata)) throw new Error
+        if (!(metadata instanceof HasOneThroughMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'HasOneThrough'
+            )
+        )
 
         return new HasOneThrough(metadata, this, related) as HasOneThrough<
             T,
@@ -374,7 +393,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         related: Related
     ): HasManyThrough<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasManyThroughMetadata)) throw new Error
+        if (!(metadata instanceof HasManyThroughMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'HasManyThrough'
+            )
+        )
 
         return new HasManyThrough(metadata, target, related) as HasManyThrough<
             T,
@@ -399,7 +422,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         related: Related
     ): BelongsToMany<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof BelongsToManyMetadata)) throw new Error
+        if (!(metadata instanceof BelongsToManyMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'BelongsToMany'
+            )
+        )
 
         return new BelongsToMany(metadata, target, related) as BelongsToMany<
             T,
@@ -425,7 +452,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         related: Related
     ): PolymorphicHasOne<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicHasOneMetadata)) throw new Error
+        if (!(metadata instanceof PolymorphicHasOneMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'PolymorphicHasOne'
+            )
+        )
 
         return new PolymorphicHasOne(metadata, target, related) as (
             PolymorphicHasOne<T, Related>
@@ -450,7 +481,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         related: Related
     ): PolymorphicHasMany<T, Related> {
         const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicHasManyMetadata)) throw new Error
+        if (!(metadata instanceof PolymorphicHasManyMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'PolymorphicHasMany'
+            )
+        )
 
         return new PolymorphicHasMany(metadata, target, related) as (
             PolymorphicHasMany<T, Related>
@@ -479,7 +514,9 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     > {
         const [metadata, target] = this.getRelationMetadata(name)
         if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw (
-            new Error
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'PolymorphicBelongsTo'
+            )
         )
 
         return new PolymorphicBelongsTo(
@@ -517,21 +554,15 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     /** @internal */
     private getRelationMetadata(name: string): (
-        [RelationMetadataType, BaseEntity | this]
+        [RelationMetadataType, this | BaseEntity]
     ) {
-        let meta = this.getTrueMetadata().relations?.find(
-            rel => rel.name === name
-        )
-        if (meta) return [meta, this]
+        let meta = this.getTrueMetadata().relations.search(name)
+            ?? this.getTrueSourceMetadata().relations.findOrThrow(name)
 
-        // --------------------------------------------------------------------
-
-        meta = this.getTrueSourceMetadata().relations?.find(
-            rel => rel.name === name
-        )
-        if (meta) return [meta, this.toSourceEntity()]
-
-        throw new Error
+        return [
+            meta,
+            this instanceof meta.target ? this : this.toSourceEntity()
+        ]
     }
 
     // Static Getters =========================================================
@@ -602,7 +633,9 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         ...args: any[]
     ): T {
         const scope = this.getTrueMetadata().scopes?.getScope(name, ...args)
-        if (!scope) throw new Error
+        if (!scope) throw PolyORMException.Metadata.instantiate(
+            "UNKNOWN_SCOPE", name, this.name
+        )
 
         const scoped = this.reply()
         TempMetadata.reply(scoped, this).setScope(scoped, scope)
@@ -625,7 +658,9 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
             ? collection
             : this.getTrueMetadata().collections?.search(collection as string)
 
-        if (!coll) throw new Error
+        if (!coll) throw PolyORMException.Metadata.instantiate(
+            'UNKNOWN_COLLECTION', collection, this.name
+        )
 
         const scoped = this.reply()
         TempMetadata.reply(scoped, this).setCollection(scoped, coll)

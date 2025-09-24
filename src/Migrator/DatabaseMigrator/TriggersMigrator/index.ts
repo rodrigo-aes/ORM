@@ -4,7 +4,7 @@ import { TriggersSchema } from "../../../DatabaseSchema"
 import TriggerMigrator from "./TriggerMigrator"
 
 // Types
-import type MySQLConnection from "../../../Connection"
+import type { PolyORMConnection } from "../../../Metadata"
 
 export default class TriggersMigrator extends TriggersSchema<TriggerMigrator> {
     // Static Getters =========================================================
@@ -30,7 +30,7 @@ export default class TriggersMigrator extends TriggersSchema<TriggerMigrator> {
     // Publics ----------------------------------------------------------------
     public static buildFromSchema(
         schema?: TriggersSchema,
-        connection?: MySQLConnection
+        connection?: PolyORMConnection
     ): TriggersMigrator {
         const migrator = new TriggersMigrator(connection ?? schema!.connection)
         migrator.actions = schema?.actions ?? []

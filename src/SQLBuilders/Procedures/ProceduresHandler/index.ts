@@ -7,11 +7,16 @@ import {
 } from "../MigrationProcedures"
 
 // Types
-import type MySQLConnection from "../../../Connection"
+import type { PolyORMConnection } from "../../../Metadata"
+
+// Exceptions
+import PolyORMException from "../../../Errors"
 
 export default class ProceduresHandler {
     private constructor() {
-        throw new Error
+        PolyORMException.Common.throw(
+            'NOT_INSTANTIABLE_CLASS', 'ProceduresHandler'
+        )
     }
 
     public static readonly procedures = [
@@ -25,7 +30,7 @@ export default class ProceduresHandler {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static async register(connection: MySQLConnection): Promise<void> {
+    public static async register(connection: PolyORMConnection): Promise<void> {
         for (const procedure of this.procedures) (
             await new procedure().register(connection)
         )

@@ -27,9 +27,14 @@ import type {
 
 import type { RelationMetadataType } from "../../Metadata"
 
+// Exceptions
+import PolyORMException from "../../Errors"
+
 export default class ConditionalSQLBuilder {
     private constructor() {
-        throw new Error
+        PolyORMException.Common.throw(
+            'NOT_INSTANTIABLE_CLASS', this.constructor.name
+        )
     }
 
     // Static Methods =========================================================

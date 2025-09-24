@@ -12,6 +12,9 @@ import type {
     MergeSourceColumnsConfig
 } from './types'
 
+// Exceptions
+import PolyORMException from '../../../Errors'
+
 export default class PolymorphicColumnsMetadata extends Array<
     PolymorphicColumnMetadata
 > {
@@ -159,18 +162,26 @@ export default class PolymorphicColumnsMetadata extends Array<
 
             if (metadata) return metadata
 
-            throw new Error
+            throw PolyORMException.Metadata.instantiate(
+                'UNKNOWN_ENTITY',
+                entity.name
+            )
         })
     }
 
     // ------------------------------------------------------------------------
 
     private verifyDataType(columns: ColumnMetadata[]): void {
-        const [{ dataType: { type } }] = columns
+        const [{ dataType: { type }, name }] = columns
 
-        if (!columns.every(({ dataType }) => dataType.type === type)) {
-            throw new Error
-        }
+        if (!columns.every(({ dataType }) => dataType.type === type)) throw (
+            PolyORMException.Metadata.instantiate(
+                'IMCOMPATIBLE_POLYMORPHIC_COLUMN_DATATYPES',
+                columns.map(({ dataType }) => dataType.constructor.name),
+                this.target!.name,
+                name
+            )
+        )
     }
 
     // ------------------------------------------------------------------------

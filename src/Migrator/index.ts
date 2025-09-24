@@ -33,12 +33,12 @@ import {
 } from "./Static"
 
 // Types
-import type MySQLConnection from "../Connection"
+import type { PolyORMConnection } from "../Metadata"
 import type { Constructor } from "../types/General"
 import type { MigrationRunMethod, MigrationSyncAction } from "./types"
 
 // Exceptions
-import {
+import PolyORMException, {
     AcknowledgedExceptionHandler,
     type AcknowledgedErrorTuple
 } from "../Errors"
@@ -54,7 +54,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
     private _files?: string[]
     private _registers?: string[]
 
-    constructor(private connection: MySQLConnection) {
+    constructor(private connection: PolyORMConnection) {
         super()
     }
 
@@ -64,7 +64,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
         if (this._metadatas) return this._metadatas
 
         return this._metadatas = this.connection.entities.map(
-            entity => EntityMetadata.find(entity)!
+            entity => EntityMetadata.findOrThrow(entity)
         )
     }
 
@@ -448,10 +448,10 @@ export default class Migrator extends Array<Constructor<Migration>> {
     // ------------------------------------------------------------------------
 
     private findTableMetaOrThrow(tableName: string): EntityMetadata {
-        const meta = this.metadatas.find(meta => meta.tableName === tableName)
-        if (!meta) throw new Error
-
-        return meta
+        return this.metadatas.find(meta => meta.tableName === tableName)!
+            ?? PolyORMException.MySQL.throwOutOfOperation(
+                'UNKNOWN_TABLE', this.connection.database, tableName
+            )
     }
 
     // ------------------------------------------------------------------------

@@ -12,7 +12,7 @@ import { MigrationTemplate } from "../../ModuleTemplates"
 import { Logs } from "../Decorators"
 
 // Types
-import type MySQLConnection from "../../Connection"
+import type { PolyORMConnection } from "../../Metadata"
 import type { ActionType } from "../../DatabaseSchema"
 import type { ModuleExtension } from "../../ModuleTemplates/types"
 import type { CreateMigrationFileProps, SyncMigrationFileProps } from "./types"
@@ -23,7 +23,7 @@ export default class MigrationFileHandler {
         '.ts', '.js', '.cts', '.cjs', '.mts', '.mjs'
     ]
 
-    constructor(private connection: MySQLConnection) { }
+    constructor(private connection: PolyORMConnection) { }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------

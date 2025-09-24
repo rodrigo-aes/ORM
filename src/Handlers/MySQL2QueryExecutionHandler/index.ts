@@ -30,7 +30,7 @@ import EntityBuilder from "../EntityBuilder"
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type MySQLConnection from "../../Connection"
+import type { PolyORMConnection } from "../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget,
@@ -65,6 +65,12 @@ export default class MySQL2QueryExecutionHandler<
         public mapTo: MapTo
     ) {
         this.metadata = MetadataHandler.loadMetadata(this.target)
+    }
+
+    // Getters ================================================================
+    // Privates ---------------------------------------------------------------
+    private get connection(): PolyORMConnection {
+        return this.metadata.connection
     }
 
     // Instance Methods =======================================================
@@ -134,18 +140,16 @@ export default class MySQL2QueryExecutionHandler<
 
             // ----------------------------------------------------------------
 
-            default: throw new Error
+            default: throw new Error('Unreachable Error')
         }
     }
 
     // Privates ---------------------------------------------------------------
     private async executeFindByPk(): Promise<FindOneResult<T, MapTo>> {
-        const connection = this.getConnection()
-        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
-
-        return this.handleDataMapTo(mySQL2RawData, 'One') as (
-            FindOneResult<T, MapTo>
-        )
+        return this.handleDataMapTo(
+            await this.connection.query(this.sqlBuilder.SQL()),
+            'One'
+        ) as FindOneResult<T, MapTo>
     }
 
     // ------------------------------------------------------------------------
@@ -153,11 +157,10 @@ export default class MySQL2QueryExecutionHandler<
     private async executeFindOne(): Promise<FindOneResult<T, MapTo>> {
         await this.callBeforeFindHook()
 
-        const connection = this.getConnection();
-        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
-        const result = this.handleDataMapTo(mySQL2RawData, 'One') as (
-            FindOneResult<T, MapTo>
-        )
+        const result = this.handleDataMapTo(
+            await this.connection.query(this.sqlBuilder.SQL()),
+            'One'
+        ) as FindOneResult<T, MapTo>
 
         await this.callAfterFindHook(result)
 
@@ -169,11 +172,10 @@ export default class MySQL2QueryExecutionHandler<
     private async executeFind(): Promise<FindResult<T, MapTo>> {
         await this.callBeforeBulkFindHook()
 
-        const connection = this.getConnection()
-        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
-        const result = this.handleDataMapTo(mySQL2RawData, 'Many') as (
-            FindResult<T, MapTo>
-        )
+        const result = this.handleDataMapTo(
+            await this.connection.query(this.sqlBuilder.SQL()),
+            'Many'
+        ) as FindResult<T, MapTo>
 
         await this.callAfterBulkFindHook(result)
 
@@ -185,11 +187,9 @@ export default class MySQL2QueryExecutionHandler<
     private async executePaginate(): Promise<PaginateResult<T>> {
         await this.callBeforeBulkFindHook()
 
-        const connection = this.getConnection()
-        const [{ total }] = await connection.query(
+        const [{ total }] = await this.connection.query(
             (this.sqlBuilder as PaginationSQLBuilder<T>).totalSQL()
         )
-        const mySQL2RawData = await connection.query(this.sqlBuilder.SQL())
 
         this.pagination = {
             page: (this.sqlBuilder as PaginationSQLBuilder<T>).page,
@@ -197,9 +197,10 @@ export default class MySQL2QueryExecutionHandler<
             total
         }
 
-        const result = this.handleDataMapTo(mySQL2RawData, 'Paginate') as (
-            PaginateResult<T>
-        )
+        const result = this.handleDataMapTo(
+            await this.connection.query(this.sqlBuilder.SQL()),
+            'Paginate'
+        ) as PaginateResult<T>
 
         await this.callAfterBulkFindHook(result)
 
@@ -209,9 +210,7 @@ export default class MySQL2QueryExecutionHandler<
     // ------------------------------------------------------------------------
 
     private async executeCount(): Promise<CountResult> {
-        const connection = this.getConnection()
-        const [result] = await connection.query(this.sqlBuilder.SQL())
-        return result
+        return (await this.connection.query(this.sqlBuilder.SQL()))[0]
     }
 
     // ------------------------------------------------------------------------
@@ -219,17 +218,11 @@ export default class MySQL2QueryExecutionHandler<
     private async executeCreate() {
         this.callBeforeCreateHook()
 
-        const connection = this.getConnection()
-
-        const resultHeader: ResultSetHeader = await connection.query(
+        const result = this.buildCreatedEntities(await this.connection.query(
             this.sqlBuilder.SQL(),
             (this.sqlBuilder as CreateSQLBuilder<Extract<T, EntityTarget>>)
                 .columnsValues
-        ) as any
-
-        const result = this.buildCreatedEntities(resultHeader) as (
-            CreateResult<Extract<T, EntityTarget>>
-        )
+        ) as any) as CreateResult<Extract<T, EntityTarget>>
 
         await this.callAfterCreateHook(result)
 
@@ -244,8 +237,7 @@ export default class MySQL2QueryExecutionHandler<
 
         this.callBeforeUpdateHook(isEntity)
 
-        const connection = this.getConnection()
-        const resultHeader: ResultSetHeader = await connection.query(
+        const resultHeader: ResultSetHeader = await this.connection.query(
             this.sqlBuilder.SQL()
         ) as any
 
@@ -263,12 +255,10 @@ export default class MySQL2QueryExecutionHandler<
     // ------------------------------------------------------------------------
 
     private async executeUpdateOrCreate() {
-        const connection = this.getConnection()
-        const [mySQL2RawData] = await connection.query(this.sqlBuilder.SQL())
-
-        return this.handleDataMapTo(mySQL2RawData, 'One') as (
-            UpdateOrCreateResult<Extract<T, EntityTarget>>
-        )
+        return this.handleDataMapTo(
+            (await this.connection.query(this.sqlBuilder.SQL()))[0],
+            'One'
+        ) as UpdateOrCreateResult<Extract<T, EntityTarget>>
     }
 
     // ------------------------------------------------------------------------
@@ -276,11 +266,12 @@ export default class MySQL2QueryExecutionHandler<
     private async executeDelete(): Promise<DeleteResult> {
         this.callBeforeDeleteHook()
 
-        const connection = this.getConnection()
-        const { affectedRows, serverStatus }: ResultSetHeader = (
-            await connection.query(this.sqlBuilder.SQL()) as any
-        )
-        const result = { affectedRows, serverStatus }
+        const result = (({ affectedRows, serverStatus }) => ({
+            affectedRows,
+            serverStatus
+        }))((await this.connection.query(this.sqlBuilder.SQL())) as any as (
+            ResultSetHeader
+        ))
 
         this.callAfterDeleteHook(result)
 
@@ -294,13 +285,13 @@ export default class MySQL2QueryExecutionHandler<
     ) {
         return new EntityBuilder(
             this.target,
-            (this.sqlBuilder as CreateSQLBuilder<Extract<T, EntityTarget>>)
-                .attributes!,
+            (
+                (this.sqlBuilder as CreateSQLBuilder<Extract<T, EntityTarget>>)
+                    .attributes!
+            ),
             resultHeader.insertId ?? undefined
         )
-            .build() as (
-                ExecResult<T, Builder, MapTo>
-            )
+            .build() as ExecResult<T, Builder, MapTo>
     }
 
     // ------------------------------------------------------------------------
@@ -328,16 +319,9 @@ export default class MySQL2QueryExecutionHandler<
                 }
 
             case 'raw': return rawData as ExecResult<T, Builder, MapTo>
+
+            default: throw new Error('Unreachable Error')
         }
-
-        throw new Error
-    }
-
-    // ------------------------------------------------------------------------
-
-    private getConnection(): MySQLConnection {
-        if (!this.metadata.connection) throw new Error
-        return this.metadata.connection
     }
 
     // ------------------------------------------------------------------------

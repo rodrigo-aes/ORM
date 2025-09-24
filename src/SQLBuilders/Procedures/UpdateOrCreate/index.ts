@@ -1,7 +1,7 @@
 import Procedure from "../Procedure"
 
 // Types
-import type MySQLConnection from "../../../Connection"
+import type { PolyORMConnection } from "../../../Metadata"
 import type { UpdateOrCreateArgs } from "./types"
 
 export default class UpdateOrCreate extends Procedure {
@@ -33,7 +33,7 @@ export default class UpdateOrCreate extends Procedure {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static call(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         ...args: UpdateOrCreateArgs
     ): Promise<any[]> {
         return connection.query(this.SQL(...args))

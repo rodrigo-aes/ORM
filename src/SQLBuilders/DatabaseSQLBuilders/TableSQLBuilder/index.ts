@@ -17,6 +17,9 @@ import { SQLStringHelper } from "../../../Helpers"
 import type { ActionType } from "../../../DatabaseSchema"
 import type { ColumnMigrator } from "../../../Migrator/DatabaseMigrator"
 
+// Exceptions
+import PolyORMException from "../../../Errors"
+
 export default class TableSQLBuilder<
     T extends ColumnSQLBuilder = ColumnSQLBuilder
 > extends TableSchema<T> {
@@ -147,10 +150,12 @@ export default class TableSQLBuilder<
         column: string,
         action: ActionType
     ): string {
-        const constraint = this.findColumn(column)?.map.references
-        if (!constraint) throw new Error
+        const col = this.findOrThrow(column)
+        if (!col.map.references) PolyORMException.MySQL.throwOutOfOperation(
+            'CANNOT_DROP_FIELD_OR_KEY', col.foreignKeyName, col.name
+        )
 
-        return constraint.migrateAlterSQL(action)
+        return col.map.references!.migrateAlterSQL(action)
     }
 }
 

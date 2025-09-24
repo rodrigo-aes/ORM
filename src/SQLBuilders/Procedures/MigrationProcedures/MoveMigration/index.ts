@@ -4,7 +4,7 @@ import Procedure from "../../Procedure"
 import { PropertySQLHelper } from "../../../../Helpers"
 
 // Types
-import type MySQLConnection from "../../../../Connection"
+import type { PolyORMConnection } from "../../../../Metadata"
 
 export default class MoveMigration extends Procedure {
     public argsSQL(): string {
@@ -36,7 +36,7 @@ export default class MoveMigration extends Procedure {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static call(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         from: number,
         to: number
     ): Promise<any[]> {

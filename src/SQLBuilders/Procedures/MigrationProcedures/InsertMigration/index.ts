@@ -4,7 +4,7 @@ import Procedure from "../../Procedure"
 import { SQLStringHelper } from "../../../../Helpers"
 
 // Types
-import type MySQLConnection from "../../../../Connection"
+import type { PolyORMConnection } from "../../../../Metadata"
 import type { InsertMigrationArgs } from "./types"
 
 export default class InsertMigration extends Procedure {
@@ -72,7 +72,7 @@ export default class InsertMigration extends Procedure {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static call(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         name: string,
         position?: number,
         createdAt?: string

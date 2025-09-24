@@ -17,36 +17,52 @@ import { ProceduresHandler } from '../SQLBuilders'
 import Log from '../utils/Log'
 
 // Types
-import type { MySQLConnectionConfig } from './types'
+import type {
+    MySQLConnectionConfig,
+    MySQLConnectionInstance,
+    MySQLConnection as MySQLConnectionInterface
+} from './types'
+
 import type { EntityTarget } from '../types/General'
 
-export default class MySQLConnection {
+export default class MySQLConnection implements MySQLConnectionInstance {
+    public readonly type = 'MySQL'
+    public static readonly type = 'MySQL'
+
+    /** @internal */
+    private static readonly DEFAULT_CONF: Partial<MySQLConnectionConfig> = {
+        connectionLimit: 10,
+        logging: true,
+        sync: false
+    }
+
     /** @internal */
     private pool!: Pool
 
-    public entities: EntityTarget[] = []
-    public config!: MySQLConnectionConfig
-
     /** @internal */
-    private static defaultConfig: Partial<MySQLConnectionConfig> = {
-        connectionLimit: 10,
-        logging: true,
-        autoSync: false
-    }
+    private config: MySQLConnectionConfig
 
     private constructor(
         public name: string,
         config: MySQLConnectionConfig
     ) {
-        this.setConfig(config)
+        this.config = { ...MySQLConnection.DEFAULT_CONF, ...config }
+        ConnectionsMetadata.set(
+            name,
+            this as unknown as MySQLConnectionInterface
+        )
 
-        ConnectionsMetadata.set(name, this)
+        return new Proxy(this, {
+            get: (target, prop) => prop in target
+                ? (target as this)[prop as keyof this]
+                : config[prop as keyof MySQLConnectionConfig]
+        });
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get database(): string {
-        return this.config.database
+    public get entities(): EntityTarget[] {
+        return this.config.entities ?? []
     }
 
     // Instance Methods =======================================================
@@ -69,8 +85,8 @@ export default class MySQLConnection {
     /**
      * Close connection
      */
-    public async close() {
-        await this.pool.end()
+    public async close(): Promise<void> {
+        return this.pool.end()
     }
 
     // ------------------------------------------------------------------------
@@ -80,7 +96,7 @@ export default class MySQLConnection {
      * @param mode - Case `alter` syncronize only database changes case `reset`
      * drop all tables and syncronize all
      */
-    public async sync(mode: 'alter' | 'reset') {
+    public async sync(mode: 'alter' | 'reset'): Promise<void> {
         const syncronizer = new Syncronizer(this, {
             logging: true
         })
@@ -93,25 +109,7 @@ export default class MySQLConnection {
 
     // Privates ---------------------------------------------------------------
     /** @internal */
-    private setConfig(config: MySQLConnectionConfig): void {
-        const { entities, logging, autoSync, ...c } = {
-            ...MySQLConnection.defaultConfig,
-            ...config
-        }
-
-        this.config = c
-        if (entities) this.entities = entities
-
-        Object.assign(this, {
-            logging,
-            autoSync
-        })
-    }
-
-    // ------------------------------------------------------------------------
-
-    /** @internal */
-    private async init() {
+    private async init(): Promise<this> {
         await Config.load()
         this.instantiatePool()
         await this.afterConnect()
@@ -139,7 +137,7 @@ export default class MySQLConnection {
         MetadataHandler.registerConnectionEntities(this, ...this.entities)
         await ProceduresHandler.register(this)
 
-        if (this.config.autoSync) await this.sync('alter')
+        if (this.config.sync) await this.sync('alter')
     }
 
     // ------------------------------------------------------------------------
@@ -171,7 +169,13 @@ export default class MySQLConnection {
     public static createConnection(
         name: string,
         config: MySQLConnectionConfig
-    ): Promise<MySQLConnection> {
-        return new MySQLConnection(name, config).init()
+    ): Promise<MySQLConnectionInterface> {
+        return new (MySQLConnection as any)(name, config).init() as (
+            Promise<MySQLConnectionInterface>
+        )
     }
+}
+
+export type {
+    MySQLConnectionInterface as MySQLConnection
 }

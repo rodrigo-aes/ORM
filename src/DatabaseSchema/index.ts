@@ -16,7 +16,7 @@ import TriggersSchema, { TriggerSchema } from "./TriggersSchema"
 import { databaseSchemaQuery } from "./static"
 
 // Types
-import type MySQLConnection from "../Connection"
+import type { PolyORMConnection } from "../Metadata"
 import type { Constructor } from "../types/General"
 import type {
     DatabaseSchemaAction,
@@ -45,7 +45,7 @@ export default class DatabaseSchema<
     /** @internal */
     constructor(
         /** @internal */
-        public connection: MySQLConnection,
+        public connection: PolyORMConnection,
 
         ...tables: (T | TableSchemaInitMap)[]
     ) {
@@ -155,8 +155,8 @@ export default class DatabaseSchema<
     public findOrThrow(name: string): T {
         const table = this.findTable(name)
 
-        if (!table) PolyORMException.throwByCode(
-            this.connection, 'UNKNOWN_TABLE', undefined, [name]
+        if (!table) PolyORMException.MySQL.throwByCode(
+            'UNKNOWN_TABLE', this.connection.name, undefined, [name]
         )
 
         return table as T
@@ -209,14 +209,16 @@ export default class DatabaseSchema<
         T extends Constructor<DatabaseSchema<any>>
     >(
         this: T,
-        connection: MySQLConnection
+        connection: PolyORMConnection
     ): InstanceType<T> {
         const included = new Set<string>()
         const database = new this(connection)
 
         database.push(...connection.entities.flatMap(target => {
             const meta = EntityMetadata.find(target)
-            if (!meta) throw new Error
+            if (!meta) throw PolyORMException.Metadata.instantiate(
+                "UNKNOWN_ENTITY", target.name
+            )
 
             return [
                 (this as T & typeof DatabaseSchema)
@@ -245,7 +247,7 @@ export default class DatabaseSchema<
         T extends Constructor<DatabaseSchema<any>>
     >(
         this: T,
-        connection: MySQLConnection
+        connection: PolyORMConnection
     ): Promise<InstanceType<T>> {
         return new this(connection, ...await connection.query(
             databaseSchemaQuery(),

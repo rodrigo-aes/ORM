@@ -1,3 +1,5 @@
+import ConnectionsMetadata from "../ConnectionsMetadata"
+
 import EntityMetadata, {
     HooksMetadata,
     ScopesMetadata,
@@ -17,22 +19,27 @@ import PolymorphicColumnsMetadata, {
 
 import PolymorphicRelationsMetadata from "./PolymorphicRelationsMetadata"
 
+// Repository
+import PolymorphicRepository from "../../PolymorphicRepository"
+
 // Handlers
 import { PolymorphicEntityBuilder } from "../../Handlers"
 import { EntityToJSONProcessMetadata } from "../ProcessMetadata"
 
 // Types
-import type MySQLConnection from "../../Connection"
+import type { PolyORMConnection } from "../../Metadata"
 import type { PolymorphicEntityTarget, EntityTarget } from "../../types/General"
 import type {
     UnionEntitiesMap,
     SourcesMetadata,
     PolymorphicEntityMetadataJSON
 } from "./types"
-import PolymorphicRepository from "../../PolymorphicRepository"
+
+// Exceptions
+import PolyORMException from "../../Errors"
 
 export default class PolymorphicEntityMetadata {
-    public connection?: MySQLConnection
+    public target: PolymorphicEntityTarget
 
     private _entities!: UnionEntitiesMap
     private _sourcesMetadata!: SourcesMetadata
@@ -44,7 +51,7 @@ export default class PolymorphicEntityMetadata {
 
     constructor(
         public tableName: string,
-        public target: PolymorphicEntityTarget | null,
+        target: PolymorphicEntityTarget | null,
         public sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
         this.loadEntities()
@@ -52,7 +59,10 @@ export default class PolymorphicEntityMetadata {
         this.loadColumns()
         this.loadRelations()
 
-        if (this.target) this.mergeCombined()
+        if (target) this.mergeCombined()
+
+        this.target = target
+            ?? PolymorphicEntityBuilder.buildInternalEntityUnion(this)
 
         this.register()
 
@@ -61,7 +71,17 @@ export default class PolymorphicEntityMetadata {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get name(): string {
-        return this.target!.name
+        return this.target.name
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get connection(): PolyORMConnection {
+        return Reflect.getOwnMetadata('temp-connection', this.target)
+            ?? Reflect.getOwnMetadata('default-connection', this.target)!
+            ?? PolyORMException.Metadata.throw(
+                'MISSING_ENTITY_CONNECTION', this.name
+            )
     }
 
     // ------------------------------------------------------------------------
@@ -104,7 +124,7 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get relations(): PolymorphicRelationsMetadata | undefined {
+    public get relations(): PolymorphicRelationsMetadata {
         return this._relations ?? this.loadRelations()
     }
 
@@ -175,8 +195,24 @@ export default class PolymorphicEntityMetadata {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public defineConnection(connection: MySQLConnection) {
-        this.connection = connection
+    public defineDefaultConnection(connection: PolyORMConnection | string) {
+        if (!Reflect.getOwnMetadata('default-connection', this.target)) (
+            Reflect.defineMetadata(
+                'default-connection',
+                this.resolveConnection(connection),
+                this.target
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public defineTempConnection(connection: PolyORMConnection | string): void {
+        Reflect.defineMetadata(
+            'temp-connection',
+            this.resolveConnection(connection),
+            this.target
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -215,19 +251,18 @@ export default class PolymorphicEntityMetadata {
 
     // Privates ---------------------------------------------------------------
     private register(): void {
-        if (!this.target) this.target = this.registerInternalEntity()
-
-        Reflect.defineMetadata(
-            'union-metadata',
-            this,
-            this.target
-        )
+        Reflect.defineMetadata('union-metadata', this, this.target)
     }
 
     // ------------------------------------------------------------------------
 
-    private registerInternalEntity(): PolymorphicEntityTarget {
-        return PolymorphicEntityBuilder.buildInternalEntityUnion(this)
+    private resolveConnection(connection: PolyORMConnection | string): (
+        PolyORMConnection
+    ) {
+        switch (typeof connection) {
+            case 'object': return connection
+            case 'string': return ConnectionsMetadata.findOrThrow(connection)
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -287,12 +322,12 @@ export default class PolymorphicEntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    private loadRelations(): PolymorphicRelationsMetadata | undefined {
+    private loadRelations(): PolymorphicRelationsMetadata {
         const metas = Object.values(this.sourcesMetadata)
-        const relations = metas.flatMap(meta => meta.relations ?? [])
+        const relations = metas.flatMap(meta => meta.relations)
 
-        if (relations.length > 0) this._relations = (
-            new PolymorphicRelationsMetadata(this.target, ...relations)
+        this._relations = new PolymorphicRelationsMetadata(
+            this.target, ...relations
         )
 
         return this._relations
@@ -349,6 +384,16 @@ export default class PolymorphicEntityMetadata {
     ): PolymorphicEntityMetadata {
         return this.find(target) ?? this.build(
             name, target, sources
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static findOrThrow(target: PolymorphicEntityTarget): (
+        PolymorphicEntityMetadata
+    ) {
+        return this.find(target)! ?? PolyORMException.Metadata.throw(
+            "UNKNOWN_ENTITY", target.name
         )
     }
 }

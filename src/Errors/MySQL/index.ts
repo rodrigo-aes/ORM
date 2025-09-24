@@ -1,5 +1,6 @@
 // Types
 import type { Constructor } from "../../types/General"
+import type { PolyORMException } from "../types"
 import {
     MySQLErrorCodes,
     MySQLErrorNoCodes,
@@ -10,23 +11,27 @@ import {
     type PolyORMMySQLErrorCode
 } from "./Static"
 import type {
-    PolyORMMySQLExceptionsArgs,
-    PolyORMMySQLExceptionBuildTuple
+    PolyORMMySQLExceptionsArgs
 } from "./types"
 
 
-export default abstract class PolyORMMySQLException extends Error {
-    protected abstract readonly polyORMCode: PolyORMMySQLErrorCode
+export default
+    abstract class PolyORMMySQLException
+    extends Error
+    implements PolyORMException {
+
+    public readonly origin = 'MySQL'
+    public abstract readonly polyORMCode: PolyORMMySQLErrorCode
 
     public code!: MySQLErrorCode
     public errno!: number
-    public sqlState!: string
 
-    public sql: string = ''
-    public sqlMessage: string = ''
+    public sqlState!: string
+    public sqlMessage: string = '(NO SQL MESSAGE)'
 
     constructor(
         public connection?: string,
+        public sql: string = '(NO SQL OPERATION)',
         ...args: PolyORMMySQLExceptionsArgs
     ) {
         super()
@@ -52,33 +57,25 @@ export default abstract class PolyORMMySQLException extends Error {
         const [first] = args
 
         if (first instanceof Error) this.assignByError(first)
-        else this.assignByTuple(...args as PolyORMMySQLExceptionBuildTuple)
+        else {
+            this.name = this.constructor.name
 
-        this.name = this.constructor.name
-        this.message = this.sqlMessage
+            this.sqlMessage = this.buildMessage(...args)
+            this.message = this.sqlMessage
 
-        this.code = MySQLErrorCodes[this.polyORMCode]
-        this.errno = MySQLErrorNoCodes[this.polyORMCode]
-        this.sqlState = MySQLErrorStates[this.polyORMCode]
+            this.code = MySQLErrorCodes[this.polyORMCode]
+            this.errno = MySQLErrorNoCodes[this.polyORMCode]
+            this.sqlState = MySQLErrorStates[this.polyORMCode]
+        }
     }
 
     // ------------------------------------------------------------------------
 
     private assignByError(error: Error): void {
         Object.assign(this, Object.entries(error).filter(
-            ([key]) => ['sql', 'sqlState', 'sqlMessage'].includes(key)
+            ([key]) => ['code', 'errno', 'sql', 'sqlState', 'sqlMessage']
+                .includes(key)
         ))
-    }
-
-    // ------------------------------------------------------------------------
-
-    private assignByTuple(...args: PolyORMMySQLExceptionBuildTuple) {
-        const [sql, messageArgs] = args
-
-        Object.assign(this, {
-            sql: sql ?? '',
-            sqlMessage: this.buildMessage(...messageArgs)
-        })
     }
 
     // ------------------------------------------------------------------------
@@ -101,8 +98,9 @@ export default abstract class PolyORMMySQLException extends Error {
         return new Function(
             'PolyORMMySQLException',
             'code',
-            `return class ${this.buildChildName(code)} extends PolyORMMySQLException {
-                protected readonly polyORMCode = '${code}'
+            `return class ${this.buildChildName(code)} 
+                extends PolyORMMySQLException {
+                public readonly polyORMCode = '${code}'
             }`
         )(this, code)
     }
@@ -112,9 +110,10 @@ export default abstract class PolyORMMySQLException extends Error {
     public static instantiate(
         code: PolyORMMySQLErrorCode,
         connection?: string,
+        sql: string = '',
         ...args: PolyORMMySQLExceptionsArgs
     ): PolyORMMySQLException {
-        return new (this.build(code))(code, connection, ...args)
+        return new (this.build(code))(code, connection, sql, ...args)
     }
 
     // ------------------------------------------------------------------------
@@ -122,9 +121,10 @@ export default abstract class PolyORMMySQLException extends Error {
     public static throwByCode(
         code: PolyORMMySQLErrorCode,
         connection?: string,
+        sql?: string,
         ...args: PolyORMMySQLExceptionsArgs
     ) {
-        throw this.instantiate(code, connection, ...args)
+        throw this.instantiate(code, connection, sql, ...args)
     }
 
     // ------------------------------------------------------------------------
@@ -133,23 +133,38 @@ export default abstract class PolyORMMySQLException extends Error {
         error: any,
         connection?: string,
     ) {
-        throw this.instantiate(
-            this.convertCode(error.code as MySQLErrorCode),
-            connection,
-            error
-        )
+        throw new (new Function(
+            'PolyORMMySQLException',
+            `return class ${this.buildChildName(error.code, false)} 
+                extends PolyORMMySQLException {
+                public readonly polyORMCode = '${(
+                this.convertCode(error.code) ?? error.code
+            )}'
+            }`
+        )(this))(connection, error.sql, error)
     }
 
     // ------------------------------------------------------------------------
 
-    public static convertCode(code: MySQLErrorCode): PolyORMMySQLErrorCode {
+    public static throwOutOfOperation(
+        code: PolyORMMySQLErrorCode,
+        ...args: PolyORMMySQLExceptionsArgs
+    ) {
+        throw this.instantiate(code, undefined, undefined, ...args)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static convertCode(code: MySQLErrorCode): (
+        PolyORMMySQLErrorCode | undefined
+    ) {
         const polyCode = Object.entries(MySQLErrorCodes).find(
             ([_, mySQLCode]) => mySQLCode === code
         )
 
         if (polyCode) return polyCode[0] as PolyORMMySQLErrorCode
 
-        throw new Error
+        // throw this.invalidCode(code)
     }
 
     // ------------------------------------------------------------------------
@@ -159,11 +174,16 @@ export default abstract class PolyORMMySQLException extends Error {
     }
 
     // Privates ---------------------------------------------------------------
-    private static buildChildName(code: PolyORMMySQLErrorCode): string {
+    private static buildChildName(
+        code: PolyORMMySQLErrorCode,
+        sufix: boolean = true
+    ): string {
         return code
             .split('_')
             .map(part => part[0] + part.slice(1).toLocaleLowerCase())
-            .join('') + 'Exception'
+            .join('') + (
+                sufix ? 'Exception' : ''
+            )
     }
 }
 

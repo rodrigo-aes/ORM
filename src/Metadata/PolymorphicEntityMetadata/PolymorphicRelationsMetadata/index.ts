@@ -1,6 +1,11 @@
-import type { RelationMetadata } from "../../EntityMetadata"
-import type { PolymorphicEntityTarget } from "../../../types/General"
-import type { RelationsMetadataJSON } from "../../EntityMetadata"
+import type { PolymorphicEntityTarget, Target } from "../../../types/General"
+import type {
+    RelationMetadata,
+    RelationsMetadataJSON
+} from "../../EntityMetadata"
+
+// Exceptions
+import PolyORMException from "../../../Errors"
 
 export default class PolymorphicRelationsMetadata extends Array<
     RelationMetadata
@@ -21,6 +26,40 @@ export default class PolymorphicRelationsMetadata extends Array<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public search(name: string): RelationMetadata | undefined {
+        return this.find(rel => rel.name === name)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public searchByRelated(related: Target): (
+        RelationMetadata | undefined
+    ) {
+        return this.find(({ relatedTarget }) => relatedTarget === related)
+    }
+
+    // ------------------------------------------------------------------------=
+
+    public findOrThrow(name: string): RelationMetadata {
+        return this.search(name)! ?? PolyORMException.Metadata.throw(
+            "UNKNOWN_RELATION", name, this.target?.name ?? ''
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public findByRelatedOrthrow(related: Target): RelationMetadata {
+        return this.searchByRelated(related)! ?? (
+            PolyORMException.Metadata.throw(
+                'UNKNOWN_RELATION',
+                `${related.name} entity class`,
+                this.target?.name ?? ''
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     public toJSON(): RelationsMetadataJSON {
         return this.map(rel => rel.toJSON())
     }
@@ -28,7 +67,7 @@ export default class PolymorphicRelationsMetadata extends Array<
     // Privates ---------------------------------------------------------------
     private mergeRelations(relations: RelationMetadata[]): void {
         for (const { name } of relations) {
-            const toMerge = [...relations].filter(rel => rel.name === name)
+            const toMerge = relations.filter(rel => rel.name === name)
 
             if (toMerge.length > 1) this.verifyCompatibility(toMerge)
 
@@ -39,12 +78,18 @@ export default class PolymorphicRelationsMetadata extends Array<
     // ------------------------------------------------------------------------
 
     private verifyCompatibility(relations: RelationMetadata[]): void {
-        const [{ type, relatedTarget }] = relations
-        const compatible = relations.every(rel => (
-            rel.type === type &&
-            rel.relatedTarget === relatedTarget
-        ))
+        const [{ type, relatedTarget, name }] = relations
 
-        if (!compatible) throw new Error
+        if (
+            !relations.every(rel =>
+                rel.type === type &&
+                rel.relatedTarget === relatedTarget
+            )
+        ) PolyORMException.Metadata.throw(
+            'IMCOMPATIBLE_POLYMORPHIC_RELATIONS',
+            relations.map(({ type }) => type),
+            name,
+            this.target!.name
+        )
     }
 }

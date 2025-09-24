@@ -28,9 +28,21 @@ import COMPUTED, {
 
 import type { DataTypeMetadataJSON } from './types'
 
-export default abstract class DataType extends AbstractDataType {
+// Exceptions
+import PolyORMException from '../../../Errors'
+
+export default class DataType extends AbstractDataType {
+    private constructor() {
+        PolyORMException.Common.throw('NOT_INSTANTIABLE_CLASS', 'DataType')
+        super('char')
+    }
+
     public buildSQL(): string {
-        throw new Error
+        throw PolyORMException.Common.instantiate(
+            'NOT_CALLABLE_METHOD',
+            this.constructor.name,
+            'buildSQL'
+        )
     }
 
     // Static Methods =========================================================

@@ -1,4 +1,6 @@
-import ConnectionsMetadata from "./ConnectionsMetadata"
+import ConnectionsMetadata, {
+    type PolyORMConnection
+} from "./ConnectionsMetadata"
 
 import EntityMetadata, {
     // Columns
@@ -156,6 +158,7 @@ import TempMetadata from "./TempMetadata"
 
 export {
     ConnectionsMetadata,
+    type PolyORMConnection,
 
     EntityMetadata,
     PolymorphicEntityMetadata,

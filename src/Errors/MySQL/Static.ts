@@ -11,20 +11,27 @@ export enum MySQLErrorCodes {
 
     COLUMN_AMBIGUOUS = 'ER_NON_UNIQ_ERROR',
     UNKNOW_COLUMN = 'ER_BAD_FIELD_ERROR',
+
     COLUMN_NOT_FOUND = 'ER_COLUMN_NOT_FOUND_IN_INDEX',
     TO_LONG_COLUMN_NAME = 'ER_TOO_LONG_IDENT',
     DUPLICATE_COLUMN = 'ER_DUP_FIELDNAME',
     DUPLICATE_KEY = 'ER_DUP_KEYNAME',
     DUPLICATE_ENTRY = 'ER_DUP_ENTRY',
 
+    CANNOT_ADD_FOREIGN_KEY = `ER_CANNOT_ADD_FOREIGN`,
+    CANNOT_DROP_FIELD_OR_KEY = 'ER_CANT_DROP_FIELD_OR_KEY',
+    FOREIGN_KEY_UPDATE = 'ER_FOREIGN_KEY_CONSTRAINT_FAILS',
+    FOREIGN_KEY_REFERENCED = 'ER_ROW_IS_REFERENCED',
+
+    UNKNOWN_TRIGGER = 'ER_TRG_DOES_NOT_EXIST',
+
+    UNKNOWN_PROCEDURE = 'ER_SP_DOES_NOT_EXIST',
+
     SQL_SINTAX = 'ER_PARSE_ERROR',
 
     WRONG_COLUMN_WITH_GROUP = 'ER_WRONG_FIELD_WITH_GROUP',
     WRONG_GROUP_COLUMN = 'ER_WRONG_GROUP_FIELD',
     WRONG_SUM_SELECT = 'ER_WRONG_SUM_SELECT',
-
-    FOREIGN_KEY_UPDATE = 'ER_FOREIGN_KEY_CONSTRAINT_FAILS',
-    FOREIGN_KEY_REFERENCED = 'ER_ROW_IS_REFERENCED',
 
     WRONG_VALUE_NUMBER = 'ER_WRONG_VALUE_COUNT',
     WRONG_VALUE_NUMBER_ON_ROW = 'ER_WRONG_VALUE_COUNT_ON_ROW',
@@ -56,14 +63,20 @@ export enum MySQLErrorNoCodes {
     DUPLICATE_KEY = 1061,
     DUPLICATE_ENTRY = 1062,
 
+    CANNOT_ADD_FOREIGN_KEY = 1215,
+    CANNOT_DROP_FIELD_OR_KEY = 1091,
+    FOREIGN_KEY_UPDATE = 1216,
+    FOREIGN_KEY_REFERENCED = 1217,
+
+    UNKNOWN_TRIGGER = 1360,
+
+    UNKNOWN_PROCEDURE = 1305,
+
     SQL_SINTAX = 1064,
 
     WRONG_COLUMN_WITH_GROUP = 1055,
     WRONG_GROUP_COLUMN = 1056,
     WRONG_SUM_SELECT = 1057,
-
-    FOREIGN_KEY_UPDATE = 1216,
-    FOREIGN_KEY_REFERENCED = 1217,
 
     WRONG_VALUE_NUMBER = 1058,
     WRONG_VALUE_NUMBER_ON_ROW = 1136,
@@ -95,14 +108,20 @@ export enum MySQLErrorStates {
     DUPLICATE_KEY = '42000',
     DUPLICATE_ENTRY = '23000',
 
+    CANNOT_ADD_FOREIGN_KEY = 'HY000',
+    CANNOT_DROP_FIELD_OR_KEY = '42000',
+    FOREIGN_KEY_UPDATE = '23000',
+    FOREIGN_KEY_REFERENCED = '23000',
+
+    UNKNOWN_TRIGGER = 'HY000',
+
+    UNKNOWN_PROCEDURE = '42000',
+
     SQL_SINTAX = '42000',
 
     WRONG_COLUMN_WITH_GROUP = '42000',
     WRONG_GROUP_COLUMN = '42000',
     WRONG_SUM_SELECT = '42000',
-
-    FOREIGN_KEY_UPDATE = '23000',
-    FOREIGN_KEY_REFERENCED = '23000',
 
     WRONG_VALUE_NUMBER = '21S01',
     WRONG_VALUE_NUMBER_ON_ROW = '21S01',
@@ -124,7 +143,7 @@ export enum MySQLErrorMessages {
     CANT_DROP_DATABASE = `Can't drop database "%s"; database doesn't exist`,
 
     TABLE_ALREADY_EXISTS = 'Table "%s" already exists',
-    UNKNOWN_TABLE = 'Unknown table "%s"',
+    UNKNOWN_TABLE = 'Unknown table "%s.%s"',
 
     COLUMN_AMBIGUOUS = 'Column "%s" in %s is ambiguous',
     UNKNOW_COLUMN = 'Unknown column "%s" in "%s"',
@@ -134,14 +153,22 @@ export enum MySQLErrorMessages {
     DUPLICATE_KEY = 'Duplicate key name "%s"',
     DUPLICATE_ENTRY = 'Duplicate entry "%s" for key %d',
 
+    CANNOT_ADD_FOREIGN_KEY = 'Cannot add foreign key constraint',
+    CANNOT_DROP_FIELD_OR_KEY = `Can't DROP "%s"; check that column/key exists`,
+    FOREIGN_KEY_UPDATE = 'Cannot add or update a child row: a foreign key constraint fails',
+    FOREIGN_KEY_REFERENCED = 'Cannot delete or update a parent row: a foreign key constraint fails',
+
+    UNKNOWN_TRIGGER = 'Trigger %s.%s does not exist',
+
+    UNKNOWN_PROCEDURE = 'PROCEDURE %s.%s does not exist',
+
     SQL_SINTAX = 'You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near "%s" at line %d',
 
     WRONG_COLUMN_WITH_GROUP = `'%s' isn't in GROUP BY`,
     WRONG_GROUP_COLUMN = `Can't group on '%s'`,
     WRONG_SUM_SELECT = 'Statement has sum functions and columns in same statement',
 
-    FOREIGN_KEY_UPDATE = 'Cannot add or update a child row: a foreign key constraint fails',
-    FOREIGN_KEY_REFERENCED = 'Cannot delete or update a parent row: a foreign key constraint fails',
+
 
     WRONG_VALUE_NUMBER = `Column count doesn't match value count`,
     WRONG_VALUE_NUMBER_ON_ROW = `Column count doesn't match value count at row %ld`,

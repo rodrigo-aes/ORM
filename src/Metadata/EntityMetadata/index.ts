@@ -1,6 +1,8 @@
 import 'reflect-metadata'
 
-import type MySQLConnection from '../../Connection'
+import ConnectionsMetadata, {
+    type PolyORMConnection
+} from '../ConnectionsMetadata'
 
 // Objects
 // Data Type
@@ -161,8 +163,10 @@ import { EntityToJSONProcessMetadata } from '../ProcessMetadata'
 import type { EntityTarget } from '../../types/General'
 import type { EntityMetadataInitMap, EntityMetadataJSON } from './types'
 
+// Exceptions
+import PolyORMException from '../../Errors'
+
 export default class EntityMetadata {
-    public connection?: MySQLConnection
     public tableName!: string
 
     constructor(
@@ -187,14 +191,24 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
+    public get connection(): PolyORMConnection {
+        return Reflect.getOwnMetadata('temp-connection', this.target)
+            ?? Reflect.getOwnMetadata('default-connection', this.target)!
+            ?? PolyORMException.Metadata.throw(
+                'MISSING_ENTITY_CONNECTION', this.name
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
     public get columns(): ColumnsMetadata {
         return ColumnsMetadata.findOrBuild(this.target)
     }
 
     // ------------------------------------------------------------------------
 
-    public get relations(): RelationsMetadata | undefined {
-        return RelationsMetadata.find(this.target)
+    public get relations(): RelationsMetadata {
+        return RelationsMetadata.findOrBuild(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -269,15 +283,24 @@ export default class EntityMetadata {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public defineConnection(connection: MySQLConnection) {
-        this.connection = connection
+    public defineDefaultConnection(connection: PolyORMConnection | string) {
+        if (!Reflect.getOwnMetadata('default-connection', this.target)) (
+            Reflect.defineMetadata(
+                'default-connection',
+                this.resolveConnection(connection),
+                this.target
+            )
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    public getConnection(): MySQLConnection {
-        return Reflect.getOwnMetadata('temp-connection', this.target)
-            ?? this.connection
+    public defineTempConnection(connection: PolyORMConnection | string): void {
+        Reflect.defineMetadata(
+            'temp-connection',
+            this.resolveConnection(connection),
+            this.target
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -359,6 +382,17 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
+    private resolveConnection(connection: PolyORMConnection | string): (
+        PolyORMConnection
+    ) {
+        switch (typeof connection) {
+            case 'object': return connection
+            case 'string': return ConnectionsMetadata.findOrThrow(connection)
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
     private buildJSON<T extends EntityTarget = any>(): (
         EntityMetadataJSON | undefined
     ) {
@@ -401,6 +435,14 @@ export default class EntityMetadata {
         initMap?: EntityMetadataInitMap
     ): EntityMetadata {
         return this.find(target)?.fill(initMap) ?? this.build(target, initMap)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static findOrThrow(target: EntityTarget): EntityMetadata {
+        return this.find(target)! ?? PolyORMException.Metadata.throw(
+            'UNKNOWN_ENTITY', target.name
+        )
     }
 
     // ------------------------------------------------------------------------

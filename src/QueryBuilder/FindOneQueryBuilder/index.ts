@@ -61,7 +61,9 @@ export default class FindOneQueryBuilder<T extends Target> {
     protected metadata: TargetMetadata<T>
 
     /** @internal */
-    protected _options: FindOneQueryOptions<T> = {}
+    protected _options: FindOneQueryOptions<T> = {
+        relations: {}
+    }
 
     constructor(
         public target: T,
@@ -243,23 +245,21 @@ export default class FindOneQueryBuilder<T extends Target> {
 
     /**
      * Add required to current entity `INNER JOIN` to query options
-     * @param related - Related entity target
+     * @param relation - Related entity target
      * @param joinClause - Join query handler
      * @returns {this} - `this`
      */
-    public innerJoin<T extends EntityTarget>(
-        related: T,
-        joinClause?: JoinQueryHandler<T>
+    public innerJoin<Related extends EntityTarget>(
+        relation: Related | string,
+        joinClause?: JoinQueryHandler<Related>
     ): this {
-        const [name, target] = this.handleRelated(related)
-        const handler = new JoinQueryBuilder(
-            target,
+        JoinQueryBuilder.build(
+            this.metadata,
+            relation,
+            this._options.relations!,
+            joinClause,
             this.alias,
-            true
         )
-
-        if (joinClause) joinClause(handler)
-        this._options.relations![name] = handler
 
         return this
     }
@@ -268,23 +268,22 @@ export default class FindOneQueryBuilder<T extends Target> {
 
     /**
      * Add optional to current entity `LEFT JOIN` to query options
-     * @param related - Related entity target
+     * @param relation - Related entity target
      * @param joinClause - Join query handler
      * @returns {this} - `this`
      */
-    public leftJoin<T extends EntityTarget>(
-        related: T,
-        joinClause?: JoinQueryHandler<T>
+    public leftJoin<Related extends EntityTarget>(
+        relation: Related | string,
+        joinClause?: JoinQueryHandler<Related>
     ): this {
-        const [name, target] = this.handleRelated(related)
-        const handler = new JoinQueryBuilder(
-            target,
+        JoinQueryBuilder.build(
+            this.metadata,
+            relation,
+            this._options.relations!,
+            joinClause,
             this.alias,
             false
         )
-
-        if (joinClause) joinClause(handler)
-        this._options.relations![name] = handler
 
         return this
     }
@@ -378,27 +377,6 @@ export default class FindOneQueryBuilder<T extends Target> {
         ) as (
                 RelationsOptions<InstanceType<T>>
             )
-    }
-
-    // Privates ---------------------------------------------------------------
-    /** @internal */
-    private handleRelated<Target extends EntityTarget>(
-        related: Target
-    ): [keyof JoinQueryOptions<T>, Target] {
-        const rel = typeof related === 'string'
-            ? this.metadata.relations?.find(
-                ({ name }) => name === related
-            )
-            : this.metadata.relations?.find(
-                ({ relatedTarget }) => relatedTarget === related
-            )
-
-        if (rel) return [
-            rel.name as keyof JoinQueryOptions<T>,
-            rel.relatedTarget as Target
-        ]
-
-        throw new Error
     }
 }
 

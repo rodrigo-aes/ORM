@@ -88,7 +88,6 @@ export default class BelongsToManyHandlerSQLBuilder<
 
     public syncSQL(...relateds: (InstanceType<Related> | any)[]) {
         const primaryKeys: any[] = this.extractSyncPrimaryKeys(relateds)
-        if (!this.targetMetadata.connection) throw new Error
 
         return SyncManyToMany.SQL(
             this.syncInsertSQL(primaryKeys),
@@ -99,10 +98,9 @@ export default class BelongsToManyHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     public syncWithoutDeleteSQL(...relateds: (InstanceType<Related> | any)[]) {
-        const primaryKeys: any[] = this.extractSyncPrimaryKeys(relateds)
-        if (!this.targetMetadata.connection) throw new Error
-
-        return SyncManyToMany.SQL(this.syncInsertSQL(primaryKeys))
+        return SyncManyToMany.SQL(this.syncInsertSQL(
+            this.extractSyncPrimaryKeys(relateds)
+        ))
     }
 
     // Protecteds -------------------------------------------------------------

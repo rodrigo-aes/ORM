@@ -72,6 +72,9 @@ import type {
     ConditionalQueryOptions,
 } from "../SQLBuilders"
 
+// Exceptions
+import PolyORMException from "../Errors"
+
 /**
  * All entities needs to extends BaseEntity class
  * @example
@@ -232,7 +235,11 @@ export default abstract class BaseEntity {
         related: Related
     ): HasOne<T, Related> {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasOneMetadata)) throw new Error
+        if (!(metadata instanceof HasOneMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'HasOne'
+            )
+        )
 
         return new HasOne(metadata, this, related)
     }
@@ -255,7 +262,11 @@ export default abstract class BaseEntity {
         related: Related
     ): HasMany<T, Related> {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasManyMetadata)) throw new Error
+        if (!(metadata instanceof HasManyMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'HasMany'
+            )
+        )
 
         return new HasMany(metadata, this, related)
     }
@@ -278,7 +289,11 @@ export default abstract class BaseEntity {
         related: Related
     ): BelongsTo<T, Related> {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof BelongsToMetadata)) throw new Error
+        if (!(metadata instanceof BelongsToMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'BelongsTo'
+            )
+        )
 
         return new BelongsTo(metadata, this, related)
     }
@@ -301,7 +316,11 @@ export default abstract class BaseEntity {
         related: Related
     ): HasOneThrough<T, Related> {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasOneThroughMetadata)) throw new Error
+        if (!(metadata instanceof HasOneThroughMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'HasOneThrough'
+            )
+        )
 
         return new HasOneThrough(metadata, this, related)
     }
@@ -324,7 +343,11 @@ export default abstract class BaseEntity {
         related: Related
     ): HasManyThrough<T, Related> {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasManyThroughMetadata)) throw new Error
+        if (!(metadata instanceof HasManyThroughMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'HasManyThrough'
+            )
+        )
 
         return new HasManyThrough(metadata, this, related)
     }
@@ -347,7 +370,11 @@ export default abstract class BaseEntity {
         related: Related
     ): BelongsToMany<T, Related> {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof BelongsToManyMetadata)) throw new Error
+        if (!(metadata instanceof BelongsToManyMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'BelongsToMany'
+            )
+        )
 
         return new BelongsToMany(metadata, this, related)
     }
@@ -371,7 +398,11 @@ export default abstract class BaseEntity {
         related: Related
     ): PolymorphicHasOne<T, Related> {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicHasOneMetadata)) throw new Error
+        if (!(metadata instanceof PolymorphicHasOneMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'PolymorphicHasOne'
+            )
+        )
 
         return new PolymorphicHasOne(metadata, this, related)
     }
@@ -395,7 +426,11 @@ export default abstract class BaseEntity {
         related: Related
     ): PolymorphicHasMany<T, Related> {
         const metadata = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicHasManyMetadata)) throw new Error
+        if (!(metadata instanceof PolymorphicHasManyMetadata)) throw (
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'PolymorphicHasMany'
+            )
+        )
 
         return new PolymorphicHasMany(metadata, this, related)
     }
@@ -423,7 +458,9 @@ export default abstract class BaseEntity {
     > {
         const metadata = this.getRelationMetadata(name)
         if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw (
-            new Error
+            PolyORMException.Metadata.instantiate(
+                'INVALID_RELATION', metadata.type, name, 'PolymorphicBelongsTo'
+            )
         )
 
         return new PolymorphicBelongsTo(
@@ -457,7 +494,9 @@ export default abstract class BaseEntity {
 
         if (meta) return meta
 
-        throw new Error
+        throw PolyORMException.Metadata.instantiate(
+            'UNKNOWN_RELATION', name, this.constructor.name
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -467,8 +506,13 @@ export default abstract class BaseEntity {
         [keyof T, any][]
     ) {
         return (this.include as (keyof T)[]).map(key => {
-            if (['symbol', 'function'].includes(typeof this[key])) throw (
-                new Error
+            if (['symbol', 'function'].includes(typeof this[key])) (
+                PolyORMException.Metadata.throw(
+                    'INVALID_INCLUDED_VALUE',
+                    (this[key] as Symbol | Function).toString(),
+                    typeof this[key],
+                    this.constructor.name
+                )
             )
 
             return [key, this[key as keyof T]]
@@ -519,7 +563,9 @@ export default abstract class BaseEntity {
         ...args: any[]
     ): T {
         const scope = this.getTrueMetadata().scopes?.getScope(name, ...args)
-        if (!scope) throw new Error
+        if (!scope) throw PolyORMException.Metadata.instantiate(
+            "UNKNOWN_SCOPE", name, this.name
+        )
 
         const scoped = this.reply()
         TempMetadata.reply(scoped, this).setScope(scoped, scope)
@@ -542,7 +588,9 @@ export default abstract class BaseEntity {
             ? collection
             : this.getTrueMetadata().collections?.search(collection as string)
 
-        if (!coll) throw new Error
+        if (!coll) throw PolyORMException.Metadata.instantiate(
+            'UNKNOWN_COLLECTION', collection, this.name
+        )
 
         const scoped = this.reply()
         TempMetadata.reply(scoped, this).setCollection(scoped, coll)

@@ -20,6 +20,10 @@ import { OptionalNullable } from "../../../types/Properties"
 import { EntityProperties } from "../../types"
 
 import type { UpdateAttributes } from "../../UpdateSQLBuilder"
+
+// Exceptions
+import PolyORMException from "../../../Errors"
+
 export default class PolymorphicBelongsToHandlerSQLBuilder<
     Target extends object,
     Related extends PolymorphicEntityTarget
@@ -138,7 +142,9 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     public override createSQL(_: CreationAttributes<InstanceType<Related>>): (
         [string, any[]]
     ) {
-        throw new Error
+        throw PolyORMException.Common.instantiate(
+            'NOT_CALLABLE_METHOD', 'createSQL', this.constructor.name
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -146,7 +152,9 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     public override updateOrCreateSQL(
         _: Partial<OptionalNullable<EntityProperties<InstanceType<Related>>>>
     ): string {
-        throw new Error
+        throw PolyORMException.Common.instantiate(
+            'NOT_CALLABLE_METHOD', 'updateOrCreateSQL', this.constructor.name
+        )
     }
 
     // ------------------------------------------------------------------------

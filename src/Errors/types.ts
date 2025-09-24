@@ -2,7 +2,6 @@ import type PolyORMMySQLException from "./MySQL"
 import type { MySQLErrorCode } from "./MySQL/Static"
 
 export interface PolyORMException extends Error {
-    connection: string
     code: string
     errno: number
 }

@@ -4,7 +4,7 @@ import Procedure from "../../Procedure"
 import { SQLStringHelper } from "../../../../Helpers"
 
 // Types
-import type MySQLConnection from "../../../../Connection"
+import type { PolyORMConnection } from "../../../../Metadata"
 import type { DeleteMigrationArgs } from "./types"
 
 export default class DeleteMigration extends Procedure {
@@ -42,7 +42,7 @@ export default class DeleteMigration extends Procedure {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static call(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         ...args: DeleteMigrationArgs
     ): Promise<any[]> {
         return connection.query(this.SQL(...args))

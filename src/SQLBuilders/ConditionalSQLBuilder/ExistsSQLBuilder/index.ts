@@ -72,7 +72,7 @@ export default class ExistsSQLBuilder<
 
                 return this.selectSQL()
 
-            default: throw new Error('passou')
+            default: throw new Error()
         }
     }
 
@@ -152,8 +152,7 @@ export default class ExistsSQLBuilder<
         metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata
     ) {
         for (const [name, opts] of Object.entries(options)) {
-            const relation = metadata.relations?.find(rel => rel.name === name)
-            if (!relation) throw new Error
+            const relation = metadata.relations.findOrThrow(name)
 
             const meta = MetadataHandler.loadMetadata(relation.relatedTarget)
             if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)

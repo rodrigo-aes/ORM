@@ -14,6 +14,9 @@ import type { UpdateOrCreateAttibutes } from "../../UpdateOrCreateSQLBuilder"
 import { OptionalNullable } from "../../../types/Properties"
 import { EntityProperties } from "../../types"
 
+// Exceptions
+import PolyORMException from "../../../Errors"
+
 export default class HasOneThroughHandlerSQLBuilder<
     Target extends object,
     Related extends EntityTarget
@@ -70,15 +73,19 @@ export default class HasOneThroughHandlerSQLBuilder<
     public override createSQL(
         _: CreationAttributes<InstanceType<Related>>
     ): [string, any[]] {
-        throw new Error
+        throw PolyORMException.Common.instantiate(
+            'NOT_CALLABLE_METHOD', 'createSQL', this.constructor.name
+        )
     }
 
     // ------------------------------------------------------------------------
 
     public override updateOrCreateSQL(
-        attributes: UpdateOrCreateAttibutes<InstanceType<Related>>
+        _: UpdateOrCreateAttibutes<InstanceType<Related>>
     ): string {
-        throw new Error
+        throw PolyORMException.Common.instantiate(
+            'NOT_CALLABLE_METHOD', 'updateOrCreateSQL', this.constructor.name
+        )
     }
 
     // Protecteds -------------------------------------------------------------

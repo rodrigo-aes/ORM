@@ -21,6 +21,9 @@ import type {
     ColumnSchemaAction
 } from "./types"
 
+// Exceptions
+import PolyORMException from "../../../Errors"
+
 export default class ColumnSchema {
     /** @internal */
     public tableName!: string
@@ -81,8 +84,8 @@ export default class ColumnSchema {
     // ------------------------------------------------------------------------
 
     /** @internal */
-    public get foreignKeyName(): string | undefined {
-        return this.map.references?.name
+    public get foreignKeyName(): string {
+        return this.map.references?.name ?? `fk_${this.tableName}_${this.name}`
     }
 
     // ------------------------------------------------------------------------
@@ -203,39 +206,9 @@ export default class ColumnSchema {
     public foreignKey(
         table: string | EntityTarget,
         column: string
-    ): this {
+    ): ForeignKeyReferencesSchema {
         this.map.isForeignKey = true
-        this.constrained().references(table, column)
-
-        return this
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Defined `this` foreign key constraint ON UPDATE action listener
-     * @param {ForeignKeyActionListener} action - Action listener 
-     * @returns {this} - `this`
-     */
-    public onUpdate(action: ForeignKeyActionListener): this {
-        if (!this.map.isForeignKey) throw new Error
-
-        this.map.references!.onUpdate(action)
-        return this
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Defined `this` foreign key constraint ON DELETE action listener
-     * @param {ForeignKeyActionListener} action - Action listener 
-     * @returns {this} - `this`
-     */
-    public onDelete(action: ForeignKeyActionListener): this {
-        if (!this.map.isForeignKey) throw new Error
-
-        this.map.references!.onDelete(action)
-        return this
+        return this.constrained().references(table, column)
     }
 
     // ------------------------------------------------------------------------
@@ -246,7 +219,9 @@ export default class ColumnSchema {
      * @returns {ForeignKeyReferencesSchema} - Foreign key references schema
      */
     public constrained(): ForeignKeyReferencesSchema {
-        if (this.map.references) throw new Error
+        if (this.map.references) PolyORMException.MySQL.throwOutOfOperation(
+            'DUPLICATE_KEY', this.foreignKeyName
+        )
 
         this.map.isForeignKey = true
         this.map.references = new ForeignKeyReferencesSchema(
@@ -268,7 +243,10 @@ export default class ColumnSchema {
      * @returns {ForeignKeyReferencesSchema} - Foreign key references schema
      */
     public alterConstraint(): ForeignKeyReferencesSchema {
-        if (!this.map.references) throw new Error
+        if (!this.map.references) throw PolyORMException.MySQL.instantiate(
+            'CANNOT_DROP_FIELD_OR_KEY', this.foreignKeyName
+        )
+
         this.actions.push(['ALTER', this.map.references])
 
         return this.map.references
@@ -280,7 +258,10 @@ export default class ColumnSchema {
      * Drop `this` constrained foreign key
      */
     public dropConstraint(): void {
-        if (!this.map.references) throw new Error
+        if (!this.map.references) throw PolyORMException.MySQL.instantiate(
+            'CANNOT_DROP_FIELD_OR_KEY', this.foreignKeyName
+        )
+
         this.actions.push(['DROP', this.map.references])
     }
 
@@ -297,17 +278,7 @@ export default class ColumnSchema {
         return [this._action, this._fkAction]
     }
 
-    // Protecteds -------------------------------------------------------------
-    /** @iternal */
-    protected getTargetMetadata(target: EntityTarget): EntityMetadata {
-        const meta = EntityMetadata.find(target)
-        if (!meta) throw new Error
-
-        return meta
-    }
-
-    // ------------------------------------------------------------------------
-
+    // Protecteds -------------------------------------------------------------]
     /** @iternal */
     protected action(schema?: ColumnSchema): Omit<ActionType, 'DROP'> {
         switch (true) {

@@ -4,7 +4,7 @@ import Procedure from "../Procedure"
 import { SQLStringHelper } from "../../../Helpers"
 
 // Types
-import type MySQLConnection from "../../../Connection"
+import type { PolyORMConnection } from "../../../Metadata"
 import type { SyncManyToManyArgs } from "./types"
 
 export default class SyncManyToMany extends Procedure {
@@ -38,7 +38,7 @@ export default class SyncManyToMany extends Procedure {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static async call(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         insertSQL: string,
         deleteSQL?: string
     ): Promise<void> {

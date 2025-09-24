@@ -8,7 +8,7 @@ import Log from "../utils/Log"
 import { defaultConfig } from "./static"
 
 // Types
-import type MySQLConnection from "../Connection"
+import type { PolyORMConnection } from "../Metadata"
 import type { SyncronizerConfig } from "./types"
 
 export default class Syncronizer {
@@ -16,7 +16,7 @@ export default class Syncronizer {
     private database: DatabaseSyncronizer
 
     constructor(
-        private connection: MySQLConnection,
+        private connection: PolyORMConnection,
         config: SyncronizerConfig = {}
     ) {
         this.config = { ...defaultConfig, ...config }

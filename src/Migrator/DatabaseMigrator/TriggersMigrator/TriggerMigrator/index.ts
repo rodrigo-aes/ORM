@@ -1,32 +1,32 @@
 import { TriggerSchema } from "../../../../DatabaseSchema"
 
 // Types
-import type MySQLConnection from "../../../../Connection"
+import type { PolyORMConnection } from "../../../../Metadata"
 import type { ActionType } from "../../../../DatabaseSchema"
 
 export default class TriggerMigrator extends TriggerSchema {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async create(connection: MySQLConnection): Promise<void> {
+    public async create(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.dropSQL())
         await connection.query(this.createSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    public async alter(connection: MySQLConnection): Promise<void> {
+    public async alter(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.alterSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    public async drop(connection: MySQLConnection): Promise<void> {
+    public async drop(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.dropSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    public executeAction(action: ActionType, connection: MySQLConnection): (
+    public executeAction(action: ActionType, connection: PolyORMConnection): (
         Promise<void>
     ) {
         switch (action) {

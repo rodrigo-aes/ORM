@@ -10,6 +10,9 @@ import type {
 } from "../../../types/General"
 import { CreationAttributes } from "../../CreateSQLBuilder"
 
+// Exceptions
+import PolyORMException from "../../../Errors"
+
 export default class HasManyThroughHandlerSQLBuilder<
     Target extends object,
     Related extends EntityTarget
@@ -66,7 +69,9 @@ export default class HasManyThroughHandlerSQLBuilder<
     public override createSQL(_: CreationAttributes<InstanceType<Related>>): (
         [string, any[]]
     ) {
-        throw new Error
+        throw PolyORMException.Common.instantiate(
+            'NOT_CALLABLE_METHOD', 'createSQL', this.constructor.name
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -74,7 +79,9 @@ export default class HasManyThroughHandlerSQLBuilder<
     public override createManySQL(
         _: CreationAttributes<InstanceType<Related>>[]
     ): [string, any[][]] {
-        throw new Error
+        throw PolyORMException.Common.instantiate(
+            'NOT_CALLABLE_METHOD', 'updateOrCreateSQL', this.constructor.name
+        )
     }
 
     // Protecteds -------------------------------------------------------------

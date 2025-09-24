@@ -18,13 +18,13 @@ import { SQLStringHelper } from "../../Helpers"
 import { Logs } from "../Decorators"
 
 // Types
-import type MySQLConnection from "../../Connection"
+import type { PolyORMConnection } from "../../Metadata"
 import type { MigrationData } from "./types"
 
 export default class MigrationsTableHandler {
     public static readonly tableName: string = '__migrations'
 
-    constructor(private connection: MySQLConnection) { }
+    constructor(private connection: PolyORMConnection) { }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------

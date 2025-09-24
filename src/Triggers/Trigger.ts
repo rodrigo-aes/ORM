@@ -35,7 +35,6 @@ export default abstract class Trigger<
     // Publics ----------------------------------------------------------------
     /** @internal */
     public async register(): Promise<void> {
-        if (!this.metadata.connection) throw new Error
         await this.metadata.connection.query(this.dropSQL())
         await this.metadata.connection.query(this.createSQL())
     }
@@ -44,7 +43,6 @@ export default abstract class Trigger<
 
     /** @internal */
     public async drop(): Promise<void> {
-        if (!this.metadata.connection) throw new Error
         await this.metadata.connection.query(this.dropSQL())
     }
 

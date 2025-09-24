@@ -7,7 +7,7 @@ import ColumnMigrator from "./ColumnMigrator"
 import { Logs } from "../../Decorators"
 
 // Types
-import type MySQLConnection from "../../../Connection"
+import type { PolyORMConnection } from "../../../Metadata"
 import type DatabaseSchema from "../../../DatabaseSchema"
 import {
     TableSchema,
@@ -24,13 +24,13 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     @Logs.SQLTableOperation
-    public async create(connection: MySQLConnection): Promise<void> {
+    public async create(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.createSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    public async createIfNotExists(connection: MySQLConnection): Promise<void> {
+    public async createIfNotExists(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.createIfNotExistsSQL())
     }
 
@@ -38,7 +38,7 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
 
     @Logs.SQLTableOperation
     public async alter(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         action: Omit<ActionType, 'CREATE'>
     ): Promise<void> {
         this.prepareChildsActions()
@@ -48,13 +48,13 @@ export default class TableMigrator extends TableSQLBuilder<ColumnMigrator> {
     // ------------------------------------------------------------------------
 
     @Logs.SQLTableOperation
-    public async drop(connection: MySQLConnection): Promise<void> {
+    public async drop(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.dropSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    public action(connection: MySQLConnection, action: ActionType): (
+    public action(connection: PolyORMConnection, action: ActionType): (
         Promise<void> | void
     ) {
         this.prepareChildsActions()

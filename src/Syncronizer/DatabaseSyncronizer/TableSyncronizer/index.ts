@@ -2,7 +2,7 @@ import { TableSQLBuilder } from "../../../SQLBuilders"
 import ColumnSyncronizer from "./ColumnSyncronizer"
 
 // Types
-import type MySQLConnection from "../../../Connection"
+import type { PolyORMConnection } from "../../../Metadata"
 import type { TableSchema } from "../../../DatabaseSchema"
 
 export default class TableSyncronizer extends TableSQLBuilder<
@@ -18,26 +18,26 @@ export default class TableSyncronizer extends TableSQLBuilder<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async create(connection: MySQLConnection): Promise<void> {
+    public async create(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.createSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    public async alter(connection: MySQLConnection, schema: TableSchema) {
+    public async alter(connection: PolyORMConnection, schema: TableSchema) {
         await connection.query(this.syncAlterSQL(schema))
     }
 
     // ------------------------------------------------------------------------
 
-    public async drop(connection: MySQLConnection): Promise<void> {
+    public async drop(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.dropSQL())
     }
 
     // ------------------------------------------------------------------------
 
     public async executeAction(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         schema?: TableSchema
     ): Promise<void> {
         const sql = this.syncActionSQL(schema)

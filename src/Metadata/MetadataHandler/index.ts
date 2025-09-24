@@ -9,7 +9,7 @@ import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 import TempMetadata from "../TempMetadata"
 
 // Types
-import type MySQLConnection from "../../Connection"
+import type { PolyORMConnection } from "../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget,
@@ -17,16 +17,19 @@ import type {
     TargetMetadata,
 } from "../../types/General"
 
+// Exceptions
+import PolyORMException from "../../Errors"
+
 export default class MetadataHandler {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static registerConnectionEntities(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         ...entities: EntityTarget[]
     ): void {
         for (const entity of entities) EntityMetadata
             .findOrBuild(entity)
-            .defineConnection(connection)
+            .defineDefaultConnection(connection)
     }
 
     // ------------------------------------------------------------------------
@@ -38,7 +41,7 @@ export default class MetadataHandler {
     // ------------------------------------------------------------------------
 
     public static getTargetConnection(target: EntityTarget): (
-        MySQLConnection | undefined
+        PolyORMConnection | undefined
     ) {
         return Reflect.getOwnMetadata('temp-connection', target)
             ?? EntityMetadata.findOrBuild(target).connection
@@ -63,9 +66,17 @@ export default class MetadataHandler {
                 )
                 ?? TempMetadata.getMetadata(target)
             ) as TargetMetadata<T>
+
+            // ----------------------------------------------------------------
+
+            default: PolyORMException.Metadata.throw(
+                'INVALID_ENTITY', target.name
+            )
         }
 
-        throw new Error
+        throw PolyORMException.Metadata.instantiate(
+            'UNKNOWN_ENTITY', target.name
+        )
     }
 
     // ------------------------------------------------------------------------

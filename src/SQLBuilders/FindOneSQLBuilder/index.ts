@@ -153,11 +153,7 @@ export default class FindOneSQLBuilder<
         ][]
 
         for (const [name, options] of entries) {
-            const relation = this.metadata.relations?.find(
-                (rel) => rel.name === name
-            )
-
-            if (!relation) throw new Error
+            const relation = this.metadata.relations.findOrThrow(name)
 
             const join = new JoinSQLBuilder(
                 relation,

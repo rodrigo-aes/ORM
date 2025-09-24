@@ -40,9 +40,10 @@ export default class PolymorphicEntityBuilder {
         if (!this.entityNameRegExp.test(metadata.targetName)) throw new Error
 
         const entity = new Function(
-            'PolymorphicEntity',
+            'BasePolymorphicEntity',
             `
-                return class ${metadata.targetName} extends PolymorphicEntity {
+                return class ${metadata.targetName} 
+                extends BasePolymorphicEntity {
                     constructor () {
                         super()
                         ${this.fillDinamicColumns(metadata)}
@@ -59,9 +60,7 @@ export default class PolymorphicEntityBuilder {
     private static fillDinamicColumns(metadata: PolymorphicEntityMetadata): (
         string
     ) {
-        return [...metadata.columns].map(
-            col => `this[${JSON.stringify(col.name)}] = null`
-        )
+        return metadata.columns.map(col => `this['${col.name}'] = null`)
             .join('\n')
     }
 }

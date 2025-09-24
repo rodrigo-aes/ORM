@@ -41,7 +41,7 @@ export default abstract class Operator<T extends keyof OperatorType> {
             case "string": return JSON.stringify(value)
 
             case "object":
-                if (!value) return JSON.stringify(value).toUpperCase()
+                if (!value) return 'NULL'
                 if ((value as any) instanceof Date) return JSON.stringify(
                     value
                 )
@@ -51,6 +51,8 @@ export default abstract class Operator<T extends keyof OperatorType> {
             case "number":
             case "bigint":
             case "boolean": return JSON.stringify(value).toUpperCase()
+
+            case "undefined": return 'NULL'
 
             default: throw new Error
         }

@@ -1,4 +1,4 @@
-import { MetadataHandler } from "../../Metadata"
+import { MetadataHandler, RelationMetadata } from "../../Metadata"
 
 // Query Handlers
 import SelectQueryBuilder from "../SelectQueryBuilder"
@@ -9,7 +9,6 @@ import type {
     Target,
     TargetMetadata,
     EntityTarget,
-    PolymorphicEntityTarget
 } from "../../types/General"
 
 import type {
@@ -27,6 +26,9 @@ import type {
     OnQueryHandler,
     JoinQueryHandler
 } from "../types"
+
+// Exceptions
+import PolyORMException from "../../Errors"
 
 /**
  * Build `JOIN` options
@@ -58,23 +60,21 @@ export default class JoinQueryBuilder<T extends Target> {
     // Publics ----------------------------------------------------------------
     /**
      * Add required to current entity `INNER JOIN` to query options
-     * @param related - Related entity target
+     * @param relation - Related entity target
      * @param joinClause - Join query handler
      * @returns {this} - `this`
      */
     public innerJoin<T extends EntityTarget>(
-        related: T,
+        relation: T | string,
         joinClause?: JoinQueryHandler<T>
     ): this {
-        const [name, target] = this.handleRelated(related)
-        const handler = new JoinQueryBuilder(
-            target,
-            this.alias,
-            true
+        JoinQueryBuilder.build(
+            this.metadata,
+            relation,
+            this._options.relations!,
+            joinClause,
+            this.alias
         )
-
-        if (joinClause) joinClause(handler)
-        this._options.relations![name] = handler
 
         return this
     }
@@ -83,23 +83,22 @@ export default class JoinQueryBuilder<T extends Target> {
 
     /**
      * Add optional to current entity `LEFT JOIN` to query options
-     * @param related - Related entity target
+     * @param relation - Related entity target
      * @param joinClause - Join query handler
      * @returns {this} - `this`
      */
     public leftJoin<T extends EntityTarget>(
-        related: T,
+        relation: T | string,
         joinClause?: JoinQueryHandler<T>
     ): this {
-        const [name, target] = this.handleRelated(related)
-        const handler = new JoinQueryBuilder(
-            target,
+        JoinQueryBuilder.build(
+            this.metadata,
+            relation,
+            this._options.relations!,
+            joinClause,
             this.alias,
             false
         )
-
-        if (joinClause) joinClause(handler)
-        this._options.relations![name] = handler
 
         return this
     }
@@ -159,28 +158,6 @@ export default class JoinQueryBuilder<T extends Target> {
 
     // Privates ---------------------------------------------------------------
     /** @internal */
-    private handleRelated<Target extends EntityTarget>(
-        related: Target
-    ): [keyof JoinQueryOptions<T>, Target] {
-        const rel = typeof related === 'string'
-            ? this.metadata.relations?.find(
-                ({ name }) => name === related
-            )
-            : this.metadata.relations?.find(
-                ({ relatedTarget }) => relatedTarget === related
-            )
-
-        if (rel) return [
-            rel.name as keyof JoinQueryOptions<T>,
-            rel.relatedTarget as Target
-        ]
-
-        throw new Error
-    }
-
-    // ------------------------------------------------------------------------
-
-    /** @internal */
     private relationsToOptions(): (
         RelationsOptions<InstanceType<T>> | undefined
     ) {
@@ -195,11 +172,101 @@ export default class JoinQueryBuilder<T extends Target> {
                         : (value as JoinQueryBuilder<any>).toQueryOptions()
                 ]
             )
-        ) as (
-                RelationsOptions<InstanceType<T>>
-            )
+        ) as RelationsOptions<InstanceType<T>>
     }
 
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static build<
+        Parent extends Target = Target,
+        Related extends Target = Target
+    >(
+        metadata: TargetMetadata<any>,
+        relation: Related | string,
+        options: JoinQueryOptions<Parent>,
+        joinClause?: JoinQueryHandler<Related>,
+        alias?: string,
+        required: boolean = true
+    ) {
+        if (joinClause) joinClause(this.instantiate(
+            metadata,
+            relation,
+            options,
+            alias,
+            required
+        ))
+
+        else options[(typeof relation === 'string'
+            ? relation
+            : this.findRelation(metadata, relation).name
+        ) as keyof JoinQueryOptions<Parent>] = true
+
+    }
+
+    // Privates ---------------------------------------------------------------
+    private static instantiate<
+        Parent extends Target = Target,
+        Related extends Target = Target
+    >(
+        metadata: TargetMetadata<any>,
+        relation: Related | string,
+        options: JoinQueryOptions<Parent>,
+        alias?: string,
+        required: boolean = true
+    ): JoinQueryBuilder<Related> {
+        const [key, join] = JoinQueryBuilder.buildJoin<Parent, Related>(
+            metadata,
+            relation,
+            alias,
+            required
+        )
+
+        options[key] = join
+
+        return join
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static buildJoin<
+        Parent extends Target = Target,
+        Related extends Target = Target
+    >(
+        metadata: TargetMetadata<any>,
+        relation: Related | string,
+        alias?: string,
+        required: boolean = true
+    ): [keyof JoinQueryOptions<Parent>, JoinQueryBuilder<Related>] {
+        const { name, relatedTarget } = this.findRelation(metadata, relation)
+
+        return [
+            name as keyof JoinQueryOptions<Parent>,
+            new JoinQueryBuilder(
+                relatedTarget as Related,
+                alias,
+                required
+            )
+        ]
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static findRelation<Related extends Target>(
+        metadata: TargetMetadata<any>,
+        relation: Related | string
+    ): RelationMetadata {
+        switch (typeof relation) {
+            case "string": return (
+                metadata.relations.findOrThrow(relation as string)
+            )
+
+            case "function": return (
+                metadata.relations?.findByRelatedOrthrow(relation)
+            )
+
+            default: throw new Error('Unreacheable Exception')
+        }
+    }
 }
 
 export {

@@ -31,6 +31,9 @@ import type { TriggerSchema } from "../TriggersSchema"
 import type { TableSchemaInitMap, TableSchemaAction } from "./types"
 import { ActionType } from ".."
 
+// Exceptions
+import PolyORMException from "../../Errors"
+
 export default class TableSchema<
     T extends ColumnSchema = ColumnSchema
 > extends Array<T> {
@@ -42,6 +45,7 @@ export default class TableSchema<
 
     /** @internal */
     constructor(
+
         /** @internal */
         public database: DatabaseSchema | undefined = undefined,
 
@@ -138,8 +142,7 @@ export default class TableSchema<
     public foreignIdFor(target: EntityTarget, name?: string): (
         ForeignKeyReferencesSchema
     ) {
-        const meta = EntityMetadata.find(target)
-        if (!meta) throw new Error
+        const meta = EntityMetadata.findOrThrow(target)
 
         const pk = meta.columns.primary
         name = name ?? `${target.name.toLowerCase()}_id`
@@ -555,8 +558,6 @@ export default class TableSchema<
      */
     public addConstraint(column: string): ForeignKeyReferencesSchema {
         const col = this.findOrThrow(column)
-        if (col.map.references) throw new Error
-
         if (this.colAlreadyInActions(column)) return col.constrained()
 
         col.map.references = new ForeignKeyReferencesSchema(
@@ -577,7 +578,9 @@ export default class TableSchema<
      */
     public alterConstraint(column: string): ForeignKeyReferencesSchema {
         const col = this.findOrThrow(column)
-        if (!col.map.references) throw new Error
+        if (!col.map.references) throw PolyORMException.MySQL.instantiate(
+            'CANNOT_DROP_FIELD_OR_KEY', col.foreignKeyName
+        )
 
         if (this.colAlreadyInActions(column)) return col.alterConstraint()
 
@@ -594,7 +597,9 @@ export default class TableSchema<
      */
     public dropConstraint(column: string): void {
         const col = this.findOrThrow(column)
-        if (!col.map.references) throw new Error
+        if (!col.map.references) throw PolyORMException.MySQL.instantiate(
+            'CANNOT_DROP_FIELD_OR_KEY', col.foreignKeyName
+        )
 
         if (this.colAlreadyInActions(column)) return col.dropConstraint()
 
@@ -609,7 +614,7 @@ export default class TableSchema<
      * @returns {ColumnSchema | undefined} - The column case exists or
      * `undefined`
      */
-    public findColumn(columnName: string) {
+    public findColumn(columnName: string): T | undefined {
         return this.find(col => col.name === columnName)
     }
 
@@ -664,17 +669,15 @@ export default class TableSchema<
         return diff || shouldDrop
     }
 
-    // Privates ---------------------------------------------------------------
-    /** @internal */
-    private findOrThrow(name: string): T {
-        const col = this.findColumn(name)
-        if (!col) throw new Error
-
-        return col
-    }
-
     // ------------------------------------------------------------------------
 
+    /** @internal */
+    protected findOrThrow(name: string): T {
+        return this.findColumn(name)! ?? PolyORMException.MySQL
+            .throwOutOfOperation('UNKNOW_COLUMN', name, this.name)
+    }
+
+    // Privates ---------------------------------------------------------------
     /** @internal */
     private colAlreadyInActions(column: string): boolean {
         return !!this.actions.find(([_, { name }]) => name === column)
@@ -742,9 +745,7 @@ export default class TableSchema<
     private static metadataFromSource(source: EntityMetadata | EntityTarget) {
         const metadata = source instanceof EntityMetadata
             ? source
-            : EntityMetadata.find(source)
-
-        if (!metadata) throw new Error
+            : EntityMetadata.findOrThrow(source)
 
         return metadata
     }

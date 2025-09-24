@@ -66,10 +66,7 @@ export default class ForeignKeyReferencesSchema {
     // Privates ---------------------------------------------------------------
     /** @internal */
     private getTargetTableName(target: EntityTarget): string {
-        const meta = EntityMetadata.find(target)
-        if (!meta) throw new Error
-
-        return meta.tableName
+        return EntityMetadata.findOrThrow(target).tableName
     }
 }
 

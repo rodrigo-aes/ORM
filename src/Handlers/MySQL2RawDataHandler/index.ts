@@ -29,6 +29,9 @@ import type {
     DataFillMethod
 } from "./types"
 
+// Exceptions
+import PolyORMException from "../../Errors"
+
 export default class MySQL2RawDataHandler<
     T extends EntityTarget | PolymorphicEntityTarget
 > {
@@ -171,9 +174,11 @@ export default class MySQL2RawDataHandler<
         toSource: boolean
     ): BaseEntity | BasePolymorphicEntity<any> {
         switch (true) {
-            case BaseEntity.prototype.isPrototypeOf(target.prototype): return (
-                new target(data)
-            )
+            case BaseEntity
+                .prototype
+                .isPrototypeOf(target.prototype): return new target(data)
+
+            // ----------------------------------------------------------------
 
             case BasePolymorphicEntity
                 .prototype
@@ -184,9 +189,13 @@ export default class MySQL2RawDataHandler<
                         toSource
                     )
                 )
-        }
 
-        throw new Error
+            // ----------------------------------------------------------------
+
+            default: throw PolyORMException.Metadata.instantiate(
+                'INVALID_ENTITY', target.name
+            )
+        }
     }
 
     // ------------------------------------------------------------------------

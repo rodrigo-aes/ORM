@@ -1,5 +1,7 @@
-import { Operator, type CompatibleOperators } from "../../SQLBuilders"
 import { Old, New } from "../../Triggers"
+
+// Exceptions
+import PolyORMException from "../../Errors"
 
 export default class PropertySQLHelper {
     public static pathToAlias(path: string, alias?: string): string {
@@ -13,9 +15,7 @@ export default class PropertySQLHelper {
 
     // ------------------------------------------------------------------------
 
-    public static valueSQL(value: any): (
-        string
-    ) {
+    public static valueSQL(value: any): string {
         switch (typeof value) {
             case "string": return `'${value}'`
 
@@ -46,7 +46,18 @@ export default class PropertySQLHelper {
 
             // ----------------------------------------------------------------
 
-            default: throw new Error
+            case 'undefined': return 'NULL'
+
+            // ----------------------------------------------------------------
+
+            default:
+                throw PolyORMException.MySQL.instantiate(
+                    'INCORRECT_VALUE',
+                    undefined,
+                    `column = ${value} (JS ${typeof value})`,
+                    'SQL',
+                    value
+                )
         }
     }
 

@@ -47,6 +47,9 @@ import type {
 
 import type { Pagination } from "../BaseEntity"
 
+// Exceptions
+import PolyORMException from "../Errors"
+
 export default class PolymorphicRepository<
     T extends PolymorphicEntityTarget
 > {
@@ -347,7 +350,12 @@ export default class PolymorphicRepository<
     // Privates ---------------------------------------------------------------
     /** @internal */
     private verifySource(source: EntityTarget): void {
-        if (!this.metadata.entities[source.name]) throw new Error
+        if (!this.metadata.entities[source.name]) (
+            PolyORMException.Metadata.throw(
+                'INVALID_POLYMORPHIC_SOURCE', source.name, this.target.name
+            )
+        )
+
     }
 }
 

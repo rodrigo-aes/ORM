@@ -6,7 +6,7 @@ import TriggersMigrator from "./TriggersMigrator"
 import { Logs } from "../Decorators"
 
 // Types
-import type MySQLConnection from "../../Connection"
+import type { PolyORMConnection } from "../../Metadata"
 
 export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
     // Static Getters =========================================================
@@ -59,7 +59,7 @@ export default class DatabaseMigrator extends DatabaseSchema<TableMigrator> {
     // Publics ----------------------------------------------------------------
     public static buildFromSchema(
         schema: DatabaseSchema,
-        connection?: MySQLConnection
+        connection?: PolyORMConnection
     ): DatabaseMigrator {
         const migrator = new DatabaseMigrator(connection ?? schema.connection)
 

@@ -2,7 +2,7 @@ import { TriggerSchema } from "../../../../DatabaseSchema"
 
 
 // Types
-import type MySQLConnection from "../../../../Connection"
+import type { PolyORMConnection } from "../../../../Metadata"
 import type BaseEntity from "../../../../BaseEntity"
 import type { TriggerSyncAction } from "./types"
 
@@ -11,27 +11,27 @@ export default class TriggerSyncronizer<
 > extends TriggerSchema<T> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public async create(connection: MySQLConnection): Promise<void> {
+    public async create(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.createSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    public async alter(connection: MySQLConnection): Promise<void> {
+    public async alter(connection: PolyORMConnection): Promise<void> {
         await this.drop(connection)
         await this.create(connection)
     }
 
     // ------------------------------------------------------------------------
 
-    public async drop(connection: MySQLConnection): Promise<void> {
+    public async drop(connection: PolyORMConnection): Promise<void> {
         await connection.query(this.dropSQL())
     }
 
     // ------------------------------------------------------------------------
 
     public async executeAction(
-        connection: MySQLConnection,
+        connection: PolyORMConnection,
         schema?: TriggerSchema
     ): Promise<void> {
         const sql = this.compareActionSQL(schema)

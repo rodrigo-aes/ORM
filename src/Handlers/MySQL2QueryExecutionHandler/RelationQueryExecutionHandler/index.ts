@@ -14,7 +14,7 @@ import EntityBuilder from "../../EntityBuilder"
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type MySQLConnection from "../../../Connection"
+import type { PolyORMConnection } from "../../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
@@ -43,7 +43,7 @@ export default class RelationQueryExecutionHandler<
     // Publics ----------------------------------------------------------------
     public async executeFindOne(sql: string): Promise<InstanceType<T> | null> {
         return this
-            .rawDataHandler('One', await this.getConnection().query(sql))
+            .rawDataHandler('One', await this.metadata.connection.query(sql))
             .parseEntity() as InstanceType<T> | null
     }
 
@@ -51,7 +51,7 @@ export default class RelationQueryExecutionHandler<
 
     public async executeFind(sql: string) {
         return this
-            .rawDataHandler('Many', await this.getConnection().query(sql))
+            .rawDataHandler('Many', await this.metadata.connection.query(sql))
             .parseEntity() as Collection<InstanceType<T>>
     }
 
@@ -61,7 +61,7 @@ export default class RelationQueryExecutionHandler<
         sql: [string, any[]],
         attributes: CreationAttributes<InstanceType<T>>
     ): Promise<InstanceType<T>> {
-        const resultHeader: ResultSetHeader = await this.getConnection()
+        const resultHeader: ResultSetHeader = await this.metadata.connection
             .query(...sql) as any
 
         return this.entityBuilder(
@@ -79,7 +79,7 @@ export default class RelationQueryExecutionHandler<
         sql: [string, any[][]],
         attributes: CreationAttributes<InstanceType<T>>[]
     ): Promise<Collection<InstanceType<T>>> {
-        const resultHeader: ResultSetHeader = await this.getConnection()
+        const resultHeader: ResultSetHeader = await this.metadata.connection
             .query(...sql) as any
 
         return this.entityBuilder(
@@ -96,7 +96,7 @@ export default class RelationQueryExecutionHandler<
     public async executeUpdateOrCreate(
         sql: string,
     ): Promise<InstanceType<T>> {
-        const [mySQL2RawData] = await this.getConnection().query(sql)
+        const [mySQL2RawData] = await this.metadata.connection.query(sql)
 
         return this
             .rawDataHandler('One', mySQL2RawData)
@@ -106,14 +106,14 @@ export default class RelationQueryExecutionHandler<
     // ------------------------------------------------------------------------
 
     public async executeUpdate(sql: string): Promise<ResultSetHeader> {
-        return await this.getConnection().query(sql) as any
+        return await this.metadata.connection.query(sql) as any
     }
 
     // ------------------------------------------------------------------------
 
     public async executeDelete(sql: string): Promise<DeleteResult> {
         const { affectedRows, serverStatus }: ResultSetHeader = (
-            await this.getConnection().query(sql) as any
+            await this.metadata.connection.query(sql) as any
         )
 
         return { affectedRows, serverStatus }
@@ -122,17 +122,10 @@ export default class RelationQueryExecutionHandler<
     // ------------------------------------------------------------------------
 
     public async executeVoidOperation(sql: string, values?: any[]) {
-        await this.getConnection().query(sql, values)
+        await this.metadata.connection.query(sql, values)
     }
 
     // Privates ---------------------------------------------------------------
-    private getConnection(): MySQLConnection {
-        if (!this.metadata.connection) throw new Error
-        return this.metadata.connection
-    }
-
-    // ------------------------------------------------------------------------
-
     private rawDataHandler(
         fillMethod: DataFillMethod,
         rawData: MySQL2RawData

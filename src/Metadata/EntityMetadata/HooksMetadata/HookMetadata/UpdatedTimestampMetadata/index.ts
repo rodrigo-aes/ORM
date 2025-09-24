@@ -5,7 +5,11 @@ import type {
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../../../../types/General"
+
 import type { HookFunction } from "../types"
+
+// Exceptions
+import PolyORMException from "../../../../../Errors"
 
 export default class UpdatedTimestampMetadata extends BeforeUpdateMetadata {
     constructor(
@@ -23,7 +27,10 @@ export default class UpdatedTimestampMetadata extends BeforeUpdateMetadata {
     // ------------------------------------------------------------------------
 
     public override get hookFn(): HookFunction {
-        throw new Error
+        throw PolyORMException.Common.instantiate(
+            'NOT_CALLABLE_METHOD',
+            'hookFn'
+        )
     }
 
     // Instance Methods =======================================================
