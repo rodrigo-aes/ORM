@@ -29,7 +29,9 @@ export default class OrderQueryBuilder<T extends Target> {
     // Publics ----------------------------------------------------------------
     public orderBy<
         Order extends OrderQueryOption<InstanceType<T>> | CaseQueryHandler<T>
-    >(...[first, ...rest]: OrderQueryOptions<T, Order>): this {
+    >(...options: OrderQueryOptions<T, Order>): this {
+        const [first, ...rest] = options
+
         if (Array.isArray(first)) this.handleCommonOptions(
             first, ...rest as OrderQueryOption<InstanceType<T>>[],
         )
@@ -50,9 +52,9 @@ export default class OrderQueryBuilder<T extends Target> {
     }
 
     // Privates ---------------------------------------------------------------
-    private handleCommonOptions(
-        ...options: OrderQueryOption<InstanceType<T>>[]
-    ) {
+    private handleCommonOptions(...options: (
+        OrderQueryOption<InstanceType<T>>[]
+    )) {
         if (!this._options) this._options = []
         if (!Array.isArray(this._options)) throw new Error
 

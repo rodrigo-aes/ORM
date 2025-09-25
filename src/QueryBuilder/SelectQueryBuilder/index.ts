@@ -109,7 +109,7 @@ export default class SelectQueryBuilder<T extends Target> {
                         as: prop._as!
                     }
 
-                    default: throw new Error
+                    default: throw new Error('Unreacheable Error')
                 }
             }
         )
@@ -143,7 +143,7 @@ export default class SelectQueryBuilder<T extends Target> {
                 property(caseClause)
                 return caseClause
 
-            default: throw new Error
+            default: throw new Error('Unreacheable Error')
         }
     }
 }

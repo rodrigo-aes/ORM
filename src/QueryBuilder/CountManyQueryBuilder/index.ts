@@ -27,6 +27,9 @@ import type {
 import type { CaseQueryHandler, WhereQueryHandler } from "../types"
 import type { WhereMethods, CaseMethods, CountMethods } from "./types"
 
+// Exceptions
+import PolyORMException from "../../Errors"
+
 /**
  * Build many `COUNT`s options
  */
@@ -218,7 +221,9 @@ export default class CountManyQueryBuilder<T extends Target> {
     public toQueryOptions(): CountQueryOptions<InstanceType<T>> {
         return Object.fromEntries(
             this._options.map(count => {
-                if (!count._as) throw new Error
+                if (!count._as) PolyORMException.QueryBuilder.throw(
+                    'MISSING_AS_ALIAS_ON_CLAUSE', 'count'
+                )
 
                 return [count._as, count.toQueryOptions()]
             })

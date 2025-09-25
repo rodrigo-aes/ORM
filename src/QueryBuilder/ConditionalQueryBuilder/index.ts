@@ -23,6 +23,9 @@ import type {
     OperatorType
 } from "../OperatorQueryBuilder"
 
+// Exceptions
+import PolyORMException from "../../Errors"
+
 /**
  * Build a `WHERE/ON` conditional options 
  */
@@ -149,7 +152,7 @@ export default class ConditionalQueryHandler<T extends Target> {
         value?: typeof conditional extends keyof OperatorType
             ? OperatorType[typeof conditional]
             : never
-    ) {
+    ): this {
         this.or()
         this.currentAnd.where(propertie, conditional, value)
 
@@ -166,8 +169,8 @@ export default class ConditionalQueryHandler<T extends Target> {
         AndQueryOptions<InstanceType<T>> |
         OrQueryOptions<InstanceType<T>>
     ) {
-        if (this._orOptions) return this._orOptions.map(opt => opt.toQueryOptions())
-        return this.currentAnd.toQueryOptions()
+        return this._orOptions?.map(opt => opt.toQueryOptions())
+            ?? this.currentAnd.toQueryOptions()
     }
 
     // Privates ---------------------------------------------------------------
@@ -183,7 +186,10 @@ export default class ConditionalQueryHandler<T extends Target> {
 
     // ------------------------------------------------------------------------
 
+    /** @internal */
     private verifyCurrentAnd(): void {
-        if (Object.keys(this.currentAnd._options).length === 0) throw new Error
+        if (Object.keys(this.currentAnd._options).length === 0) (
+            PolyORMException.QueryBuilder.throw('EMPTY_AND_CLAUSE')
+        )
     }
 }

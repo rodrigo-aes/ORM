@@ -75,9 +75,7 @@ export default class PropertySQLHelper {
 
     // ------------------------------------------------------------------------
 
-    private static handleSymbolValue(
-        value: any
-    ): any {
+    private static handleSymbolValue(value: any): any {
         const symbols = Object.getOwnPropertySymbols(value)
 
         switch (true) {

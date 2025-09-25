@@ -18,6 +18,9 @@ import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 
 // Types
 import type {
+    Target,
+    TargetMetadata,
+    Entity,
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../types/General"
@@ -32,99 +35,79 @@ import type {
 // Exceptions
 import PolyORMException from "../../Errors"
 
-export default class MySQL2RawDataHandler<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    private metadata: EntityMetadata | PolymorphicEntityMetadata
-    private mySQL2RawData!: MySQL2RawData[]
-    private _raw?: RawData<T> | RawData<T>[]
+export default class MySQL2RawDataHandler<T extends Target> {
+    private metadata: TargetMetadata<T>
 
     constructor(
         public target: T,
         public fillMethod: DataFillMethod,
-        rawData?: MySQL2RawData[]
+        private mySQL2RawData: MySQL2RawData[]
     ) {
         this.metadata = MetadataHandler.loadMetadata(this.target)
-        this.mySQL2RawData = rawData ?? []
-    }
-
-    // Getters ================================================================
-    // Publics ----------------------------------------------------------------
-    public get raw(): RawData<T> | RawData<T>[] {
-        return this._raw ?? this.parseRaw()
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public parseRaw(): RawData<T> | RawData<T>[] {
-        if (!this.mySQL2RawData) throw new Error
-
         const reduced = this.reduceMySQL2RawData(
             this.mySQL2RawData,
             this.metadata,
             'raw'
         )
-        this._raw = this.fillMethod === 'Many'
+
+        return this.fillMethod === 'Many'
             ? reduced
             : reduced[0]
-
-        return this._raw
     }
 
     // ------------------------------------------------------------------------
 
-    public parseEntity<
-        Target extends EntityTarget | PolymorphicEntityTarget = T
-    >(
-        mapToEntity?: Target,
+    public parseEntity<Entity extends Target = T>(
+        mapToEntity?: Entity,
         pagination?: PaginationInitMap
-    ): InstanceType<Target> | Collection<InstanceType<Target>> {
-        if (!this.mySQL2RawData) throw new Error
-
+    ): InstanceType<Entity> | Collection<InstanceType<Entity>> {
         const reduced = this.reduceMySQL2RawData(
             this.mySQL2RawData,
             this.metadata,
             'entity',
             undefined,
             mapToEntity
-        ) as InstanceType<T>[]
+        ) as InstanceType<Entity>[]
 
         switch (this.fillMethod) {
-            case "One": return reduced[0] as any
+            case "One": return reduced[0]
+
             case "Many": return CollectionsMetadataHandler.build(
                 mapToEntity ?? this.target,
                 reduced
-            ) as any
-
+            ) as Collection<InstanceType<Entity>>
 
             case "Paginate": return PaginationMetadataHandler.build(
                 mapToEntity ?? this.target,
                 pagination!,
                 reduced
-            ) as any
+            ) as Collection<InstanceType<Entity>>
         }
     }
 
     // Privates ---------------------------------------------------------------
-    private reduceMySQL2RawData<
-        Target extends EntityTarget | PolymorphicEntityTarget = T
-    >(
+    private reduceMySQL2RawData<Entity extends Target = T>(
         rawData: MySQL2RawData[],
-        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata,
+        metadata: TargetMetadata<any> = this.metadata,
         method: 'raw' | 'entity' = 'raw',
         relation?: RelationMetadataType,
-        entityToMap?: Target
-    ): MappedDataType<Target, typeof method>[] {
+        entityToMap?: Entity
+    ): MappedDataType<Entity, typeof method>[] {
         if (rawData.length === 0) return rawData
 
         rawData = rawData.map(rd => this.removeAlias(
             rd, this.firstAlias(rawData)
         ))
 
-        const reduced: MappedDataType<Target, typeof method>[] =
+        const reduced: MappedDataType<Entity, typeof method>[] =
             method === 'raw'
                 ? []
-                : new Collection<InstanceType<Target>>
+                : new Collection<InstanceType<Entity>>
 
         const mapped = new Set
         const primaryName = metadata.columns.primary.name
@@ -138,8 +121,8 @@ export default class MySQL2RawDataHandler<
             ))
 
             const reducedData = {
-                ...this.filterColumns<Target>(toMerge[0]),
-                ...this.filterRelations<Target>(
+                ...this.filterColumns<Entity>(toMerge[0]),
+                ...this.filterRelations<Entity>(
                     toMerge,
                     metadata,
                     method
@@ -155,7 +138,7 @@ export default class MySQL2RawDataHandler<
                         entityToMap ?? metadata.target!,
                         reducedData,
                         relation?.type === 'PolymorphicBelongsTo'
-                    ) as InstanceType<Target>
+                    ) as InstanceType<Entity>
                 )
                     break
             }
@@ -168,11 +151,7 @@ export default class MySQL2RawDataHandler<
 
     // ------------------------------------------------------------------------
 
-    private mapToEntity(
-        target: EntityTarget | PolymorphicEntityTarget,
-        data: any,
-        toSource: boolean
-    ): BaseEntity | BasePolymorphicEntity<any> {
+    private mapToEntity(target: Target, data: any, toSource: boolean): Entity {
         switch (true) {
             case BaseEntity
                 .prototype
@@ -204,12 +183,10 @@ export default class MySQL2RawDataHandler<
         target: PolymorphicEntityTarget,
         data: any,
         toSource: ToSource
-    ): BaseEntity | BasePolymorphicEntity<any> {
-        data = this.handlePolymorphicKeys(data)
-
+    ): Entity {
         return toSource
-            ? new target(data).toSourceEntity()
-            : new target(data)
+            ? new target(this.handlePolymorphicKeys(data)).toSourceEntity()
+            : new target(this.handlePolymorphicKeys(data))
     }
 
     // ------------------------------------------------------------------------
@@ -219,43 +196,37 @@ export default class MySQL2RawDataHandler<
 
         const sourcePrimary = this.metadata.columns.primary.name
         data.primaryKey = data[sourcePrimary]
-        data.entityType = this.metadata.target!.name
+        data.entityType = this.metadata.target.name
 
         return data
     }
 
     // ------------------------------------------------------------------------
 
-    private filterColumns<
-        Target extends EntityTarget | PolymorphicEntityTarget = T
-    >(raw: MySQL2RawData): RawData<Target> {
+    private filterColumns<Entity extends Target = T>(raw: MySQL2RawData): (
+        RawData<Entity>
+    ) {
         return Object.fromEntries(Object.entries(raw).flatMap(
             ([key, value]) => key.includes('_')
                 ? []
                 : [[key, value]]
-        )) as (
-                RawData<Target>
-            )
+        )) as RawData<Entity>
     }
 
     // ------------------------------------------------------------------------
 
-    private filterRelations<
-        Target extends EntityTarget | PolymorphicEntityTarget = T
-    >(
+    private filterRelations<Entity extends Target = T>(
         raw: MySQL2RawData[],
-        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata,
+        metadata: TargetMetadata<any> = this.metadata,
         method: 'raw' | 'entity' = 'raw'
-    ): { [K: string]: MappedDataType<Target, typeof method> } {
+    ): { [K: string]: MappedDataType<Entity, typeof method> } {
         const relations: any = {}
 
         for (const key of Array.from(this.filterRelationsKeys(raw))) {
             const toMerge = this.filterRelationsByKey(raw, key)
             if (toMerge.length === 0) continue
 
-            const relationMetadata = metadata.relations!.find(
-                ({ name }) => name === key
-            )!
+            const relationMetadata = metadata.relations.findOrThrow(key)
 
             const fillMethod = RelationMetadata.relationFillMethod(
                 relationMetadata
@@ -281,12 +252,13 @@ export default class MySQL2RawDataHandler<
         raw: MySQL2RawData[],
         key: string
     ): MySQL2RawData[] {
-        return raw.map(item => Object.fromEntries(Object.entries(item).flatMap(
-            ([path, value]) => path.startsWith(`${key}_`)
-                ? [[path, value]]
-                : []
-        )) as MySQL2RawData
-        )
+        return raw
+            .map(item => Object.fromEntries(
+                Object.entries(item).flatMap(
+                    ([path, value]) => path.startsWith(`${key}_`)
+                        ? [[path, value]]
+                        : []
+                )) as MySQL2RawData)
             .filter(item => !this.allNull(item))
     }
 

@@ -72,7 +72,7 @@ export default class ExistsSQLBuilder<
 
                 return this.selectSQL()
 
-            default: throw new Error()
+            default: throw new Error('Unreacheable Error')
         }
     }
 

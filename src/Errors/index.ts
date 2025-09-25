@@ -10,6 +10,9 @@ import CommonException, { type CommonErrorCode } from './Common'
 // - Metadata
 import MetadataException, { type MetadataErrorCode } from './Metadata'
 
+// - Query Builder
+import QueryBuilderException from './QueryBuilder'
+
 // Handlers
 import { AcknowledgedExceptionHandler } from "./Handlers"
 
@@ -38,6 +41,10 @@ export default class PolyORMException {
 
     public static get Metadata(): typeof MetadataException {
         return MetadataException
+    }
+
+    public static get QueryBuilder(): typeof QueryBuilderException {
+        return QueryBuilderException
     }
 
 }

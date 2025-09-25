@@ -53,6 +53,9 @@ import type {
 import type { SelectPropertiesOptions } from "../SelectQueryBuilder"
 import type { WhereQueryHandler } from "../types"
 
+// Exceptions
+import PolyORMException from "../../Errors"
+
 /**
  * Build FindOne query
  */
@@ -202,7 +205,7 @@ export default class FindOneQueryBuilder<T extends Target> {
      * @returns 
      */
     public or(): this {
-        if (!this._options.where) throw new Error
+        this.verifyWhere()
         this.whereOptions.or()
 
         return this
@@ -230,9 +233,9 @@ export default class FindOneQueryBuilder<T extends Target> {
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        if (!this._options.where) throw new Error
+        this.verifyWhere()
 
-        this._options.where.orWhere(
+        this._options.where!.orWhere(
             propertie,
             conditional,
             value
@@ -377,6 +380,14 @@ export default class FindOneQueryBuilder<T extends Target> {
         ) as (
                 RelationsOptions<InstanceType<T>>
             )
+    }
+
+    // Privates ---------------------------------------------------------------
+    /** @internal */
+    private verifyWhere(): void {
+        if (!this._options.where) PolyORMException.QueryBuilder.throw(
+            'EMPTY_AND_CLAUSE'
+        )
     }
 }
 
