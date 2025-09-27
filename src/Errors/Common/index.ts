@@ -17,14 +17,14 @@ export default class CommonException extends PolyORMException<
     typeof CommonErrorStates,
     typeof CommonErrorMessages
 > {
-    protected readonly errnos = CommonErrorNoCodes as (
-        { [K in CommonErrorCode]: typeof CommonErrorNoCodes[K] }
-    )
-    protected readonly states = CommonErrorStates
-    protected readonly messages = CommonErrorMessages
-
     constructor(code: CommonErrorCode, ...args: any) {
-        super(code, ...args)
+        super(
+            code,
+            CommonErrorNoCodes,
+            CommonErrorStates,
+            CommonErrorMessages,
+            ...args
+        )
     }
 }
 

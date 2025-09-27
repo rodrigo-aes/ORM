@@ -56,7 +56,7 @@ export default class TriggersSyncronizer extends TriggersSchema<
             this.connection,
             ...(await this.connection.query(
                 TriggersSyncronizer.triggersSchemaQuery(
-                    this.connection.config.database
+                    this.connection.database
                 )
             ))
                 .map(initMap => new TriggerSyncronizer(initMap))

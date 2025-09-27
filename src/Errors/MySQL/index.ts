@@ -156,7 +156,7 @@ export default
     // ------------------------------------------------------------------------
 
     public static convertCode(code: MySQLErrorCode): (
-        PolyORMMySQLErrorCode | undefined
+        PolyORMMySQLErrorCode
     ) {
         const polyCode = Object.entries(MySQLErrorCodes).find(
             ([_, mySQLCode]) => mySQLCode === code
@@ -164,7 +164,7 @@ export default
 
         if (polyCode) return polyCode[0] as PolyORMMySQLErrorCode
 
-        // throw this.invalidCode(code)
+        throw new Error('Invalid error code' + code)
     }
 
     // ------------------------------------------------------------------------
