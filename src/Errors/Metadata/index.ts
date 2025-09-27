@@ -16,14 +16,14 @@ export default class MetadataException extends PolyORMException<
     typeof MetadataErrorStates,
     typeof MetadataErrorMessages
 > {
-    protected readonly errnos = MetadataErrorNoCodes as (
-        { [K in MetadataErrorCode]: typeof MetadataErrorNoCodes[K] }
-    )
-    protected readonly states = MetadataErrorStates
-    protected readonly messages = MetadataErrorMessages
-
     constructor(code: MetadataErrorCode, ...args: any) {
-        super(code, ...args)
+        super(
+            code,
+            MetadataErrorNoCodes,
+            MetadataErrorStates,
+            MetadataErrorMessages,
+            ...args
+        )
     }
 }
 

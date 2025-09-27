@@ -1,0 +1,53 @@
+export enum CLIErrorCodes {
+    UNKNOWN_COMMAND = 'UNKNOWN_COMMAND',
+    UNKNOWN_METHOD = 'UNKNOWN_METHOD',
+    UNEXPECTED_POSITIONAL_ARG = 'UNEXPECTED_POSITIONAL_ARG',
+    UNEXPECTED_NAMED_ARG = 'UNEXPECTED_NAMED_ARG',
+    INVALID_ARG_VALUE = 'INVALID_ARG_VALUE',
+    INVALID_ARGS_NUMBER = 'INVALID_ARGS_NUMBER',
+    UNKNOWN_OPTION = 'UNKNOWN_OPTION',
+    INVALID_OPTION_VALUE = 'INVALID_OPTION_VALUE',
+    MISSING_OPTION_VALUE = 'MISSING_OPTION_VALUE',
+    USING_HELP_ON_COMMAND_EXECUTION = 'USING_HELP_ON_COMMAND_EXECUTION'
+}
+
+export enum CLIErrorNoCodes {
+    UNKNOWN_COMMAND = 6001,
+    UNKNOWN_METHOD = 6002,
+    UNEXPECTED_POSITIONAL_ARG = 6003,
+    UNEXPECTED_NAMED_ARG = 6004,
+    INVALID_ARG_VALUE = 6005,
+    INVALID_ARGS_NUMBER = 6006,
+    UNKNOWN_OPTION = 6007,
+    INVALID_OPTION_VALUE = 6008,
+    MISSING_OPTION_VALUE = 6009,
+    USING_HELP_ON_COMMAND_EXECUTION = 6010
+}
+
+export enum CLIErrorStates {
+    UNKNOWN_COMMAND = 'CLI-01',
+    UNKNOWN_METHOD = 'CLI-02',
+    UNEXPECTED_POSITIONAL_ARG = 'CLI-03',
+    UNEXPECTED_NAMED_ARG = 'CLI-04',
+    INVALID_ARG_VALUE = 'CLI-05',
+    INVALID_ARGS_NUMBER = 'CLI-06',
+    UNKNOWN_OPTION = 'CLI-07',
+    INVALID_OPTION_VALUE = 'CLI-08',
+    MISSING_OPTION_VALUE = 'CLI-09',
+    USING_HELP_ON_COMMAND_EXECUTION = 'CLI-10'
+}
+
+export enum CLIErrorMessages {
+    UNKNOWN_COMMAND = 'Unknown command: "%s"',
+    UNKNOWN_METHOD = 'Unknown command "%s" method: "%s"',
+    UNEXPECTED_POSITIONAL_ARG = 'Unexpected positional argument "%s"',
+    UNEXPECTED_NAMED_ARG = 'Unexpected named argument "%s"',
+    INVALID_ARG_VALUE = 'Invalid argument value "%s"',
+    INVALID_ARGS_NUMBER = 'Invalid arguments number: received %s but expecting %s',
+    UNKNOWN_OPTION = 'Unknown option "%s"',
+    INVALID_OPTION_VALUE = 'Invalid option "%s" value "%s"',
+    MISSING_OPTION_VALUE = 'Missing options "%s" value',
+    USING_HELP_ON_COMMAND_EXECUTION = 'Using "-h, --help" option during command execution'
+}
+
+export type CLIErrorCode = keyof typeof CLIErrorCodes

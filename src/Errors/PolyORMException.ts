@@ -1,3 +1,5 @@
+import util from 'util'
+
 // Types
 import type { Constructor } from "../types/General"
 import type { PolyORMException as PolyORMExceptionInterface } from "./types"
@@ -17,20 +19,22 @@ export default
     >
     extends Error
     implements PolyORMExceptionInterface {
-    protected abstract readonly errnos: ErrorNoCodes
-    protected abstract readonly states: ErrorStates
-    protected abstract readonly messages: ErrorMessages
 
     public errno!: ErrorNoCodes[ErrorCode]
     public state!: ErrorStates[ErrorCode]
 
-    constructor(public code: ErrorCode, ...args: any[]) {
+    constructor(
+        public code: ErrorCode,
+        errnos: ErrorNoCodes,
+        states: ErrorStates,
+        messages: ErrorMessages,
+        ...args: any[]
+    ) {
         super()
-
         this.name = this.constructor.name
-        this.message = this.buildMessage(...args)
-
-        this.fill()
+        this.message = this.buildMessage(messages, ...args)
+        this.errno = errnos![this.code]
+        this.state = states![this.code]
 
         if (Error.captureStackTrace) Error.captureStackTrace(
             this,
@@ -39,10 +43,10 @@ export default
     }
 
     // Instance Methods =======================================================
-    // Protecteds -------------------------------------------------------------
-    private buildMessage(...args: any[]): string {
+    // Privates ---------------------------------------------------------------
+    private buildMessage(messages: ErrorMessages, ...args: any[]): string {
         let i = 0
-        return this.messages[this.code].replace(
+        return messages![this.code].replace(
             /%[sdufl]/g,
             () => {
                 const value = args[i++]
@@ -52,12 +56,6 @@ export default
                 )
             }
         )
-    }
-
-    // Privates ---------------------------------------------------------------
-    private fill(): void {
-        this.errno = this.errnos[this.code]
-        this.state = this.states[this.code]
     }
 
     // Static Methods =========================================================

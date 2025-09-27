@@ -5,13 +5,28 @@ import PolyORMMySQLException, {
 } from './MySQL'
 
 // - Common
-import CommonException, { type CommonErrorCode } from './Common'
+import CommonException, {
+    CommonErrorCodes,
+    type CommonErrorCode
+} from './Common'
 
 // - Metadata
-import MetadataException, { type MetadataErrorCode } from './Metadata'
+import MetadataException, {
+    MetadataErrorCodes,
+    type MetadataErrorCode
+} from './Metadata'
 
 // - Query Builder
-import QueryBuilderException from './QueryBuilder'
+import QueryBuilderException, {
+    QueryBuilderErrorCodes,
+    type QueryBuilderErrorCode
+} from './QueryBuilder'
+
+// - CLI
+import CLIException, {
+    CLIErrorCodes,
+    type CLIErrorCode
+} from './CLI'
 
 // Handlers
 import { AcknowledgedExceptionHandler } from "./Handlers"
@@ -43,17 +58,32 @@ export default class PolyORMException {
         return MetadataException
     }
 
+    // ------------------------------------------------------------------------
+
     public static get QueryBuilder(): typeof QueryBuilderException {
         return QueryBuilderException
     }
 
+    // ------------------------------------------------------------------------
+
+    public static get CLI(): typeof CLIException {
+        return CLIException
+    }
 }
 
 export {
     PolyORMMySQLException,
     AcknowledgedExceptionHandler,
-    PolyORMMySQLErrorCode,
+
+    CommonErrorCodes,
+    MetadataErrorCodes,
+    QueryBuilderErrorCodes,
+    CLIErrorCodes,
 
     type AcknowledgedErrorTuple,
-    type MetadataErrorCode
+    type PolyORMMySQLErrorCode,
+    type CommonErrorCode,
+    type MetadataErrorCode,
+    type QueryBuilderErrorCode,
+    type CLIErrorCode,
 }

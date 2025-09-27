@@ -10,13 +10,32 @@ import { ConnectionsMetadata } from "../../Metadata"
 import Migrator from "../../Migrator"
 
 // Types
-import type { Connection } from "../../Metadata/ConnectionsMetadata/types"
+import type { PolyORMConnection } from "../../Metadata"
 import type { MigrationCommanderMethod } from "./types"
 import type { ActionType } from "../../DatabaseSchema"
 
+// Exceptions
+import PolyORMException from "../../Errors"
+
 export default class MigrationCommander extends Command {
-    constructor(protected method?: MigrationCommanderMethod) {
-        super(method)
+    public static override readonly methods: MigrationCommanderMethod[] = [
+        'init',
+        'run',
+        'back',
+        'reset',
+        'sync',
+        'register',
+        'create',
+        'delete',
+        'move'
+    ]
+    public static override description: string = 'Manage migrations'
+
+    constructor(
+        protected command: string,
+        protected method?: MigrationCommanderMethod
+    ) {
+        super(command, method)
     }
 
     // Instance Methods =======================================================
@@ -54,17 +73,14 @@ export default class MigrationCommander extends Command {
     }
 
     // Privates ---------------------------------------------------------------
-    private async getConnections(): Promise<Connection[]> {
+    private async getConnections(): Promise<PolyORMConnection[]> {
         await Config.createConnections()
 
         if (this.opts.connections) return this.opts.connnection
             .split(',')
-            .map((name: string) => {
-                const connection = ConnectionsMetadata.get(name)
-                if (!connection) throw new Error
-
-                return connection
-            })
+            .map((name: string) => ConnectionsMetadata.findOrThrow(
+                name.trim()
+            ))
 
         return ConnectionsMetadata.all()
     }
@@ -72,32 +88,41 @@ export default class MigrationCommander extends Command {
     // ------------------------------------------------------------------------
 
     private connectionsDefine(): void {
-        this.option('connections', 'string')
+        this.option(
+            'connections',
+            'string',
+            'c',
+            undefined,
+            'Connections folders to include separated by ","'
+        )
     }
 
     // ------------------------------------------------------------------------
 
     private createDefine(): void {
-        this.arg(['create', 'alter', 'drop'])
-        this.arg('<?>')
-        this.option('name', 'string')
-        this.option('atOrder', 'number')
-        this.option('connections', 'string')
+        this.arg('<(create|alter|drop)>', 'action', true,
+            'Migration table action'
+        )
+        this.arg('<?>', 'table', true, 'Table name')
+        this.option('name', 'string', 'n', undefined, 'Migration name')
+        this.option(
+            'at-position', 'number', 'at', undefined, 'At position to insert'
+        )
     }
 
     // ------------------------------------------------------------------------
 
     private deleteDefine(): void {
-        this.arg('<?>')
-        this.option('connections', 'string')
+        this.arg(
+            '<?>', 'migration', true, 'Migration name, file name or position'
+        )
     }
 
     // ------------------------------------------------------------------------
 
     private moveDefine(): void {
-        this.arg('<int>')
-        this.arg('<int>')
-        this.option('connections', 'string')
+        this.arg('from?:<int>', 'from', true, 'Origin position')
+        this.arg('to?:<int>', 'to', true, 'Destination position')
     }
 
     // ------------------------------------------------------------------------

@@ -59,13 +59,12 @@ export default class PolymorphicEntityMetadata {
         this.loadColumns()
         this.loadRelations()
 
-        if (target) this.mergeCombined()
-
         this.target = target
             ?? PolymorphicEntityBuilder.buildInternalEntityUnion(this)
 
-        this.register()
+        if (this.target) this.mergeCombined()
 
+        this.register()
     }
 
     // Getters ================================================================

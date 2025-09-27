@@ -10,7 +10,6 @@ import {
     MetadataHandler,
     PolymorphicEntityMetadata,
 
-    type EntityMetadata,
     type RelationMetadataType
 } from "../../../Metadata"
 
@@ -21,8 +20,8 @@ import { SQLStringHelper } from "../../../Helpers"
 
 // Types
 import type {
-    EntityTarget,
-    PolymorphicEntityTarget
+    Target,
+    TargetMetadata
 } from "../../../types/General"
 import type { ConditionalQueryOptions } from "../types"
 import type {
@@ -31,10 +30,8 @@ import type {
     CrossExistsOption
 } from "./types"
 
-export default class ExistsSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
+export default class ExistsSQLBuilder<T extends Target> {
+    protected metadata: TargetMetadata<T>
     public alias: string
 
     private unions: string[] = []
@@ -91,7 +88,7 @@ export default class ExistsSQLBuilder<
     // ------------------------------------------------------------------------
 
     private handleRelationsOptions(
-        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata,
+        metadata: TargetMetadata<any> = this.metadata,
         options: any = this.options
     ) {
         const included = new Set<string>()
@@ -133,7 +130,6 @@ export default class ExistsSQLBuilder<
                     Object.entries(where).filter(([key]) => key.includes('.'))
                 )
 
-                if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)
                 this.addJoin(meta)
                 this.handleRelationsOptions(meta, relationsOptions)
                 this.addWhere(
@@ -149,7 +145,7 @@ export default class ExistsSQLBuilder<
 
     private handleQueryParts(
         options: any,
-        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata
+        metadata: TargetMetadata<any> = this.metadata
     ) {
         for (const [name, opts] of Object.entries(options)) {
             const relation = metadata.relations.findOrThrow(name)
@@ -196,9 +192,7 @@ export default class ExistsSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private addJoin(
-        metadata: EntityMetadata | PolymorphicEntityMetadata
-    ): void {
+    private addJoin(metadata: TargetMetadata<any>): void {
         this.joins.push(`CROSS JOIN ${metadata.tableName}`)
 
     }
@@ -206,7 +200,7 @@ export default class ExistsSQLBuilder<
     // ------------------------------------------------------------------------
 
     private addWhere(
-        target: EntityTarget | PolymorphicEntityTarget,
+        target: Target,
         options: ConditionalQueryOptions<any>,
         alias: string
     ): void {
@@ -226,7 +220,7 @@ export default class ExistsSQLBuilder<
         relation: RelationMetadataType,
         parentAlias: string,
         alias: string,
-        target: EntityTarget | PolymorphicEntityTarget
+        target: Target
     ): void {
         this.onWheres.push(
             ConditionalSQLBuilder.on(
