@@ -97,9 +97,12 @@ export default class MySQLConnection implements MySQLConnectionInstance {
      * drop all tables and syncronize all
      */
     public async sync(mode: 'alter' | 'reset'): Promise<void> {
-        const syncronizer = new Syncronizer(this, {
-            logging: true
-        })
+        const syncronizer = new Syncronizer(
+            this as unknown as MySQLConnectionInterface,
+            {
+                logging: true
+            }
+        )
 
         switch (mode) {
             case 'reset': return syncronizer.reset()
@@ -134,8 +137,14 @@ export default class MySQLConnection implements MySQLConnectionInstance {
     /** @internal */
     private async afterConnect() {
         MetadataHandler.normalizeMetadata()
-        MetadataHandler.registerConnectionEntities(this, ...this.entities)
-        await ProceduresHandler.register(this)
+        MetadataHandler.registerConnectionEntities(
+            this as unknown as MySQLConnectionInterface,
+            ...this.entities
+        )
+
+        await ProceduresHandler.register(
+            this as unknown as MySQLConnectionInterface
+        )
 
         if (this.config.sync) await this.sync('alter')
     }

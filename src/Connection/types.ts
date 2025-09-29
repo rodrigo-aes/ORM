@@ -22,7 +22,7 @@ export interface MySQLConnectionConfig extends PoolOptions {
     sync?: boolean
 }
 
-type MySQLConnectionFilled = MySQLConnectionInstance & {
+export type MySQLConnectionFilled = MySQLConnectionInstance & {
     [K in keyof MySQLConnectionConfig]: MySQLConnectionConfig[K]
 }
 

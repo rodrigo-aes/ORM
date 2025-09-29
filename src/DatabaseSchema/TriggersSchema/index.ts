@@ -90,7 +90,7 @@ export default class TriggersSchema<
             this.connection,
             ...await this.connection.query(
                 TriggersSchema.triggersSchemaQuery(
-                    this.connection.config.database
+                    this.connection.database
                 ))
 
         )

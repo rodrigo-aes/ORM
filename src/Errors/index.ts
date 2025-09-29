@@ -28,13 +28,6 @@ import CLIException, {
     type CLIErrorCode
 } from './CLI'
 
-// Handlers
-import { AcknowledgedExceptionHandler } from "./Handlers"
-
-// Types
-import type { AcknowledgedErrorTuple } from "./types"
-
-
 export default class PolyORMException {
     private constructor() {
         CommonException.throw('NOT_INSTANTIABLE_CLASS', this.constructor.name)
@@ -73,14 +66,12 @@ export default class PolyORMException {
 
 export {
     PolyORMMySQLException,
-    AcknowledgedExceptionHandler,
 
     CommonErrorCodes,
     MetadataErrorCodes,
     QueryBuilderErrorCodes,
     CLIErrorCodes,
 
-    type AcknowledgedErrorTuple,
     type PolyORMMySQLErrorCode,
     type CommonErrorCode,
     type MetadataErrorCode,

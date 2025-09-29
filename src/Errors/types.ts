@@ -6,17 +6,6 @@ export interface PolyORMException extends Error {
     errno: number
 }
 
-export type AcknowledgedErrorOrigin = 'MySQL'
-
-
 export type PolyORMErrorCode = (
     MySQLErrorCode
-)
-
-export type AcknowledgedErrorTuple = (
-    ['MySQL', PolyORMMySQLException]
-)
-
-export type MySQLErrorArgOrNever<Source extends MySQLErrorCode | Error> = (
-    Source extends string ? string : never
 )

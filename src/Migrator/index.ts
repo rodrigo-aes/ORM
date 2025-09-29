@@ -38,10 +38,7 @@ import type { Constructor } from "../types/General"
 import type { MigrationRunMethod, MigrationSyncAction } from "./types"
 
 // Exceptions
-import PolyORMException, {
-    AcknowledgedExceptionHandler,
-    type AcknowledgedErrorTuple
-} from "../Errors"
+import PolyORMException from "../Errors"
 
 export default class Migrator extends Array<Constructor<Migration>> {
     private database!: DatabaseSchema | DatabaseMigrator
@@ -364,7 +361,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
             await migrator.executeTriggersActions()
 
         } catch (error: any) {
-            await this.handleProccessException(
+            await this.askAlreadyRunned(
                 error,
                 migration.name,
                 'UP',
@@ -388,7 +385,7 @@ export default class Migrator extends Array<Constructor<Migration>> {
             await migrator.executeTriggersActions()
 
         } catch (error: any) {
-            await this.handleProccessException(
+            await this.askAlreadyRunned(
                 error,
                 migration.name,
                 'DOWN'
@@ -478,29 +475,11 @@ export default class Migrator extends Array<Constructor<Migration>> {
 
     // ------------------------------------------------------------------------
 
-    private handleProccessException(
+    private askAlreadyRunned(
         error: any,
         ...args: any[]
     ): Promise<void> {
-        const acknowledged = AcknowledgedExceptionHandler.handle(error)
-
-        switch (acknowledged[0]) {
-            case 'MySQL': return this.askAlreadyRunned(
-                acknowledged,
-                args
-            )
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private askAlreadyRunned(
-        acknowledged: AcknowledgedErrorTuple,
-        args: any[]
-    ): Promise<void> {
-        const [_, exception] = acknowledged
-
-        const { name, code, message } = exception
+        const { name, code, message } = error
         const [migration, method, time] = args
 
         return new Promise(resolve => this.interface.question(
@@ -521,7 +500,11 @@ export default class Migrator extends Array<Constructor<Migration>> {
                         break
                 }
 
-                else exception.throw()
+                else switch (this.connection.type) {
+                    case 'MySQL': PolyORMException.MySQL.throwByError(
+                        error, this.connection.name
+                    )
+                }
 
                 this.interface.close()
                 resolve()
