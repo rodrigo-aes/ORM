@@ -4,7 +4,7 @@ import OneRelation from "../OneRelation"
 import { HasOneThroughHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type { HasOneThroughMetadata } from "../../Metadata"
 
 /** HasOneThrough relation handler */

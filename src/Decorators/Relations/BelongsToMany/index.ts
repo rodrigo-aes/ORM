@@ -4,7 +4,7 @@ import {
 } from "../../../Metadata"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 import type { BelongsToManyOptions } from "./types"
 
 export default function BelongsToMany(

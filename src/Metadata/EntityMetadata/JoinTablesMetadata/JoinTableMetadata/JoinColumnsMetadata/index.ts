@@ -3,52 +3,49 @@ import JoinColumnMetadata, {
 } from "./JoinColumnMetadata"
 
 import type JoinTableMetadata from ".."
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget } from "../../../../../types"
 
 import type { JoinColumnsMetadataJSON } from "./types"
 
 // Exceptions
-import PolyORMException from "../../../../Errors"
+import PolyORMException from "../../../../../Errors"
 
-export default class JoinColumnsMetadata<
-    T extends JoinColumnMetadata = JoinColumnMetadata
-> extends Array<T> {
+export default class JoinColumnsMetadata extends Array<JoinColumnMetadata> {
     constructor(
         private table: JoinTableMetadata,
-        ...columns: T[]
+        ...columns: JoinColumnMetadata[]
     ) {
         super(...columns)
     }
 
-    static get [Symbol.species]() {
+    // Static Getters =========================================================
+    // Publics ----------------------------------------------------------------
+    public static get [Symbol.species](): typeof Array {
         return Array
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public registerColumn(initMap: JoinColumnInitMap) {
-        this.push(new JoinColumnMetadata(this.table, initMap) as T)
+        this.push(new JoinColumnMetadata(this.table, initMap))
     }
 
     // ------------------------------------------------------------------------
 
-    public findColumn(columnName: string): JoinColumnMetadata | undefined {
+    public search(columnName: string): JoinColumnMetadata | undefined {
         return this.find(({ name }) => name === columnName)
     }
 
     // ------------------------------------------------------------------------
 
-    public getColumn(columnName: string): JoinColumnMetadata {
-        const column = this.findColumn(columnName)
-        if (!column) throw PolyORMException.MySQL.instantiate(
-            'UNKNOW_COLUMN',
+    public findOrThrow(name: string): JoinColumnMetadata {
+        return this.search(name)! ?? PolyORMException.Metadata.throw(
+            'UNKNOWN_RELATION',
             'No connection',
             'No SQL operation',
-            columnName,
+            name,
             this.table.tableName
         )
-
-        return column
     }
 
     // ------------------------------------------------------------------------
@@ -56,13 +53,13 @@ export default class JoinColumnsMetadata<
     public getTargetColumn(target: EntityTarget): (
         JoinColumnMetadata
     ) {
-        return this.getColumn(`${target.name.toLowerCase()}Id`)
+        return this.findOrThrow(`${target.name.toLowerCase()}Id`)
     }
 
     // ------------------------------------------------------------------------
 
     public toJSON(): JoinColumnsMetadataJSON {
-        return [...this].map(column => column.toJSON())
+        return this.map(column => column.toJSON())
     }
 }
 

@@ -9,7 +9,7 @@ import type { EntityMetadata } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { PolymorphicEntityTarget } from "../../types/General"
+import type { PolymorphicEntityTarget } from "../../types"
 
 export default class UnionSQLBuilder {
     protected metadata: PolymorphicEntityMetadata

@@ -1,9 +1,8 @@
 import type {
     EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types/General"
-
-import type { EntityRelationsKeys } from "../../SQLBuilders"
+    PolymorphicEntityTarget,
+    EntityRelationsKeys
+} from "../../types"
 
 import type JoinQueryBuilder from "."
 import type SelectQueryBuilder from "../SelectQueryBuilder"

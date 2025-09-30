@@ -7,7 +7,7 @@ import { MySQL2QueryExecutionHandler } from "../../../Handlers"
 import type {
     EntityTarget,
     AsEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import type {
     CreateSQLBuilder,
@@ -47,7 +47,7 @@ export default class InsertQueryBuilder<
 
         return new MySQL2QueryExecutionHandler(
             this.target,
-            this.sqlBuilder as CreateSQLBuilder<AsEntityTarget<T>>,
+            this.sqlBuilder,
             'entity'
         )
             .exec() as Promise<InstanceType<T>>

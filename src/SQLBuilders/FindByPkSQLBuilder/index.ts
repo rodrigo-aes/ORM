@@ -10,7 +10,7 @@ import { MetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 
 export default class FindByPkSQLBuilder<
     T extends EntityTarget | PolymorphicEntityTarget
@@ -26,7 +26,7 @@ export default class FindByPkSQLBuilder<
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
 
         this.select = this.buildSelect()
     }

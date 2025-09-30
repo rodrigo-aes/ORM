@@ -1,7 +1,7 @@
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 export type ComputedPropertyFunction<
     T extends EntityTarget | PolymorphicEntityTarget = any

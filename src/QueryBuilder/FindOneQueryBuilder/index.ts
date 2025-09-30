@@ -12,8 +12,7 @@ import {
     type FindOneQueryOptions as SQLBuilderOptions,
     type RelationsOptions,
     type GroupQueryOptions,
-    type EntityProperties,
-    type EntityPropertiesKeys,
+
 } from "../../SQLBuilders"
 
 // Query Builders
@@ -34,7 +33,9 @@ import type {
     Target,
     TargetMetadata,
     EntityTarget,
-} from "../../types/General"
+    EntityProperties,
+    EntityPropertiesKeys,
+} from "../../types"
 
 import type { JoinQueryOptions } from "../JoinQueryBuilder"
 import type { FindOneQueryOptions } from "./types"
@@ -72,7 +73,7 @@ export default class FindOneQueryBuilder<T extends Target> {
         public target: T,
         public alias?: string,
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Getters ================================================================

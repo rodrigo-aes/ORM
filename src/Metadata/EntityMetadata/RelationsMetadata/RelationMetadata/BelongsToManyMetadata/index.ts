@@ -2,9 +2,9 @@ import RelationMetadata from "../RelationMetadata"
 import EntityMetadata from "../../.."
 
 // Types
-import type { EntityTarget } from "../../../../../types/General"
-import type JoinTableMetadata from "../../../JoinTableMetadata"
-import type { JoinColumnMetadata } from "../../../JoinTableMetadata"
+import type { EntityTarget } from "../../../../../types"
+import type JoinTableMetadata from "../../../JoinTablesMetadata/JoinTableMetadata"
+import type { JoinColumnMetadata } from "../../../JoinTablesMetadata/JoinTableMetadata"
 import type { ForeignKeyActionListener } from "../../.."
 import type {
     BelongsToManyRelatedGetter,
@@ -20,9 +20,9 @@ export default class BelongsToManyMetadata extends RelationMetadata {
 
     constructor(
         target: EntityTarget,
-        { joinTable, ...options }: BelongsToManyOptions
+        { name, joinTable, ...options }: BelongsToManyOptions
     ) {
-        super(target, options)
+        super(target, name)
 
         Object.assign(this, options)
         this.joinTable = this.registerJoinTable(joinTable)
@@ -43,7 +43,7 @@ export default class BelongsToManyMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get entityName(): string {
-        return this.entity.target.name.toLowerCase()
+        return this.entity.name
     }
 
     // ------------------------------------------------------------------------

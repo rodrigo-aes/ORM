@@ -1,6 +1,6 @@
 import { RelationsMetadata } from "../../../Metadata"
 
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 import type { HasOneRelatedGetter } from "../../../Metadata"
 import type { HasOneOptions } from "./types"
 

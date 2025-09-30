@@ -10,7 +10,7 @@ import UpdateOrCreateQueryBuilder from "../UpdateOrCreateQueryBuilder"
 import DeleteQueryBuilder from "../DeleteQueryBuilder"
 
 // Types
-import type { EntityTarget, TargetMetadata } from "../../types/General"
+import type { EntityTarget, TargetMetadata } from "../../types"
 
 /**
  * Entity query builder

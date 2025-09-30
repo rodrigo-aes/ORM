@@ -32,7 +32,7 @@ import {
 } from "../Handlers"
 
 // Types 
-import type { EntityTarget, AsEntityTarget } from "../types/General"
+import type { EntityTarget, AsEntityTarget } from "../types"
 import type { UpdateQueryResult, CountManyQueryResult } from "./types"
 import type { ResultSetHeader } from "mysql2"
 
@@ -180,8 +180,8 @@ export default class Repository<T extends EntityTarget> {
     ): Promise<InstanceType<T>> {
         return new MySQL2QueryExecutionHandler(
             this.target,
-            new CreateSQLBuilder<AsEntityTarget<T>>(
-                this.target as AsEntityTarget<T>,
+            new CreateSQLBuilder<T>(
+                this.target,
                 attributes
             ),
             mapTo
@@ -206,8 +206,8 @@ export default class Repository<T extends EntityTarget> {
     ): Promise<InstanceType<T>[]> {
         return new MySQL2QueryExecutionHandler(
             this.target,
-            new CreateSQLBuilder<AsEntityTarget<T>>(
-                this.target as AsEntityTarget<T>,
+            new CreateSQLBuilder(
+                this.target,
                 attributes
             ),
             mapTo
@@ -227,7 +227,7 @@ export default class Repository<T extends EntityTarget> {
      * @returns - A result set header with the count of affected registers
      */
     public async update<Data extends (
-        (BaseEntity & InstanceType<T>) |
+        BaseEntity & InstanceType<T> |
         UpdateAttributes<InstanceType<T>>
     )>(
         attributes: Data,
@@ -241,12 +241,11 @@ export default class Repository<T extends EntityTarget> {
             .exec() as any
 
         return (
-            attributes instanceof BaseEntity
+            (attributes as any) instanceof BaseEntity
                 ? attributes
                 : header
-        ) as (
-                UpdateQueryResult<T, Data>
-            )
+        ) as UpdateQueryResult<T, Data>
+
     }
 
     // ------------------------------------------------------------------------
@@ -262,9 +261,9 @@ export default class Repository<T extends EntityTarget> {
     ): Promise<InstanceType<T>> {
         return new MySQL2QueryExecutionHandler(
             this.target,
-            new UpdateOrCreateSQLBuilder<AsEntityTarget<T>>(
-                this.target as AsEntityTarget<T>,
-                attributes as UpdateOrCreateAttibutes<EntityTarget>
+            new UpdateOrCreateSQLBuilder<T>(
+                this.target,
+                attributes
             ),
             mapTo
         )

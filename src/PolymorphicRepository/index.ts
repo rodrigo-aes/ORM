@@ -36,7 +36,7 @@ import {
 import type {
     PolymorphicEntityTarget,
     EntityTarget,
-} from "../types/General"
+} from "../types"
 
 import type {
     CountManyQueryResult,
@@ -56,7 +56,7 @@ export default class PolymorphicRepository<
     protected metadata: PolymorphicEntityMetadata
 
     constructor(public target: T) {
-        this.metadata = MetadataHandler.loadMetadata(this.target) as (
+        this.metadata = MetadataHandler.targetMetadata(this.target) as (
             PolymorphicEntityMetadata
         )
     }

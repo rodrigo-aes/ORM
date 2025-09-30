@@ -1,5 +1,5 @@
 import type Command from "./Command"
-import type { Constructor } from "../types/General"
+import type { Constructor } from "../types"
 
 export type CommandConstructor = Constructor<Command> & typeof Command
 

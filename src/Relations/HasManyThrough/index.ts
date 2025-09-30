@@ -4,7 +4,7 @@ import ManyRelation from "../ManyRelation"
 import { HasManyThroughHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type { HasManyThroughMetadata } from "../../Metadata"
 
 /** HasMany relation handler */

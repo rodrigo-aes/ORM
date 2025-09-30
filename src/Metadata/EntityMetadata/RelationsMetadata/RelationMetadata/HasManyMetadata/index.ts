@@ -2,7 +2,7 @@ import EntityMetadata from "../../.."
 import RelationMetadata from "../RelationMetadata"
 
 // Types
-import type { EntityTarget } from "../../../../../types/General"
+import type { EntityTarget } from "../../../../../types"
 import type { ColumnMetadata } from "../../../ColumnsMetadata"
 import type {
     HasManyOptions,
@@ -19,9 +19,9 @@ export default class HasManyMetadata extends RelationMetadata {
 
     constructor(
         target: EntityTarget,
-        { foreignKey, ...options }: HasManyOptions
+        { name, foreignKey, ...options }: HasManyOptions
     ) {
-        super(target, options)
+        super(target, name)
         Object.assign(this, options)
 
         this.entity = this.loadEntity()
@@ -43,7 +43,7 @@ export default class HasManyMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get foreignKey(): ColumnMetadata {
-        return this.entity.getColumn(this.foreignKeyName)
+        return this.entity.columns.findOrThrow(this.foreignKeyName)
     }
 
     // Instance Methods =======================================================

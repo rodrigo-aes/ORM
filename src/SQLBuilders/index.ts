@@ -73,13 +73,6 @@ import { Case, Exists, Cross } from "./ConditionalSQLBuilder"
 
 // Types
 import type {
-    EntityProperties,
-    EntityRelations,
-    EntityPropertiesKeys,
-    EntityRelationsKeys
-} from "./types"
-
-import type {
     SelectOptions,
     SelectPropertyOptions,
     SelectPropertyKey
@@ -149,11 +142,6 @@ export {
     Exists,
     Cross,
     CurrentTimestamp,
-
-    type EntityProperties,
-    type EntityRelations,
-    type EntityPropertiesKeys,
-    type EntityRelationsKeys,
 
     type FindOneQueryOptions,
     type FindQueryOptions,

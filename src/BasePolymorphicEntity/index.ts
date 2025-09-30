@@ -56,15 +56,15 @@ import type {
     PolymorphicEntityTarget,
     EntityTarget,
     LocalOrInternalPolymorphicEntityTarget,
-    Constructor
-} from "../types/General"
+    Constructor,
+    EntityProperties
+} from "../types"
 import type BaseEntity from "../BaseEntity"
 import type { SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
 import type { ResultSetHeader } from "mysql2"
 import type { ResultMapOption, DeleteResult } from "../Handlers"
 import type {
-    EntityProperties,
     FindQueryOptions,
     FindOneQueryOptions,
     PaginationQueryOptions,
@@ -538,7 +538,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     // Privates ---------------------------------------------------------------
     /** @internal */
     private getTrueMetadata(): PolymorphicEntityMetadata {
-        return MetadataHandler.loadMetadata(
+        return MetadataHandler.targetMetadata(
             this.constructor as PolymorphicEntityTarget
         )
     }
@@ -547,7 +547,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     /** @internal */
     private getTrueSourceMetadata(): EntityMetadata {
-        return MetadataHandler.loadMetadata(this.entities[this.entityType])
+        return MetadataHandler.targetMetadata(this.entities[this.entityType])
     }
 
     // ------------------------------------------------------------------------
@@ -903,7 +903,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     private static getTrueMetadata<T extends PolymorphicEntityTarget>(
         this: T
     ): PolymorphicEntityMetadata {
-        return MetadataHandler.loadMetadata(this)
+        return MetadataHandler.targetMetadata(this)
     }
 
     // ------------------------------------------------------------------------

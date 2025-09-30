@@ -1,5 +1,5 @@
 import type EntityUnion from "."
-import type { EntityTarget, Constructor } from "../types/General"
+import type { EntityTarget, Constructor } from "../types"
 
 export type UnionTarget = new (...args: any[]) => EntityUnion<any[]>
 

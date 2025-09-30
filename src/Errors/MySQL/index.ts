@@ -1,5 +1,5 @@
 // Types
-import type { Constructor } from "../../types/General"
+import type { Constructor } from "../../types"
 import type { PolyORMException } from "../types"
 import {
     MySQLErrorCodes,

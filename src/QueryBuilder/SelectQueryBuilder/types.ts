@@ -1,7 +1,7 @@
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 
 import type { SelectPropertyKey } from "../../SQLBuilders"
 import type CaseQueryBuilder from "../CaseQueryBuilder"

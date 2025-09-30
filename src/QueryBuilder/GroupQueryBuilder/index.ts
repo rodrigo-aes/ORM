@@ -1,5 +1,5 @@
 // Types
-import type { Target } from "../../types/General"
+import type { Target } from "../../types"
 
 import type { GroupQueryOptions } from "../../SQLBuilders"
 

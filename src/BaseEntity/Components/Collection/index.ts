@@ -1,8 +1,13 @@
 import { ComputedPropertiesMetadata } from "../../../Metadata"
 
 // Types
-import type { CollectionTarget, Entity } from "../../../types/General"
-import type { EntityProperties, UpdateAttributes } from "../../../SQLBuilders"
+import type {
+    CollectionTarget,
+    Entity,
+    EntityProperties
+} from "../../../types"
+
+import type { UpdateAttributes } from "../../../SQLBuilders"
 
 export default class Collection<T extends Entity> extends Array<T> {
     public static alias: string = this.name

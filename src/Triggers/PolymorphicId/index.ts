@@ -1,7 +1,7 @@
 import Trigger from "../Trigger"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type {
     TriggerEvent,
     TriggerOrientation,

@@ -2,7 +2,7 @@ import { TriggerSQLBuilder } from "../../../SQLBuilders"
 
 // Types
 import type BaseEntity from "../../../BaseEntity"
-import type { Constructor } from "../../../types/General"
+import type { Constructor } from "../../../types"
 import type {
     Trigger,
     TriggerTiming,

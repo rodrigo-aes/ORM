@@ -1,78 +1,55 @@
-import type { PolymorphicEntityTarget, Target } from "../../../types/General"
+import MetadataArray from "../../MetadataArray"
+
+import type { PolymorphicEntityTarget, Target } from "../../../types"
 import type {
     RelationMetadata,
     RelationsMetadataJSON
 } from "../../EntityMetadata"
 
 // Exceptions
-import PolyORMException from "../../../Errors"
+import PolyORMException, { type MetadataErrorCode } from "../../../Errors"
 
-export default class PolymorphicRelationsMetadata extends Array<
+export default class PolymorphicRelationsMetadata extends MetadataArray<
     RelationMetadata
 > {
+    protected static override readonly KEY: string = 'relations-metadata'
+    protected readonly KEY: string = PolymorphicRelationsMetadata.KEY
+
+    protected readonly SEARCH_KEYS: (keyof RelationMetadata)[] = [
+        'name', 'relatedTarget'
+    ]
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
+        'UNKNOWN_RELATION'
+    )
+
     constructor(
-        public target: PolymorphicEntityTarget | null,
+        public target: PolymorphicEntityTarget,
         ...relations: RelationMetadata[]
     ) {
-        super()
+        super(target, ...relations)
         this.mergeRelations(relations)
     }
 
-    // Static Getters =========================================================
-    // Publics ----------------------------------------------------------------
-    public static get [Symbol.species](): typeof Array {
-        return Array
-    }
-
     // Instance Methods =======================================================
-    // Publics ----------------------------------------------------------------
-    public search(name: string): RelationMetadata | undefined {
-        return this.find(rel => rel.name === name)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public searchByRelated(related: Target): (
-        RelationMetadata | undefined
-    ) {
-        return this.find(({ relatedTarget }) => relatedTarget === related)
-    }
-
-    // ------------------------------------------------------------------------=
-
-    public findOrThrow(name: string): RelationMetadata {
-        return this.search(name)! ?? PolyORMException.Metadata.throw(
-            "UNKNOWN_RELATION", name, this.target?.name ?? ''
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public findByRelatedOrthrow(related: Target): RelationMetadata {
-        return this.searchByRelated(related)! ?? (
-            PolyORMException.Metadata.throw(
-                'UNKNOWN_RELATION',
-                `${related.name} entity class`,
-                this.target?.name ?? ''
-            )
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public toJSON(): RelationsMetadataJSON {
-        return this.map(rel => rel.toJSON())
-    }
-
     // Privates ---------------------------------------------------------------
     private mergeRelations(relations: RelationMetadata[]): void {
-        for (const { name } of relations) {
-            const toMerge = relations.filter(rel => rel.name === name)
+        const keys = Object.keys(this.target)
 
-            if (toMerge.length > 1) this.verifyCompatibility(toMerge)
+        this.push(
+            ...relations.flatMap(({ name }) => {
+                const rels = relations.filter(rel => (
+                    keys.includes(name) &&
+                    rel.name === name
+                ))
 
-            this.push(toMerge[0])
-        }
+                if (rels.length > 1) {
+                    this.verifyCompatibility(rels)
+                    return rels[0]
+                }
+
+                return rels
+            })
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -80,12 +57,10 @@ export default class PolymorphicRelationsMetadata extends Array<
     private verifyCompatibility(relations: RelationMetadata[]): void {
         const [{ type, relatedTarget, name }] = relations
 
-        if (
-            !relations.every(rel =>
-                rel.type === type &&
-                rel.relatedTarget === relatedTarget
-            )
-        ) PolyORMException.Metadata.throw(
+        if (!relations.every(rel =>
+            rel.type === type &&
+            rel.relatedTarget === relatedTarget
+        )) PolyORMException.Metadata.throw(
             'IMCOMPATIBLE_POLYMORPHIC_RELATIONS',
             relations.map(({ type }) => type),
             name,

@@ -1,5 +1,7 @@
 import 'reflect-metadata'
 
+import MetadataArray from '../../MetadataArray'
+
 import ColumnMetadata, {
     type SQLColumnType,
     type ColumnConfig,
@@ -15,24 +17,21 @@ import ColumnMetadata, {
 } from "./ColumnMetadata"
 
 import type DataType from "../DataType"
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 import type { ColumnsMetadataJSON } from './types'
 
-// Handlers
-import MetadataHandler from '../../MetadataHandler'
+// Exceptions
+import type { MetadataErrorCode } from '../../../Errors'
+export default class ColumnsMetadata extends MetadataArray<ColumnMetadata> {
+    protected static override readonly KEY: string = 'columns-metadata'
 
-export default class ColumnsMetadata<
-    T extends ColumnMetadata = ColumnMetadata
-> extends Array<T> {
-    constructor(
-        public target: EntityTarget,
-        ...columns: T[]
-    ) {
-        super(...columns)
+    protected readonly KEY: string = ColumnsMetadata.KEY
+    protected readonly SEARCH_KEYS: (keyof ColumnMetadata)[] = ['name']
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
+        'UNKNOWN_RELATION'
+    )
 
-        this.mergeParentsColumns()
-        this.register()
-    }
+    declare public target: EntityTarget
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
@@ -49,22 +48,16 @@ export default class ColumnsMetadata<
     // ------------------------------------------------------------------------
 
     public get constrainedForeignKeys(): ColumnMetadata[] {
-        return this.foreignKeys.filter(
-            ({ references }) => references?.constrained
+        return this.foreignKeys.filter(({ references }) =>
+            references?.constrained
         )
-    }
-
-    // Static Getters =========================================================
-    // Publics ----------------------------------------------------------------
-    public static override get [Symbol.species]() {
-        return Array;
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public registerColumn(name: string, dataType: DataType) {
         const column = new ColumnMetadata(this.target, name, dataType)
-        this.push(column as T)
+        this.push(column)
 
         return column
     }
@@ -81,23 +74,7 @@ export default class ColumnsMetadata<
             name,
             pattern,
             ...rest
-        ) as T)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public getColumn(name: string, error?: typeof Error): ColumnMetadata {
-        const column = this.find((col) => col.name === name)
-        if (!column) throw new (error ?? Error)
-
-        return column
-    }
-
-    // ------------------------------------------------------------------------
-
-    public setColumn(name: string, config: ColumnConfig) {
-        const column = this.getColumn(name)
-        Object.assign(column, config)
+        ) as ColumnMetadata)
     }
 
     // ------------------------------------------------------------------------
@@ -106,56 +83,7 @@ export default class ColumnsMetadata<
         name: string,
         initMap: ForeignKeyReferencesInitMap
     ) {
-        const column = this.getColumn(name)
-        column.defineForeignKey(initMap)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public findColumn(name: string): ColumnMetadata | undefined {
-        return this.find((col) => col.name === name)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public toJSON(): ColumnsMetadataJSON {
-        return [...this].map(column => column.toJSON())
-    }
-
-    // Protecteds -------------------------------------------------------------
-    protected register() {
-        Reflect.defineMetadata('columns', this, this.target)
-    }
-
-    // ------------------------------------------------------------------------
-    protected mergeParentsColumns() {
-        const parents = MetadataHandler.getTargetParents(this.target)
-
-        for (const parent of parents) this.push(
-            ...((ColumnsMetadata.find(parent) ?? []) as T[])
-        )
-    }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static build(target: EntityTarget, ...columns: ColumnMetadata[]) {
-        return new ColumnsMetadata(target, ...columns)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static find(target: EntityTarget): ColumnsMetadata | undefined {
-        const meta = Reflect.getOwnMetadata('columns', target)
-        return meta
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrBuild(
-        target: EntityTarget,
-        ...columns: ColumnMetadata[]
-    ) {
-        return this.find(target) || this.build(target, ...columns)
+        this.findOrThrow(name).defineForeignKey(initMap)
     }
 }
 

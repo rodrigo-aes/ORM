@@ -16,7 +16,7 @@ import {
 import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Types
-import type { Target, TargetMetadata } from "../../types/General"
+import type { Target, TargetMetadata } from "../../types"
 
 import type { WhereQueryHandler } from "../types"
 
@@ -34,7 +34,7 @@ export default class ExistsQueryBuilder<T extends Target> {
         public target: T,
         public alias?: string
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Getters ================================================================

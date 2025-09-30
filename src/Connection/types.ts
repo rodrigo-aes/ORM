@@ -1,5 +1,5 @@
 import type { PoolOptions } from "mysql2"
-import type { EntityTarget } from "../types/General"
+import type { EntityTarget } from "../types"
 
 export interface MySQLConnectionInstance {
     type: 'MySQL'

@@ -1,5 +1,5 @@
-import type { EntityTarget } from "../../../types/General"
-import type { ForeignKeyActionListener } from "../ColumnsMetadata"
+import type { EntityTarget } from "../../../../types"
+import type { ForeignKeyActionListener } from "../../ColumnsMetadata"
 import type { JoinColumnsMetadataJSON } from "./JoinColumnsMetadata"
 
 export type JoinTableRelatedTarget = EntityTarget | (() => EntityTarget)
@@ -10,6 +10,11 @@ export type JoinTableRelated<T = JoinTableRelatedTarget> = {
         onUpdate?: ForeignKeyActionListener
     }
 }
+
+export type ResolvedJoinTableRelatedsTuple = [
+    JoinTableRelated<EntityTarget>,
+    JoinTableRelated<EntityTarget>
+]
 
 export type JoinTableRelatedsGetter = () => (
     [JoinTableRelated, JoinTableRelated]

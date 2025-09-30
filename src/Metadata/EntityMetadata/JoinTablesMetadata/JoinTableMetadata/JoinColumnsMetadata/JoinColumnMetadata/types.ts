@@ -4,7 +4,7 @@ import type {
     JoinForeignKeyReferencesJSON
 } from "./JoinForeignKeyReferences"
 
-import type { SQLColumnType } from "../../../ColumnsMetadata/ColumnMetadata"
+import type { SQLColumnType } from "../../../../ColumnsMetadata/ColumnMetadata"
 
 export type JoinColumnInitMap = {
     referenced: JoinForeignKeyReferencedGetter,
@@ -15,8 +15,8 @@ export type JoinColumnInitMap = {
 export type JoinColumnMetadataJSON = {
     name: string
     dataType: SQLColumnType
-    length: number
-    unsigned: boolean
+    length?: number
+    unsigned?: boolean
     isForeignKey: true
     references: JoinForeignKeyReferencesJSON
 }

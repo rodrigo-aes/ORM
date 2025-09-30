@@ -1,7 +1,7 @@
 import { HooksMetadata } from "../../../Metadata"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 import type { CreationAttributes } from "../../../SQLBuilders"
 
 export default function BeforeBulkCreate<Entity extends object>(

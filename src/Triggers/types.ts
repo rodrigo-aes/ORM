@@ -1,4 +1,4 @@
-import type { EntityTarget } from "../types/General"
+import type { EntityTarget } from "../types"
 import type { Old, New } from './Symbols'
 import type {
     CreationAttributesOptions,

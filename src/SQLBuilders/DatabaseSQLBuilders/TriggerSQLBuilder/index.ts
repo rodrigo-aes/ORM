@@ -13,7 +13,7 @@ import { Old } from "../../../Triggers"
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type { Constructor } from "../../../types/General"
+import type { Constructor } from "../../../types"
 import type BaseEntity from "../../../BaseEntity"
 import type {
     TriggerTiming,

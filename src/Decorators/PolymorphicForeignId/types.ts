@@ -1,4 +1,4 @@
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type { PolymorphicForeignIdConfig } from "../../Metadata"
 
 export type PolymorphicForeignIdRelatedGetter = () => (

@@ -1,4 +1,4 @@
-import type { Target } from "../../types/General"
+import type { Target } from "../../types"
 import type { OrderQueryOption } from "../../SQLBuilders"
 import type { CaseQueryHandler } from "../types"
 

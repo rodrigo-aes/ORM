@@ -5,7 +5,7 @@ import ColumnsMetadata, {
 } from "../../../ColumnsMetadata"
 
 // Types
-import type { EntityTarget } from "../../../../../types/General"
+import type { EntityTarget } from "../../../../../types"
 import type {
     BelongsToOptions,
     BelongsToRelatedGetter,
@@ -21,9 +21,9 @@ export default class BelongsToMetadata extends RelationMetadata {
 
     constructor(
         target: EntityTarget,
-        { foreignKey, ...options }: BelongsToOptions
+        { name, foreignKey, ...options }: BelongsToOptions
     ) {
-        super(target, options)
+        super(target, name)
         Object.assign(this, options)
 
         this.foreignKeyName = foreignKey
@@ -50,7 +50,7 @@ export default class BelongsToMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get foreignKey(): ColumnMetadata {
-        return ColumnsMetadata.findOrBuild(this.target).getColumn(
+        return ColumnsMetadata.findOrBuild(this.target).findOrThrow(
             this.foreignKeyName
         )
     }

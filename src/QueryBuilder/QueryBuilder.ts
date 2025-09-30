@@ -8,7 +8,7 @@ import CountQueryBuilder from "./CountQueryBuilder"
 import CountManyQueryBuilder from "./CountManyQueryBuilder"
 
 // Types
-import type { Target, TargetMetadata } from "../types/General"
+import type { Target, TargetMetadata } from "../types"
 
 export default class QueryBuilder<T extends Target> {
     /** @internal */
@@ -22,7 +22,7 @@ export default class QueryBuilder<T extends Target> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================

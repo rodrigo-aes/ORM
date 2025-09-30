@@ -4,7 +4,7 @@ import OneRelation from "../OneRelation"
 import { BelongsToHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type { BelongsToMetadata } from "../../Metadata"
 
 /** BelongsTo relation handler */

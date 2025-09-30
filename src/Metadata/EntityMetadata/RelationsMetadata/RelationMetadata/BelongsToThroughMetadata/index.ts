@@ -5,7 +5,7 @@ import ColumnsMetadata, {
 } from "../../../ColumnsMetadata"
 
 // Types
-import type { EntityTarget } from "../../../../../types/General"
+import type { EntityTarget } from "../../../../../types"
 import type {
     BelongsToThroughOptions,
     BelongsToThroughRelatedGetter,
@@ -22,9 +22,11 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
 
     constructor(
         target: EntityTarget,
-        { foreignKey, throughForeignKey, ...options }: BelongsToThroughOptions
+        { name, foreignKey, throughForeignKey, ...options }: (
+            BelongsToThroughOptions
+        )
     ) {
-        super(target, options)
+        super(target, name)
         Object.assign(this, options)
 
         this.foreignKeyName = foreignKey
@@ -34,7 +36,7 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get entity(): EntityMetadata {
-        return this.getEntity(this.related())
+        return EntityMetadata.findOrThrow(this.related())
     }
 
     // ------------------------------------------------------------------------
@@ -52,7 +54,7 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get throughEntity(): EntityMetadata {
-        return this.getEntity(this.through())
+        return EntityMetadata.findOrThrow(this.through())
     }
 
     // ------------------------------------------------------------------------
@@ -64,13 +66,15 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get foreignKey(): ColumnMetadata {
-        return this.getEntity(this.target).getColumn(this.foreignKeyName)
+        return EntityMetadata.findOrThrow(this.target).columns.findOrThrow(
+            this.foreignKeyName
+        )
     }
 
     // ------------------------------------------------------------------------
 
     public get throughForeignKey(): ColumnMetadata {
-        return this.throughEntity.getColumn(
+        return this.throughEntity.columns.findOrThrow(
             this.throughForeignKeyName
         )
     }
@@ -93,11 +97,6 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
                     .includes(key)
             )
         ]) as BelongsToThroughMetadataJSON
-    }
-
-    // Privates ---------------------------------------------------------------
-    private getEntity(target: EntityTarget) {
-        return EntityMetadata.find(target)!
     }
 }
 

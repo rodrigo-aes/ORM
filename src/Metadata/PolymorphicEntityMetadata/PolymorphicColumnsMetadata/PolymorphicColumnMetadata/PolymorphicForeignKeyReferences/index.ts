@@ -1,7 +1,7 @@
 import PolymorphicEntityMetadata from "../../.."
 import EntityMetadata from "../../../../EntityMetadata"
 
-import type { PolymorphicEntityTarget } from "../../../../../types/General"
+import type { PolymorphicEntityTarget } from "../../../../../types"
 
 import type {
     ForeignKeyActionListener,
@@ -33,9 +33,11 @@ export default class PolymorphicForeignKeyReferences {
 
     public referenced!: ForeignKeyReferencedGetter
 
+    private _entity?: EntityMetadata | RelatedEntitiesMap
+    private _column?: ColumnMetadata | RelatedColumnsMap
+
     constructor(
         public target: PolymorphicEntityTarget,
-        private columnName: string,
         initMap: ForeignKeyReferencesInitMap
     ) {
         Object.assign(this, initMap)
@@ -56,69 +58,48 @@ export default class PolymorphicForeignKeyReferences {
     // ------------------------------------------------------------------------
 
     public get entity(): EntityMetadata | RelatedEntitiesMap {
-        return this.getEntity()
+        return this._entity = this._entity ?? this.handleEntity()
     }
 
     // ------------------------------------------------------------------------
 
     public get column(): ColumnMetadata | RelatedColumnsMap {
-        return this.getColumn()
+        return this._column = this._column ?? this.handleColumn()
     }
+
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): ForeignKeyReferencesJSON {
-        return Object.fromEntries(
-            [
-                ...Object.entries({
-                    entity: this.entityToJSON(),
-                    column: this.columnToJSON(),
-                }),
-                ...Object.entries(this).filter(
-                    ([key]) => [
-                        'name',
-                        'constrained',
-                        'onDelete',
-                        'onUpdate',
-                        'scope',
-                    ]
-                        .includes(key)
-                )
-            ]
-        ) as ForeignKeyReferencesJSON
+        return {
+            entity: this.entityToJSON(),
+            column: this.columnToJSON(),
+            constrained: this.constrained,
+            onDelete: this.onDelete,
+            onUpdate: this.onUpdate,
+            scope: this.scope,
+        }
     }
 
     // Privates ---------------------------------------------------------------
-    private getEntity() {
+    private handleEntity() {
         const referenced = this.referenced()
 
-        if (Array.isArray(referenced)) {
-            const entitiesMap: RelatedEntitiesMap = {}
-            for (const ref of referenced) {
-                entitiesMap[ref.name] = EntityMetadata.findOrBuild(ref)
-            }
-
-            return entitiesMap
-        }
-
-        else return EntityMetadata.findOrBuild(referenced)
+        return Array.isArray(referenced)
+            ? Object.fromEntries(referenced.map(
+                ref => [ref.name, EntityMetadata.findOrBuild(ref)]
+            ))
+            : EntityMetadata.findOrBuild(referenced)
     }
 
     // ------------------------------------------------------------------------
 
-    private getColumn() {
-        if (this.entity instanceof EntityMetadata) {
-            return this.entity.columns.primary
-        }
-
-        else {
-            const map: RelatedColumnsMap = {}
-            for (const [name, entity] of Object.entries(this.entity)) {
-                map[name] = entity.columns.primary
-            }
-
-            return map
-        }
+    private handleColumn() {
+        return this.entity instanceof EntityMetadata
+            ? this.entity.columns.primary
+            : Object.fromEntries(Object.entries(this.entity).map(
+                ([name, entity]) => [name, entity.columns.primary]
+            ))
     }
 
     // ------------------------------------------------------------------------

@@ -1,10 +1,8 @@
-import type { EntityProperties, EntityRelations } from "../types"
-import type { OptionalNullable } from "../../types/Properties"
+import type { OptionalNullable, EntityProperties } from "../../types"
 
-export type CreationAttributes<Entity extends object> = (
-    Partial<OptionalNullable<EntityProperties<Entity>>> &
-    Partial<EntityRelations<Entity>>
-)
+export type CreationAttributes<Entity extends object> = OptionalNullable<
+    EntityProperties<Entity>
+>
 
 export type CreationAttributesOptions<Entity extends object> = (
     CreationAttributes<Entity> |

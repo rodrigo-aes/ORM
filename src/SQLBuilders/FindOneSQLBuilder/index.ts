@@ -18,9 +18,8 @@ import { MetadataHandler, ScopeMetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget, EntityRelationsKeys } from "../../types"
 import type { FindOneQueryOptions } from "./types"
-import type { EntityRelationsKeys } from "../types"
 import type { RelationOptions, RelationsOptions } from "../JoinSQLBuilder/types"
 
 export default class FindOneSQLBuilder<
@@ -44,7 +43,7 @@ export default class FindOneSQLBuilder<
         protected primary: boolean = true
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
 
         this.options = ScopeMetadataHandler.applyScope(
             this.target,

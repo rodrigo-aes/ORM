@@ -1,5 +1,5 @@
 import { ColumnsMetadata } from "../../Metadata"
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 
 export default function AutoIncrement<Entity extends object>(
     autoIncrement: boolean = true
@@ -9,6 +9,6 @@ export default function AutoIncrement<Entity extends object>(
         name: string
     ) {
         ColumnsMetadata.findOrBuild(target.constructor as EntityTarget)
-            .setColumn(name, { autoIncrement })
+            .set(name, { autoIncrement })
     }
 }

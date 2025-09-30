@@ -1,25 +1,20 @@
+import MetadataArray from "../../MetadataArray"
+
 import { Collection } from "../../../BaseEntity"
 import CollectionsMetadataHandler from "./CollectionsMetadataHandler"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../../types/General"
-
+import type { Target } from "../../../types"
 import type { CollectionsMetadataJSON } from "./types"
 
 export default class CollectionsMetadata<
-    T extends EntityTarget | PolymorphicEntityTarget = any,
-    CollectionType extends typeof Collection<InstanceType<T>> = any
-> extends Array<CollectionType> {
+    T extends Target = Target,
+    C extends typeof Collection<InstanceType<T>> = any
+> extends MetadataArray<C> {
+    protected static override readonly KEY: string = 'collections-metadata'
+
+    protected readonly KEY: string = CollectionsMetadata.KEY
     public default: typeof Collection = Collection
-
-    constructor(public target: T, ...collections: CollectionType[]) {
-        super(...collections)
-
-        this.register()
-    }
 
     // Static Getters =========================================================
     // Publics ----------------------------------------------------------------
@@ -29,7 +24,7 @@ export default class CollectionsMetadata<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public search(search: string): CollectionType | undefined {
+    public search(search: string): C | undefined {
         return this.find(({ name, alias }) => [name, alias].includes(search))
     }
 
@@ -41,46 +36,11 @@ export default class CollectionsMetadata<
 
     // ------------------------------------------------------------------------
 
-    public add(...collections: (typeof Collection)[]): void {
-        this.push(...collections as CollectionType[])
-    }
-
-    // ------------------------------------------------------------------------
-
-    public toJSON(): CollectionsMetadataJSON {
+    public override toJSON(): CollectionsMetadataJSON {
         return {
             default: this.default,
-            collections: [...this as CollectionType[]] as (typeof Collection)[]
+            collections: super.toJSON()
         }
-    }
-
-    // Protecteds -------------------------------------------------------------
-    protected register() {
-        Reflect.defineMetadata('collections', this, this.target)
-    }
-
-    // Static Methods =========================================================
-    // Publics ================================================================
-    public static find<T extends EntityTarget | PolymorphicEntityTarget>(
-        target: T
-    ): CollectionsMetadata<T> | undefined {
-        return Reflect.getOwnMetadata('collections', target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static build<T extends EntityTarget | PolymorphicEntityTarget>(
-        target: T
-    ): CollectionsMetadata<T> {
-        return new CollectionsMetadata(target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrBuild<T extends EntityTarget | PolymorphicEntityTarget>(
-        target: T
-    ): CollectionsMetadata<T> {
-        return this.find(target) ?? this.build(target)
     }
 }
 

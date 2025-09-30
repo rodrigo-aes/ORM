@@ -1,6 +1,6 @@
 import { ColumnsMetadata } from "../../Metadata"
 
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type {
     PolymorphicForeignIdRelatedGetter,
     PolymorphicForeignIdOptions

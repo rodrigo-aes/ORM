@@ -4,9 +4,7 @@ import {
     Case,
 
     type CountQueryOption,
-    type CaseQueryOptions,
-    type EntityProperties,
-    type EntityPropertiesKeys
+    type CaseQueryOptions
 } from "../../SQLBuilders"
 
 // Query Builders
@@ -17,7 +15,11 @@ import CaseQueryBuilder from "../CaseQueryBuilder"
 import { MySQL2QueryExecutionHandler } from "../../Handlers"
 
 // Types
-import type { Target } from "../../types/General"
+import type {
+    Target,
+    EntityProperties,
+    EntityPropertiesKeys
+} from "../../types"
 import type { CaseQueryHandler, WhereQueryHandler } from "../types"
 import type {
     CompatibleOperators,

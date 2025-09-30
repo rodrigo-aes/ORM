@@ -2,7 +2,7 @@ import EntityMetadata from "../../.."
 import RelationMetadata from "../RelationMetadata"
 
 // Types
-import type { EntityTarget } from "../../../../../types/General"
+import type { EntityTarget } from "../../../../../types"
 import type { ColumnMetadata } from "../../../ColumnsMetadata"
 import type {
     HasManyThroughOptions,
@@ -25,9 +25,9 @@ export default class HasManyThroughMetadata extends RelationMetadata {
 
     constructor(
         target: EntityTarget,
-        { foreignKey, throughForeignKey, ...options }: HasManyThroughOptions
+        { name, foreignKey, throughForeignKey, ...options }: HasManyThroughOptions
     ) {
-        super(target, options)
+        super(target, name)
         Object.assign(this, options)
 
         this.foreignKeyName = foreignKey
@@ -57,13 +57,15 @@ export default class HasManyThroughMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get foreignKey(): ColumnMetadata {
-        return this.entity.getColumn(this.foreignKeyName)
+        return this.entity.columns.findOrThrow(this.foreignKeyName)
     }
 
     // ------------------------------------------------------------------------
 
     public get throughForeignKey(): ColumnMetadata {
-        return this.throughEntity.getColumn(this.throughForeignKeyName)
+        return this.throughEntity.columns.findOrThrow(
+            this.throughForeignKeyName
+        )
     }
 
     // Instance Methods =======================================================

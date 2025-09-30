@@ -78,15 +78,7 @@ export default
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static relationType(relation: RelationMetadataType): (
-        RelationMetadataName
-    ) {
-        return relation.type
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static relationFillMethod(relation: RelationMetadataType): (
+    public static fillMethod(relation: RelationMetadataType): (
         'One' | 'Many'
     ) {
         switch (relation.type) {
@@ -102,72 +94,6 @@ export default
             case "BelongsToMany":
             case "PolymorphicHasMany": return 'Many'
         }
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isHasOne(relation: RelationMetadataType): boolean {
-        return relation instanceof HasOneMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isHasMany(relation: RelationMetadataType): boolean {
-        return relation instanceof HasManyMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isHasOneThrough(relation: RelationMetadataType): boolean {
-        return relation instanceof HasOneThroughMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isHasManyThrough(relation: RelationMetadataType): boolean {
-        return relation instanceof HasManyThroughMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isBelongsTo(relation: RelationMetadataType): boolean {
-        return relation instanceof BelongsToMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isBelongsToThrough(relation: RelationMetadataType): boolean {
-        return relation instanceof BelongsToThroughMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isBelongsToMany(relation: RelationMetadataType): boolean {
-        return relation instanceof BelongsToManyMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isPolymorphicHasOne(relation: RelationMetadataType): (
-        boolean
-    ) {
-        return relation instanceof PolymorphicHasOneMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isPolymorphicHasMany(relation: RelationMetadataType): (
-        boolean
-    ) {
-        return relation instanceof PolymorphicHasManyMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static isPolymorphicBelongsTo(relation: RelationMetadataType): (
-        boolean
-    ) {
-        return relation instanceof PolymorphicBelongsToMetadata
     }
 }
 

@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 
 import { ColumnsMetadata } from '../../Metadata'
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 
 export default function UpdatedTimestamp<Entity extends object>(
     target: Entity,

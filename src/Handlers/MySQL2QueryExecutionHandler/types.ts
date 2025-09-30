@@ -1,8 +1,8 @@
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { Target, EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type { ResultSetHeader } from "mysql2"
-import type { AsEntityTarget } from "../../types/General"
+import type { AsEntityTarget } from "../../types"
 
-import type {
+import {
     FindByPkSQLBuilder,
     FindOneSQLBuilder,
     FindSQLBuilder,
@@ -16,18 +16,17 @@ import type {
 
 import type { Collection, Pagination } from "../../BaseEntity"
 
-export type SQLBuilder<T extends EntityTarget | PolymorphicEntityTarget> = (
-    FindByPkSQLBuilder<T> |
-    FindSQLBuilder<T> |
-    FindOneSQLBuilder<T> |
-    PaginationSQLBuilder<T> |
-    CountSQLBuilder<T> |
-    CreateSQLBuilder<AsEntityTarget<T>> |
-    UpdateOrCreateSQLBuilder<AsEntityTarget<T>> |
-    UpdateSQLBuilder<T> |
-    DeleteSQLBuilder<T>
+export type SQLBuilder = (
+    FindByPkSQLBuilder<any> |
+    FindSQLBuilder<any> |
+    FindOneSQLBuilder<any> |
+    PaginationSQLBuilder<any> |
+    CountSQLBuilder<any> |
+    UpdateSQLBuilder<any> |
+    DeleteSQLBuilder<any> |
+    CreateSQLBuilder<any> |
+    UpdateOrCreateSQLBuilder<any>
 )
-
 
 import type { MySQL2RawData, RawData } from "../MySQL2RawDataHandler"
 
@@ -46,7 +45,7 @@ export type ExecOptions = {
 
 export type UnionExecResult<
     T extends EntityTarget | PolymorphicEntityTarget,
-    Builder extends SQLBuilder<T>,
+    Builder extends SQLBuilder,
     MapTo extends ResultMapOption
 > = (
         Builder extends FindSQLBuilder<T>
@@ -62,7 +61,7 @@ export type UnionExecResult<
 
 export type ExecResult<
     T extends EntityTarget | PolymorphicEntityTarget,
-    Builder extends SQLBuilder<T>,
+    Builder extends SQLBuilder,
     MapTo extends ResultMapOption
 > = T extends EntityTarget
     ? (

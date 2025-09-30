@@ -1,7 +1,7 @@
 import { HooksMetadata } from "../../../Metadata"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 
 export default function AfterFind<Entity extends object>(
     target: Entity,

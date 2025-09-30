@@ -7,7 +7,7 @@ import {
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type { OneRelationMetadataType } from "../../Metadata"
 import type { OneRelationHandlerSQLBuilder } from "../../SQLBuilders"
 import type { UpdateAttributes } from "../../SQLBuilders"

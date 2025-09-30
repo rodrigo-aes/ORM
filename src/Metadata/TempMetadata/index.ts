@@ -2,7 +2,7 @@
 import MetadataHandler from "../MetadataHandler"
 
 // Types
-import type { Target, TargetMetadata } from "../../types/General"
+import type { Target, TargetMetadata } from "../../types"
 import type { TempMetadataValue } from "./types"
 import type { ScopeMetadata } from "../EntityMetadata"
 import type { Collection, Pagination } from "../../BaseEntity"
@@ -19,7 +19,7 @@ class TempMetadata extends WeakMap<
     ): this {
         this.set(target, {
             metadata: this.get(source)?.metadata
-                ?? MetadataHandler.loadMetadata(source),
+                ?? MetadataHandler.targetMetadata(source),
 
             collection: this.get(source)?.collection,
             pagination: this.get(source)?.pagination,

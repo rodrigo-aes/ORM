@@ -1,7 +1,7 @@
 import OneRelation from ".."
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 import type {
     HasOneMetadata,
     PolymorphicHasOneMetadata

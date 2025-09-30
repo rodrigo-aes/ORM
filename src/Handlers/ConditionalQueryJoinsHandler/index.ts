@@ -10,7 +10,7 @@ import { MetadataHandler } from "../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 
 import type { ConditionalQueryOptions } from "../../SQLBuilders"
 
@@ -27,7 +27,7 @@ export default class ConditionalQueryJoinsHandler<
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -87,7 +87,7 @@ export default class ConditionalQueryJoinsHandler<
 
         if (rest.length === 0) return join
 
-        metadata = MetadataHandler.loadMetadata(relation.relatedTarget)
+        metadata = MetadataHandler.targetMetadata(relation.relatedTarget)
 
         const next = this.handleJoin(
             `${second}.${rest.join('.')}`,

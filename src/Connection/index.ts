@@ -23,7 +23,7 @@ import type {
     MySQLConnection as MySQLConnectionInterface
 } from './types'
 
-import type { EntityTarget } from '../types/General'
+import type { EntityTarget } from '../types'
 
 export default class MySQLConnection implements MySQLConnectionInstance {
     public readonly type = 'MySQL'
@@ -136,8 +136,8 @@ export default class MySQLConnection implements MySQLConnectionInstance {
 
     /** @internal */
     private async afterConnect() {
-        MetadataHandler.normalizeMetadata()
-        MetadataHandler.registerConnectionEntities(
+        MetadataHandler.normalize()
+        MetadataHandler.registerEntitiesConnection(
             this as unknown as MySQLConnectionInterface,
             ...this.entities
         )

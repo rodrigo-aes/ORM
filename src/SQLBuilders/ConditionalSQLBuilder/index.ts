@@ -18,7 +18,7 @@ import {
 } from "./ExistsSQLBuilder"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type {
     ConditionalQueryOptions,
     AndQueryOptions,

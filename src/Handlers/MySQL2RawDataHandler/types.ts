@@ -1,9 +1,9 @@
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
-
 import type {
+    EntityTarget,
+    PolymorphicEntityTarget,
     EntityProperties,
     EntityRelations
-} from "../../SQLBuilders"
+} from "../../types"
 
 export type MySQL2RawData = any
 export type DataFillMethod = 'One' | 'Many' | 'Paginate'

@@ -1,7 +1,7 @@
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 
 export type CombinedColumnOptions = {
-    entity: EntityTarget,
+    target: EntityTarget,
     column: string
 }[]
 

@@ -1,6 +1,4 @@
-import type {
-    EntityProperties
-} from "../types"
+import type { EntityProperties } from "../../types"
 
 export type UpdateAttributes<Entity extends object> = (
     Partial<EntityProperties<Entity>>

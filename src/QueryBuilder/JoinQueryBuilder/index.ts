@@ -9,7 +9,7 @@ import type {
     Target,
     TargetMetadata,
     EntityTarget,
-} from "../../types/General"
+} from "../../types"
 
 import type {
     RelationOptions,
@@ -52,7 +52,7 @@ export default class JoinQueryBuilder<T extends Target> {
 
         required?: boolean
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
         this._options.required = required
     }
 
@@ -261,7 +261,7 @@ export default class JoinQueryBuilder<T extends Target> {
             )
 
             case "function": return (
-                metadata.relations?.findByRelatedOrthrow(relation)
+                metadata.relations?.findOrThrow(relation)
             )
 
             default: throw new Error('Unreacheable Exception')

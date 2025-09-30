@@ -1,5 +1,5 @@
 import type { RelationOptions } from "../types"
-import type { EntityTarget } from "../../../../../types/General"
+import type { EntityTarget } from "../../../../../types"
 import type { RelationMetadataJSON } from "../types"
 import type { EntityMetadataJSON } from "../../../types"
 import type { ColumnMetadataJSON } from "../../../ColumnsMetadata/ColumnMetadata"

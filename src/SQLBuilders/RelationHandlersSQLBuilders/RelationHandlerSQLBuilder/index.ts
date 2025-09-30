@@ -17,7 +17,7 @@ import type {
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import type { CreationAttributes } from "../../CreateSQLBuilder"
 import type { UpdateOrCreateAttibutes } from "../../UpdateOrCreateSQLBuilder"
@@ -29,13 +29,13 @@ export default abstract class RelationHandlerSQLBuilder<
     Related extends EntityTarget | PolymorphicEntityTarget
 > {
     protected targetMetadata: EntityMetadata | PolymorphicEntityMetadata = (
-        MetadataHandler.loadMetadata(
+        MetadataHandler.targetMetadata(
             this.target.constructor as EntityTarget | PolymorphicEntityTarget
         )
     )
 
     protected relatedMetadata: EntityMetadata | PolymorphicEntityMetadata = (
-        MetadataHandler.loadMetadata(this.related)
+        MetadataHandler.targetMetadata(this.related)
     )
 
     constructor(

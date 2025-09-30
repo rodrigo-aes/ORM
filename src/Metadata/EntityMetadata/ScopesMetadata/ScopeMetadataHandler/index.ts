@@ -7,7 +7,7 @@ import type ScopeMetadata from "../ScopeMetadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../../types/General"
+} from "../../../../types"
 
 import type {
     FindQueryOptions,
@@ -38,7 +38,7 @@ export default class ScopeMetadataHandler {
     ): Options {
         const current: ScopeMetadata | undefined = (
             TempMetadata.getScope(target)
-            ?? MetadataHandler.loadMetadata(target).scopes?.default
+            ?? MetadataHandler.targetMetadata(target).scopes?.default
         )
 
         if (current) switch (type) {

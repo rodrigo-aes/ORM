@@ -3,7 +3,7 @@ import type {
     EntityTarget,
     PolymorphicEntityTarget,
     CollectionTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import { Collection } from "../../../BaseEntity"
 import type { ComputedPropertyFunction, ComputedPropertiesJSON } from "./types"

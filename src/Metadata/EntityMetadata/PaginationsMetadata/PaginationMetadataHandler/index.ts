@@ -4,7 +4,7 @@ import TempMetadata from "../../../TempMetadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../../types/General"
+} from "../../../../types"
 
 export default class PaginationMetadataHandler {
     public static loadPagination(target: EntityTarget | PolymorphicEntityTarget): (

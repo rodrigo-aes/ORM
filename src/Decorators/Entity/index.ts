@@ -2,12 +2,10 @@ import 'reflect-metadata'
 import { EntityMetadata } from '../../Metadata'
 
 // Types
-import type { EntityTarget } from '../../types/General'
+import type { EntityTarget } from '../../types'
 
 export default function Entity(tableName?: string) {
     return function (target: EntityTarget) {
-        EntityMetadata.findOrBuild(target as EntityTarget, {
-            tableName
-        })
+        EntityMetadata.findOrBuild(target, tableName)
     }
 }

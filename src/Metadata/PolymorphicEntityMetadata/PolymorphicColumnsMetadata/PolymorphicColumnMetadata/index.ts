@@ -6,7 +6,7 @@ import PolymorphicForeignKeyReferences from "./PolymorphicForeignKeyReferences"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../../types/General"
+} from "../../../../types"
 
 import type { ColumnMetadata, ColumnMetadataJSON } from "../../../EntityMetadata"
 

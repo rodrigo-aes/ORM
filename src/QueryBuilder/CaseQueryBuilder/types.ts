@@ -1,7 +1,7 @@
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 
 import type ConditionalQueryHandler from "../ConditionalQueryBuilder"
 

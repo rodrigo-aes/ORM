@@ -1,5 +1,5 @@
 import { ColumnsMetadata } from "../../Metadata"
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 
 export default function Unique<Entity extends object>(unique: boolean = true) {
     return function (
@@ -7,6 +7,6 @@ export default function Unique<Entity extends object>(unique: boolean = true) {
         name: string
     ) {
         ColumnsMetadata.findOrBuild(target.constructor as EntityTarget)
-            .setColumn(name, { unique })
+            .set(name, { unique })
     }
 }

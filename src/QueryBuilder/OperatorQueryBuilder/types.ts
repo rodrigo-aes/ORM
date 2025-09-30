@@ -1,4 +1,4 @@
-import type { Primitive } from "../../types/General"
+import type { Primitive } from "../../types"
 
 export type OperatorType = {
     '=': Primitive

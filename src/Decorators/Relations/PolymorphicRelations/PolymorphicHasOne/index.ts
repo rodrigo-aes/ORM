@@ -1,7 +1,7 @@
 import { RelationsMetadata } from "../../../../Metadata"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget } from "../../../../types"
 import type { PolymorphicChildRelatedGetter } from "../../../../Metadata"
 import type { PolymorphicHasOneOptions } from "./types"
 

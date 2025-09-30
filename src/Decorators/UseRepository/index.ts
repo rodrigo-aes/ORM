@@ -1,7 +1,7 @@
 import { MetadataHandler } from "../../Metadata"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import RepositoryType from "../../Repository"
 import PolymorphicRepository from "../../PolymorphicRepository"
 
@@ -17,7 +17,7 @@ export default function UseRepository<
             ? PolymorphicEntityTarget
             : never
     ) {
-        MetadataHandler.loadMetadata(target).defineRepository(
+        MetadataHandler.targetMetadata(target).defineRepository(
             repository as any
         )
     }

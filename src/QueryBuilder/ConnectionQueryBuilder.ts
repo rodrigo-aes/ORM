@@ -2,7 +2,7 @@ import QueryBuilder from "./QueryBuilder"
 import EntityQueryBuilder from "./EntityQueryBuilder"
 
 // Types
-import type { Target, EntityTarget } from "../types/General"
+import type { Target, EntityTarget } from "../types"
 
 import type FindOneQueryBuilder from "./FindOneQueryBuilder"
 import type FindQueryBuilder from "./FindQueryBuilder"

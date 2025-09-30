@@ -25,7 +25,7 @@ import {
 
 import type { OrOperatorValue } from './Or/types'
 import type { ConditionalQueryOptions } from '../types'
-import type { Primitive } from '../../../types/General'
+import type { Primitive } from '../../../types'
 
 export type OperatorKey = (
     typeof Equal |

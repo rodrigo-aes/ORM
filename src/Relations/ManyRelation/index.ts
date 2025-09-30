@@ -13,7 +13,7 @@ import {
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type { ManyRelationMetadatatype } from "../../Metadata"
 import type { ManyRelationHandlerSQLBuilder } from "../../SQLBuilders"
 import type {
@@ -174,7 +174,7 @@ export default abstract class ManyRelation<
     // Privates ---------------------------------------------------------------
     /** @internal */
     private loadRelatedMetadata(): EntityMetadata | PolymorphicEntityMetadata {
-        this._relatedMetadata = MetadataHandler.loadMetadata(this.related)
+        this._relatedMetadata = MetadataHandler.targetMetadata(this.related)
         return this._relatedMetadata
     }
 }

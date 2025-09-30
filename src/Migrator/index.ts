@@ -34,7 +34,7 @@ import {
 
 // Types
 import type { PolyORMConnection } from "../Metadata"
-import type { Constructor } from "../types/General"
+import type { Constructor } from "../types"
 import type { MigrationRunMethod, MigrationSyncAction } from "./types"
 
 // Exceptions

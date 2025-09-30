@@ -16,7 +16,7 @@ import { Case } from "../../ConditionalSQLBuilder"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import type { CountQueryOption, CountCaseOptions } from "./types"
 import CaseSQLBuilder, { CaseQueryOptions } from "../../ConditionalSQLBuilder/CaseSQLBuilder"
@@ -35,7 +35,7 @@ export default class CountSQL<
         alias?: string,
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================

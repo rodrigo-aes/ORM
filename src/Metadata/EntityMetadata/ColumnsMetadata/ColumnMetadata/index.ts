@@ -19,7 +19,7 @@ import { PolymorphicId } from "../../../../Triggers"
 import { CurrentTimestamp } from "../../../../SQLBuilders"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget } from "../../../../types"
 import type {
     SQLColumnType,
     ColumnPattern,
@@ -42,8 +42,6 @@ export default class ColumnMetadata {
     public references?: ForeignKeyReferences
 
     public pattern?: ColumnPattern
-
-    // public beforeUpdate: ColumnBeforeUpdateListener[] = []
 
     constructor(
         public target: EntityTarget,
@@ -77,27 +75,20 @@ export default class ColumnMetadata {
     // ------------------------------------------------------------------------
 
     public toJSON(): ColumnMetadataJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                dataType: this.dataType.toJSON(),
-                references: this.references?.toJSON()
-            }),
-            ...Object.entries(this).filter(
-                ([key]) => [
-                    'name',
-                    'length',
-                    'nullable',
-                    'defaultValue',
-                    'unique',
-                    'primary',
-                    'autoIncrement',
-                    'unsigned',
-                    'isForeignKey',
-                    'pattern'
-                ]
-                    .includes(key)
-            )
-        ]) as ColumnMetadataJSON
+        return {
+            dataType: this.dataType.toJSON(),
+            references: this.references?.toJSON(),
+            name: this.name,
+            length: this.length,
+            nullable: this.nullable,
+            defaultValue: this.defaultValue,
+            unique: this.unique,
+            primary: this.primary,
+            autoIncrement: this.autoIncrement,
+            unsigned: this.unsigned,
+            isForeignKey: this.isForeignKey,
+            pattern: this.pattern,
+        }
     }
 
     // Static Methods =========================================================
@@ -111,13 +102,19 @@ export default class ColumnMetadata {
         switch (pattern) {
             case 'id': return this.buildIdColumn(target, name)
 
+            // ----------------------------------------------------------------
+
             case 'polymorphic-id': return this.buildPolymorphicIdColumn(
                 target, name
             )
 
+            // ----------------------------------------------------------------
+
             case 'foreign-id': return this.buildForeignIdcolumn(
                 target, name, ...(rest as [ForeignIdConfig])
             )
+
+            // ----------------------------------------------------------------
 
             case 'polymorphic-foreign-id': return (
                 this.buildPolymorphicForeignId(
@@ -127,13 +124,19 @@ export default class ColumnMetadata {
                 )
             )
 
+            // ----------------------------------------------------------------
+
             case "polymorphic-type-key": return (
                 this.buildPolymorphicTypeKey(target, name, rest)
             )
 
+            // ----------------------------------------------------------------
+
             case "created-timestamp": return this.buildCreateDateColumn(
                 target, name
             )
+
+            // ----------------------------------------------------------------
 
             case "updated-timestamp": return this.buildUpdateDateColumn(
                 target, name
@@ -171,7 +174,7 @@ export default class ColumnMetadata {
             pattern: 'polymorphic-id'
         })
 
-        TriggersMetadata.findOrBuild(target).addTrigger(PolymorphicId)
+        TriggersMetadata.findOrBuild(target, PolymorphicId)
 
         return column
     }

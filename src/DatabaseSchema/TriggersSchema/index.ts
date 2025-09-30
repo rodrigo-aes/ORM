@@ -4,7 +4,7 @@ import TriggerSchema, { type TriggerSchemaInitMap } from "./TriggerSchema"
 import { triggersSchemaQuery } from "./static"
 
 // Types
-import type { Constructor } from "../../types/General"
+import type { Constructor } from "../../types"
 import type { TriggersMetadata, PolyORMConnection } from "../../Metadata"
 import type { TriggersSchemaAction } from "./types"
 

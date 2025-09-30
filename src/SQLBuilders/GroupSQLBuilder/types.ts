@@ -1,4 +1,4 @@
-import type { EntityPropertiesKeys } from "../types"
+import type { EntityPropertiesKeys } from "../../types"
 
 export type EntityGroupQueryOptions<Entity extends object> = (
     EntityPropertiesKeys<Entity>

@@ -1,10 +1,5 @@
 // SQL Builder
-import {
-    DeleteSQLBuilder,
-
-    type EntityProperties,
-    type EntityPropertiesKeys
-} from "../../SQLBuilders"
+import { DeleteSQLBuilder } from "../../SQLBuilders"
 
 // Query Builders
 import ConditionalQueryBuilder from "../ConditionalQueryBuilder"
@@ -16,7 +11,11 @@ import {
 } from "../../Handlers"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type {
+    EntityTarget,
+    EntityProperties,
+    EntityPropertiesKeys
+} from "../../types"
 import type { WhereQueryHandler } from "../types"
 import type {
     OperatorType,

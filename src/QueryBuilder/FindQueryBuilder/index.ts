@@ -14,7 +14,7 @@ import OrderQueryBuilder, {
 } from "../OrderQueryBuilder"
 
 // Types
-import type { Target } from "../../types/General"
+import type { Target } from "../../types"
 import type { CaseQueryHandler } from "../types"
 import type { FindQueryOptions } from "./types"
 

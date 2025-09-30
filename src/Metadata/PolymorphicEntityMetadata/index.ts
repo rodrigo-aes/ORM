@@ -1,4 +1,4 @@
-import ConnectionsMetadata from "../ConnectionsMetadata"
+import Metadata from "../Metadata"
 
 import EntityMetadata, {
     HooksMetadata,
@@ -23,12 +23,13 @@ import PolymorphicRelationsMetadata from "./PolymorphicRelationsMetadata"
 import PolymorphicRepository from "../../PolymorphicRepository"
 
 // Handlers
+import MetadataHandler from '../MetadataHandler'
 import { PolymorphicEntityBuilder } from "../../Handlers"
 import { EntityToJSONProcessMetadata } from "../ProcessMetadata"
 
 // Types
 import type { PolyORMConnection } from "../../Metadata"
-import type { PolymorphicEntityTarget, EntityTarget } from "../../types/General"
+import type { PolymorphicEntityTarget, EntityTarget } from "../../types"
 import type {
     UnionEntitiesMap,
     SourcesMetadata,
@@ -36,10 +37,18 @@ import type {
 } from "./types"
 
 // Exceptions
-import PolyORMException from "../../Errors"
+import PolyORMException, { type MetadataErrorCode } from '../../Errors'
 
-export default class PolymorphicEntityMetadata {
+export default class PolymorphicEntityMetadata extends Metadata {
+    protected static override readonly KEY: string = (
+        'polymorphic-entity-metadata'
+    )
+    protected static override readonly UNKNOWN_ERROR_CODE: MetadataErrorCode = (
+        'UNKNOWN_ENTITY'
+    )
+
     public target: PolymorphicEntityTarget
+    public tableName: string
 
     private _entities!: UnionEntitiesMap
     private _sourcesMetadata!: SourcesMetadata
@@ -50,48 +59,45 @@ export default class PolymorphicEntityMetadata {
     public exclude?: string[] = []
 
     constructor(
-        public tableName: string,
-        target: PolymorphicEntityTarget | null,
+        target: PolymorphicEntityTarget | undefined,
+        tablename: string | undefined,
         public sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
+        if (!target && !tablename) throw new Error(
+            'Polymorphic metadata needs a PolymorphicEntityTarget or tablename'
+        )
+        super()
+
+        this.tableName = tablename ?? target!.name.toLocaleLowerCase()
+        this.target = target ?? (
+            PolymorphicEntityBuilder.buildInternalPolymorphicEntity(this)
+        )
+
         this.loadEntities()
         this.loadSourcesMetadata()
         this.loadColumns()
         this.loadRelations()
 
-        this.target = target
-            ?? PolymorphicEntityBuilder.buildInternalEntityUnion(this)
+        if (target) this.mergeCombined()
 
-        if (this.target) this.mergeCombined()
-
-        this.register()
+        // MetadataHandler.register(this, this.target)
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get name(): string {
-        return this.target.name
-    }
-
-    // ------------------------------------------------------------------------
-
-    public get connection(): PolyORMConnection {
-        return Reflect.getOwnMetadata('temp-connection', this.target)
-            ?? Reflect.getOwnMetadata('default-connection', this.target)!
-            ?? PolyORMException.Metadata.throw(
-                'MISSING_ENTITY_CONNECTION', this.name
-            )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public get targetName(): string {
-        return this.target?.name ?? this.tableName
+        return this.target.name ?? this.tableName
             .split('_')
             .map(word => (
                 word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
             ))
             .join('')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get connection(): PolyORMConnection {
+        return MetadataHandler.getConnection(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -130,7 +136,7 @@ export default class PolymorphicEntityMetadata {
     // ------------------------------------------------------------------------
 
     public get repository(): typeof PolymorphicRepository<any> {
-        return Reflect.getOwnMetadata('repository', this.target!)
+        return MetadataHandler.getRepository(this.target)
             ?? PolymorphicRepository
     }
 
@@ -194,24 +200,20 @@ export default class PolymorphicEntityMetadata {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public getRepository(): PolymorphicRepository<any> {
+        return new this.repository(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
     public defineDefaultConnection(connection: PolyORMConnection | string) {
-        if (!Reflect.getOwnMetadata('default-connection', this.target)) (
-            Reflect.defineMetadata(
-                'default-connection',
-                this.resolveConnection(connection),
-                this.target
-            )
-        )
+        return MetadataHandler.setDefaultConnection(connection, this.target)
     }
 
     // ------------------------------------------------------------------------
 
     public defineTempConnection(connection: PolyORMConnection | string): void {
-        Reflect.defineMetadata(
-            'temp-connection',
-            this.resolveConnection(connection),
-            this.target
-        )
+        return MetadataHandler.setTempConnection(connection, this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -219,13 +221,7 @@ export default class PolymorphicEntityMetadata {
     public defineRepository(repository: typeof PolymorphicRepository<any>): (
         void
     ) {
-        Reflect.defineMetadata('repository', repository, this.target!)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public getRepository(): PolymorphicRepository<any> {
-        return new this.repository(this.target)
+        return MetadataHandler.setRepository(repository, this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -249,23 +245,6 @@ export default class PolymorphicEntityMetadata {
     }
 
     // Privates ---------------------------------------------------------------
-    private register(): void {
-        Reflect.defineMetadata('union-metadata', this, this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private resolveConnection(connection: PolyORMConnection | string): (
-        PolyORMConnection
-    ) {
-        switch (typeof connection) {
-            case 'object': return connection
-            case 'string': return ConnectionsMetadata.findOrThrow(connection)
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
     private loadEntities(): void {
         try {
             if (typeof this.sources === 'function') (
@@ -354,47 +333,43 @@ export default class PolymorphicEntityMetadata {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static build(
-        name: string,
-        target: PolymorphicEntityTarget | null,
-        sources: EntityTarget[] | PolymorphicParentRelatedGetter
-    ) {
-        return new PolymorphicEntityMetadata(
-            name,
-            target,
-            sources
-        )
-    }
+    // public static build(
+    //     target: PolymorphicEntityTarget | undefined,
+    //     tableName: string | undefined,
+    //     sources: EntityTarget[] | PolymorphicParentRelatedGetter
+    // ) {
+    //     return new PolymorphicEntityMetadata(target, tableName, sources)
+    // }
 
-    // ------------------------------------------------------------------------
+    // // ------------------------------------------------------------------------
 
-    public static find(target: PolymorphicEntityTarget | null): (
-        PolymorphicEntityMetadata | undefined
-    ) {
-        if (target) return Reflect.getOwnMetadata('union-metadata', target)
-    }
+    // public static find(target: PolymorphicEntityTarget | null): (
+    //     PolymorphicEntityMetadata | undefined
+    // ) {
+    //     if (target) return Reflect.getOwnMetadata('union-metadata', target)
+    // }
 
-    // ------------------------------------------------------------------------
+    // // ------------------------------------------------------------------------
 
-    public static findOrBuild(
-        name: string,
-        target: PolymorphicEntityTarget | null,
-        sources: EntityTarget[] | PolymorphicParentRelatedGetter
-    ): PolymorphicEntityMetadata {
-        return this.find(target) ?? this.build(
-            name, target, sources
-        )
-    }
+    // public static findOrBuild(
+    //     target: PolymorphicEntityTarget | undefined,
+    //     tableName: string | undefined,
+    //     sources: EntityTarget[] | PolymorphicParentRelatedGetter
+    // ): PolymorphicEntityMetadata {
+    //     return target
+    //         ? this.find(target) ?? this.build(target, tableName, sources)
+    //         : this.build(target, tableName, sources)
+    // }
 
-    // ------------------------------------------------------------------------
+    // // ------------------------------------------------------------------------
 
-    public static findOrThrow(target: PolymorphicEntityTarget): (
-        PolymorphicEntityMetadata
-    ) {
-        return this.find(target)! ?? PolyORMException.Metadata.throw(
-            "UNKNOWN_ENTITY", target.name
-        )
-    }
+    // public static findOrThrow(target: PolymorphicEntityTarget): (
+    //     PolymorphicEntityMetadata
+    // ) {
+    //     return this.find(target)! ?? PolyORMException.Metadata.throw(
+    //         "UNKNOWN_ENTITY", target.name
+    //     )
+    // }
 }
 
 export {

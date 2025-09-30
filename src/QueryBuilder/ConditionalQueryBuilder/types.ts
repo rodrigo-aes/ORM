@@ -1,4 +1,4 @@
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type AndQueryBuilder from "../AndQueryBuilder"
 
 export type AndQueryFunction<T extends EntityTarget> = (

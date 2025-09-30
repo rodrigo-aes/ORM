@@ -7,7 +7,7 @@ import type {
 
 import type {
     EntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 export default class HasManyHandlerSQLBuilder<
     Target extends object,

@@ -1,4 +1,4 @@
-import type { Target } from "../types/General"
+import type { Target } from "../types"
 
 import type SelectQueryBuilder from "./SelectQueryBuilder"
 import type CountQueryBuilder from "./CountQueryBuilder"

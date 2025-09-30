@@ -18,7 +18,7 @@ import { SQLStringHelper } from "../../Helpers"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 import type { CountQueryOptions } from "./types"
 import type { CountQueryOption, CountCaseOptions } from "./CountSQL"
 import JoinSQLBuilder from "../JoinSQLBuilder"
@@ -42,7 +42,7 @@ export default class CountSQLBuilder<
         public type: 'isolated' | 'inline' = 'isolated',
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
 
         this.unionSQLBuilders()
     }

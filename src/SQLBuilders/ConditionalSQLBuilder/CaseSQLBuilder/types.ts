@@ -1,4 +1,4 @@
-import type { EntityPropertiesKeys } from "../../types"
+import type { EntityPropertiesKeys } from "../../../types"
 import type { CompatibleOperators } from "../Operator"
 import type { ConditionalQueryOptions } from "../types"
 

@@ -19,7 +19,7 @@ import ConditionalSQLBuilder, {
 import UnionSQLBuilder from "../UnionSQLBuilder"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type { RelationOptions, RelationsOptions } from "./types"
 
 export default class JoinSQLBuilder<
@@ -44,7 +44,7 @@ export default class JoinSQLBuilder<
 
         this.target = this.relation.relatedTarget as T
         this.alias = alias ?? this.handleAlias()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================

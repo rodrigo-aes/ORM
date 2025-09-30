@@ -13,11 +13,11 @@ import type {
     PolymorphicBelongsToMetadata,
 } from "../../../Metadata"
 
-import type { PolymorphicEntityTarget } from "../../../types/General"
+import type { PolymorphicEntityTarget } from "../../../types"
 
 import { CreationAttributes } from "../../CreateSQLBuilder"
 import { OptionalNullable } from "../../../types/Properties"
-import { EntityProperties } from "../../types"
+import { EntityProperties } from "../../../types"
 
 import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 

@@ -7,7 +7,7 @@ import {
 } from "../../SQLBuilders"
 
 // Types
-import type { Target } from "../../types/General"
+import type { Target } from "../../types"
 
 /**
  * Build Paginate query

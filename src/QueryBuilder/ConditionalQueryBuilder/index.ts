@@ -6,14 +6,14 @@ import AndQueryBuilder from "../AndQueryBuilder"
 // Types
 import type {
     Target,
-    TargetMetadata
-} from "../../types/General"
+    TargetMetadata,
+    EntityProperties,
+    EntityPropertiesKeys
+} from "../../types"
 
 import type {
     AndQueryOptions,
-    OrQueryOptions,
-    EntityProperties,
-    EntityPropertiesKeys
+    OrQueryOptions
 } from "../../SQLBuilders"
 
 import type { WhereQueryHandler } from "../types"
@@ -47,7 +47,7 @@ export default class ConditionalQueryHandler<T extends Target> {
         /** @internal */
         public alias?: string,
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
         this.addAndClause()
     }
 

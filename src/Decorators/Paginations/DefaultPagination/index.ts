@@ -4,7 +4,7 @@ import { PaginationsMetadata } from "../../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 import type { Pagination } from "../../../BaseEntity"
 
 export default function DefaultPagination(pagination: typeof Pagination) {

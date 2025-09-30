@@ -1,6 +1,6 @@
-import type { EntityTarget } from "../../../../../../types/General"
-import type { EntityMetadataJSON } from "../../../../types"
-import type { ColumnMetadataJSON } from "../../../../ColumnsMetadata/ColumnMetadata"
+import type { EntityTarget } from "../../../../../../../types"
+import type { EntityMetadataJSON } from "../../../../../types"
+import type { ColumnMetadataJSON } from "../../../../../ColumnsMetadata/ColumnMetadata"
 
 export type JoinForeignKeyReferencedGetter = () => EntityTarget
 

@@ -11,7 +11,7 @@ import { MetadataHandler, ScopeMetadataHandler } from "../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 
 import type { ConditionalQueryOptions } from "./types"
 import type UnionSQLBuilder from "../UnionSQLBuilder"
@@ -28,7 +28,7 @@ export default abstract class ConditionalSQLBuilder<
         public options?: ConditionalQueryOptions<InstanceType<T>>,
         public alias?: string
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target!)!
+        this.metadata = MetadataHandler.targetMetadata(this.target!)!
         this.alias = alias ?? this.target?.name.toLowerCase()
 
         if (this.options) ScopeMetadataHandler.applyScope(

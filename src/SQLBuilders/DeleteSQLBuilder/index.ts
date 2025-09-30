@@ -16,7 +16,7 @@ import { ConditionalQueryJoinsHandler } from "../../Handlers"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 
 export default class DeleteSQLBuilder<
     T extends EntityTarget | PolymorphicEntityTarget
@@ -35,7 +35,7 @@ export default class DeleteSQLBuilder<
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
 
         this.applyWhereScope()
 

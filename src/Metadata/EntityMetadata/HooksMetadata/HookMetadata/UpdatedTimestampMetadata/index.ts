@@ -4,7 +4,7 @@ import BeforeUpdateMetadata from "../BeforeUpdateMetadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../../../types/General"
+} from "../../../../../types"
 
 import type { HookFunction } from "../types"
 

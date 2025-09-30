@@ -8,11 +8,11 @@ import type {
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import { CreationAttributes } from "../../CreateSQLBuilder"
 import { OptionalNullable } from "../../../types/Properties"
-import { EntityProperties } from "../../types"
+import { EntityProperties } from "../../../types"
 
 // Exceptions
 import PolyORMException from "../../../Errors"

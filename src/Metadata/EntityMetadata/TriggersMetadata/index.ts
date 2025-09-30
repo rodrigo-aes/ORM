@@ -1,76 +1,25 @@
-// Handlers
-import MetadataHandler from "../../MetadataHandler"
+import MetadataArray from "../../MetadataArray"
 
 // Types
-import type { EntityTarget, Constructor } from "../../../types/General"
+import type { EntityTarget, Constructor } from "../../../types"
 import type { Trigger } from "../../../Triggers"
 
-export default class TriggersMetadata extends Array<Constructor<Trigger>> {
+// Exceptions
+import { type MetadataErrorCode } from "../../../Errors"
+
+export default class TriggersMetadata extends MetadataArray<
+    Constructor<Trigger>
+> {
+    protected static override readonly KEY: string = 'triggers-metadata'
+    protected readonly KEY: string = TriggersMetadata.KEY
+
+    protected readonly SEARCH_KEYS: never[] = []
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = undefined
+
     constructor(
         public target: EntityTarget,
         ...triggers: Constructor<Trigger>[]
     ) {
-        super(...triggers)
-
-        this.mergeParentsTriggers()
-        this.register()
-    }
-
-    static get [Symbol.species]() {
-        return Array
-    }
-
-    // Instance Methods =======================================================
-    // Publics ----------------------------------------------------------------
-    public addTrigger(trigger: Constructor<Trigger>): void {
-        this.push(trigger)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public addTriggers(...triggers: Constructor<Trigger>[]): void {
-        this.push(...triggers)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public toJSON(): (typeof Trigger)[] {
-        return Array.from(this)
-    }
-
-    // Privates ---------------------------------------------------------------
-    private register(): void {
-        Reflect.defineMetadata('triggers-metadata', this, this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private mergeParentsTriggers(): void {
-        const parents = MetadataHandler.getTargetParents(this.target)
-
-        for (const parent of parents) this.push(
-            ...((TriggersMetadata.find(parent) ?? []))
-        )
-    }
-
-    // Static Methods =========================================================
-    // Publics ================================================================
-    public static find(target: EntityTarget): (
-        TriggersMetadata | undefined
-    ) {
-        return Reflect.getOwnMetadata('triggers-metadata', target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static build(target: EntityTarget) {
-        return new TriggersMetadata(target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrBuild(target: EntityTarget) {
-        return this.find(target)
-            ?? this.build(target)
+        super(target, ...triggers)
     }
 }

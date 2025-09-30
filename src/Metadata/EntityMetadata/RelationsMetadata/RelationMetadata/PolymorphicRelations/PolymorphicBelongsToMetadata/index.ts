@@ -10,7 +10,7 @@ import {
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../../../../types/General"
+} from "../../../../../../types"
 import type { ColumnMetadata } from "../../../.."
 import type { RelatedEntitiesMap } from "../../types"
 import type {
@@ -30,16 +30,16 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
 
     constructor(
         target: EntityTarget,
-        { typeKey, foreignKey, ...options }: PolymorphicParentOptions
+        { name, typeKey, foreignKey, ...options }: PolymorphicParentOptions
     ) {
-        super(target, options)
+        super(target, name)
 
         Object.assign(this, options)
 
         this.foreignKeyName = foreignKey
         this.typeKey = typeKey
 
-        this.registerParentsUnion()
+        this.registerPolymorphicParent()
     }
 
     // Getters ================================================================
@@ -51,8 +51,9 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get foreignKey(): ColumnMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-            .getColumn(this.foreignKeyName)
+        return EntityMetadata.findOrBuild(this.target).columns.findOrThrow(
+            this.foreignKeyName
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -79,7 +80,7 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
 
     public get typeColum(): ColumnMetadata | undefined {
         if (this.typeKey) return EntityMetadata.findOrBuild(this.target)
-            .getColumn(this.typeKey)
+            .columns.findOrThrow(this.typeKey)
     }
 
     // ------------------------------------------------------------------------
@@ -131,8 +132,8 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     }
 
     // Privates ---------------------------------------------------------------
-    private registerParentsUnion(): void {
-        PolymorphicEntityMetadata.findOrBuild(this.unionName, null, this.related)
+    private registerPolymorphicParent(): void {
+        new PolymorphicEntityMetadata(undefined, this.unionName, this.related)
     }
 
     // ------------------------------------------------------------------------

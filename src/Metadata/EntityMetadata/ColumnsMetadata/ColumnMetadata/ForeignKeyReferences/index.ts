@@ -1,6 +1,6 @@
 import EntityMetadata from "../../.."
 
-import type { EntityTarget } from "../../../../../types/General"
+import type { EntityTarget } from "../../../../../types"
 import ColumnMetadata from '..'
 import type { RelatedEntitiesMap } from "../../../RelationsMetadata"
 import type {
@@ -20,9 +20,12 @@ export default class ForeignKeyReferences {
 
     public referenced!: ForeignKeyReferencedGetter
 
+    private _entity?: EntityMetadata | RelatedEntitiesMap
+    private _column?: ColumnMetadata | RelatedColumnsMap
+
     constructor(
         public target: EntityTarget,
-        private columnName: string,
+        private parentName: string,
         initMap: ForeignKeyReferencesInitMap
     ) {
         Object.assign(this, initMap)
@@ -31,7 +34,7 @@ export default class ForeignKeyReferences {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get targetMetadata(): EntityMetadata {
-        return EntityMetadata.find(this.target)!
+        return EntityMetadata.findOrThrow(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -43,75 +46,54 @@ export default class ForeignKeyReferences {
     // ------------------------------------------------------------------------
 
     public get entity(): EntityMetadata | RelatedEntitiesMap {
-        return this.getEntity()
+        return this._entity = this._entity ?? this.handleEntity()
     }
 
     // ------------------------------------------------------------------------
 
     public get column(): ColumnMetadata | RelatedColumnsMap {
-        return this.getColumn()
+        return this._column = this._column ?? this.handleColumn()
     }
 
     // ------------------------------------------------------------------------
 
     public get name(): string | undefined {
-        if (this.constrained) return `fk_${this.tableName}_${this.columnName}`
+        if (this.constrained) return `fk_${this.tableName}_${this.parentName}`
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): ForeignKeyReferencesJSON {
-        return Object.fromEntries(
-            [
-                ...Object.entries({
-                    entity: this.entityToJSON(),
-                    column: this.columnToJSON(),
-                }),
-                ...Object.entries(this).filter(
-                    ([key]) => [
-                        'name',
-                        'constrained',
-                        'onDelete',
-                        'onUpdate',
-                        'scope',
-                    ]
-                        .includes(key)
-                )
-            ]
-        ) as ForeignKeyReferencesJSON
+        return {
+            entity: this.entityToJSON(),
+            column: this.columnToJSON(),
+            name: this.name,
+            constrained: this.constrained,
+            onDelete: this.onDelete,
+            onUpdate: this.onUpdate,
+            scope: this.scope,
+        }
     }
 
     // Privates ---------------------------------------------------------------
-    private getEntity() {
+    private handleEntity() {
         const referenced = this.referenced()
 
-        if (Array.isArray(referenced)) {
-            const entitiesMap: RelatedEntitiesMap = {}
-            for (const ref of referenced) {
-                entitiesMap[ref.name] = EntityMetadata.findOrBuild(ref)
-            }
-
-            return entitiesMap
-        }
-
-        else return EntityMetadata.findOrBuild(referenced)
+        return Array.isArray(referenced)
+            ? Object.fromEntries(referenced.map(
+                ref => [ref.name, EntityMetadata.findOrBuild(ref)]
+            ))
+            : EntityMetadata.findOrBuild(referenced)
     }
 
     // ------------------------------------------------------------------------
 
-    private getColumn() {
-        if (this.entity instanceof EntityMetadata) {
-            return this.entity.columns.primary
-        }
-
-        else {
-            const map: RelatedColumnsMap = {}
-            for (const [name, entity] of Object.entries(this.entity)) {
-                map[name] = entity.columns.primary
-            }
-
-            return map
-        }
+    private handleColumn() {
+        return this.entity instanceof EntityMetadata
+            ? this.entity.columns.primary
+            : Object.fromEntries(Object.entries(this.entity).map(
+                ([name, entity]) => [name, entity.columns.primary]
+            ))
     }
 
     // ------------------------------------------------------------------------

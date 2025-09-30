@@ -1,7 +1,7 @@
 import util from 'util'
 
 // Types
-import type { Constructor } from "../types/General"
+import type { Constructor } from "../types"
 import type { PolyORMException as PolyORMExceptionInterface } from "./types"
 
 export default

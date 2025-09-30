@@ -2,7 +2,7 @@ import RelationMetadata from "../../RelationMetadata"
 import EntityMetadata from "../../../.."
 
 // Types
-import type { EntityTarget } from "../../../../../../types/General"
+import type { EntityTarget } from "../../../../../../types"
 import type { ColumnMetadata } from "../../../.."
 import type {
     PolymorphicChildOptions,
@@ -19,9 +19,9 @@ export default class PolymorphicHasOneMetadata extends RelationMetadata {
 
     constructor(
         target: EntityTarget,
-        { typeKey, foreignKey, ...options }: PolymorphicChildOptions
+        { name, typeKey, foreignKey, ...options }: PolymorphicChildOptions
     ) {
-        super(target, options)
+        super(target, name)
 
         Object.assign(this, options)
 
@@ -50,7 +50,7 @@ export default class PolymorphicHasOneMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get foreignKey(): ColumnMetadata {
-        return this.entity.getColumn(this.foreignKeyName)
+        return this.entity.columns.findOrThrow(this.foreignKeyName)
     }
 
     // ------------------------------------------------------------------------
@@ -62,7 +62,7 @@ export default class PolymorphicHasOneMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get typeColumn(): ColumnMetadata | undefined {
-        if (this.typeKey) return this.entity.getColumn(this.typeKey)
+        if (this.typeKey) return this.entity.columns.findOrThrow(this.typeKey)
     }
 
     // Instance Methods =======================================================

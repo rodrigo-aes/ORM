@@ -13,7 +13,7 @@ import { MetadataHandler } from "../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type {
     SelectOptions,
     SelectPropertyKey,
@@ -33,7 +33,7 @@ export default class SelectSQLBuilder<
         public options?: SelectOptions<InstanceType<T>>,
         public alias?: string,
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
         if (!this.alias) this.alias = this.target.name.toLowerCase()
     }
 
@@ -140,7 +140,7 @@ export default class SelectSQLBuilder<
     // ------------------------------------------------------------------------
 
     private allColumnsSQL(): string {
-        return this.metadata.columns.toJSON()
+        return this.metadata.columns
             .map(column => `${this.asColumn(column.name)}`)
             .join(', ')
     }
@@ -206,7 +206,7 @@ export default class SelectSQLBuilder<
     // ------------------------------------------------------------------------
 
     private allGroupColumns(): GroupQueryOptions<InstanceType<T>> {
-        return this.metadata.columns.toJSON().map(
+        return this.metadata.columns.map(
             ({ name }) => PropertySQLHelper.pathToAlias(
                 name, this.alias
             )

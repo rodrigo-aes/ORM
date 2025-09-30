@@ -23,7 +23,7 @@ import type {
     Entity,
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 
 import type {
     MySQL2RawData,
@@ -43,7 +43,7 @@ export default class MySQL2RawDataHandler<T extends Target> {
         public fillMethod: DataFillMethod,
         private mySQL2RawData: MySQL2RawData[]
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================
@@ -228,11 +228,11 @@ export default class MySQL2RawDataHandler<T extends Target> {
 
             const relationMetadata = metadata.relations.findOrThrow(key)
 
-            const fillMethod = RelationMetadata.relationFillMethod(
+            const fillMethod = RelationMetadata.fillMethod(
                 relationMetadata
             )
 
-            const nextMetadata = MetadataHandler.loadMetadata(
+            const nextMetadata = MetadataHandler.targetMetadata(
                 relationMetadata.relatedTarget
             )
 

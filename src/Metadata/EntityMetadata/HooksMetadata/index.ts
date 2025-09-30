@@ -1,3 +1,5 @@
+import Metadata from "../../Metadata"
+
 import HookMetadata, {
     BeforeSyncMetadata,
     AfterSyncMetadata,
@@ -27,7 +29,7 @@ import HookMetadata, {
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import type { HookType } from "./HookMetadata/types"
 
@@ -52,7 +54,11 @@ import type {
 import type { DeleteResult } from "../../../Handlers"
 import type { HooksMetadataJSON } from "./types"
 
-export default class HooksMetadata {
+import PolyORMException, { type MetadataErrorCode } from "../../../Errors"
+
+export default class HooksMetadata extends Metadata {
+    protected static override readonly KEY: string = 'entity-metadata'
+
     private toCall: Set<HookType> = new Set
 
     public beforeSync: BeforeSyncMetadata[] = []
@@ -75,7 +81,14 @@ export default class HooksMetadata {
     public afterBulkDelete: AfterBulkDeleteMetadata[] = []
 
     constructor(public target: EntityTarget | PolymorphicEntityTarget) {
+        super()
         this.register()
+    }
+
+    // Static Getters =========================================================
+    // Protecteds -------------------------------------------------------------
+    protected static override get UNKNOWN_ERROR_CODE(): MetadataErrorCode {
+        throw new Error('HooksMetadata should be optional')
     }
 
     // Instance Methods =======================================================
@@ -496,26 +509,26 @@ export default class HooksMetadata {
         Reflect.defineMetadata('hooks', this, this.target)
     }
 
-    // Static Methods =========================================================
-    // Publics ================================================================
-    public static find(target: EntityTarget | PolymorphicEntityTarget): (
-        HooksMetadata | undefined
-    ) {
-        return Reflect.getOwnMetadata('hooks', target)
-    }
+    // // Static Methods =========================================================
+    // // Publics ================================================================
+    // public static find(target: EntityTarget | PolymorphicEntityTarget): (
+    //     HooksMetadata | undefined
+    // ) {
+    //     return Reflect.getOwnMetadata('hooks', target)
+    // }
 
-    // ------------------------------------------------------------------------
+    // // ------------------------------------------------------------------------
 
-    public static build(target: EntityTarget) {
-        return new HooksMetadata(target)
-    }
+    // public static build(target: EntityTarget) {
+    //     return new HooksMetadata(target)
+    // }
 
-    // ------------------------------------------------------------------------
+    // // ------------------------------------------------------------------------
 
-    public static findOrBuild(target: EntityTarget) {
-        return this.find(target)
-            ?? this.build(target)
-    }
+    // public static findOrBuild(target: EntityTarget) {
+    //     return this.find(target)
+    //         ?? this.build(target)
+    // }
 }
 
 export {

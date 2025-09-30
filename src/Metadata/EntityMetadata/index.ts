@@ -1,8 +1,4 @@
-import 'reflect-metadata'
-
-import ConnectionsMetadata, {
-    type PolyORMConnection
-} from '../ConnectionsMetadata'
+import Metadata from '../Metadata'
 
 // Objects
 // Data Type
@@ -43,7 +39,6 @@ import DataType, {
 import ColumnsMetadata, {
     ColumnMetadata,
 
-    type ColumnConfig,
     type ColumnPattern,
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
@@ -108,15 +103,16 @@ import RelationsMetadata, {
     type RelationsMetadataJSON,
 } from './RelationsMetadata'
 
-// Join Table Metadata
-import JoinTableMetadata, {
+// JoinTables Metadata
+import JoinTablesMetadata, {
+    JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,
 
     type JoinTableRelated,
     type JoinTableRelatedsGetter,
     type JoinTableMetadataJSON
-} from './JoinTableMetadata'
+} from './JoinTablesMetadata'
 
 import Repository from '../../Repository'
 
@@ -159,28 +155,29 @@ import PaginationsMetadata, {
 // Processes
 import { EntityToJSONProcessMetadata } from '../ProcessMetadata'
 
+// Handlers
+import MetadataHandler from '../MetadataHandler'
+
 // Types
-import type { EntityTarget } from '../../types/General'
-import type { EntityMetadataInitMap, EntityMetadataJSON } from './types'
+import type { EntityTarget } from '../../types'
+import type { EntityMetadataJSON } from './types'
+import type { PolyORMConnection } from '../ConnectionsMetadata'
 
 // Exceptions
-import PolyORMException from '../../Errors'
+import { type MetadataErrorCode } from '../../Errors'
 
-export default class EntityMetadata {
-    public tableName!: string
+export default class EntityMetadata extends Metadata {
+    protected static override readonly KEY: string = 'entity-metadata'
+    protected static override readonly UNKNOWN_ERROR_CODE: MetadataErrorCode = (
+        'UNKNOWN_ENTITY'
+    )
 
     constructor(
         public target: EntityTarget,
-        initMap?: EntityMetadataInitMap
+        public tableName: string = target.name.toLowerCase()
     ) {
-        this.fill(initMap)
-        this.register()
-
-        if (!this.joinTables) Reflect.defineMetadata(
-            'join-tables',
-            [],
-            this.target
-        )
+        super()
+        MetadataHandler.register(this, target)
     }
 
     // Getters ================================================================
@@ -192,11 +189,13 @@ export default class EntityMetadata {
     // ------------------------------------------------------------------------
 
     public get connection(): PolyORMConnection {
-        return Reflect.getOwnMetadata('temp-connection', this.target)
-            ?? Reflect.getOwnMetadata('default-connection', this.target)!
-            ?? PolyORMException.Metadata.throw(
-                'MISSING_ENTITY_CONNECTION', this.name
-            )
+        return MetadataHandler.getConnection(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get Repository(): typeof Repository<any> {
+        return MetadataHandler.getRepository(this.target) ?? Repository
     }
 
     // ------------------------------------------------------------------------
@@ -213,14 +212,8 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get joinTables(): JoinTableMetadata[] {
-        return Reflect.getOwnMetadata('join-tables', this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public get repository(): typeof Repository<any> {
-        return Reflect.getOwnMetadata('repository', this.target) ?? Repository
+    public get joinTables(): JoinTablesMetadata {
+        return JoinTablesMetadata.findOrBuild(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -243,8 +236,8 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get triggers(): TriggersMetadata {
-        return TriggersMetadata.findOrBuild(this.target)
+    public get triggers(): TriggersMetadata | undefined {
+        return TriggersMetadata.find(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -283,66 +276,26 @@ export default class EntityMetadata {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
+    public getRepository(): Repository<any> {
+        return new this.Repository(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
     public defineDefaultConnection(connection: PolyORMConnection | string) {
-        if (!Reflect.getOwnMetadata('default-connection', this.target)) (
-            Reflect.defineMetadata(
-                'default-connection',
-                this.resolveConnection(connection),
-                this.target
-            )
-        )
+        return MetadataHandler.setDefaultConnection(connection, this.target)
     }
 
     // ------------------------------------------------------------------------
 
     public defineTempConnection(connection: PolyORMConnection | string): void {
-        Reflect.defineMetadata(
-            'temp-connection',
-            this.resolveConnection(connection),
-            this.target
-        )
+        return MetadataHandler.setTempConnection(connection, this.target)
     }
 
     // ------------------------------------------------------------------------
 
     public defineRepository(repository: typeof Repository<any>): void {
-        Reflect.defineMetadata('repository', repository, this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public getRepository(): Repository<any> {
-        return new this.repository(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public registerColumn(name: string, dataType: DataType) {
-        this.columns.registerColumn(name, dataType)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public registerColumnPattern(name: string, pattern: ColumnPattern) {
-        this.columns.registerColumnPattern(name, pattern)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public getColumn(name: string): ColumnMetadata {
-        return this.columns.getColumn(name)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public setColumn(name: string, config: ColumnConfig) {
-        return this.columns.setColumn(name, config)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public addDependency(entity: EntityTarget) {
-        this.dependencies.push(entity)
+        return MetadataHandler.setRepository(repository, this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -359,40 +312,13 @@ export default class EntityMetadata {
 
     // ------------------------------------------------------------------------
 
-    public toJSON<T extends EntityTarget = any>(): (
-        EntityMetadataJSON<T> | undefined
-    ) {
+    public toJSON<T extends EntityTarget = any>(): EntityMetadataJSON<T> {
         return EntityToJSONProcessMetadata.initialized
-            ? this.buildJSON()
-            : EntityToJSONProcessMetadata.apply(
-                () => this.buildJSON()
-            )
-    }
-
-    // Protecteds -------------------------------------------------------------
-    protected register() {
-        Reflect.defineMetadata('entity-metadata', this, this.target)
+            ? this.buildJSON()!
+            : EntityToJSONProcessMetadata.apply(() => this.buildJSON()!)
     }
 
     // Privates ---------------------------------------------------------------
-    private fill(initMap?: EntityMetadataInitMap): this {
-        Object.assign(this, initMap)
-        return this
-    }
-
-    // ------------------------------------------------------------------------
-
-    private resolveConnection(connection: PolyORMConnection | string): (
-        PolyORMConnection
-    ) {
-        switch (typeof connection) {
-            case 'object': return connection
-            case 'string': return ConnectionsMetadata.findOrThrow(connection)
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
     private buildJSON<T extends EntityTarget = any>(): (
         EntityMetadataJSON | undefined
     ) {
@@ -400,58 +326,17 @@ export default class EntityMetadata {
             target: this.target as T,
             name: this.name,
             tableName: this.tableName,
-            repository: this.repository,
+            repository: this.Repository,
             columns: this.columns.toJSON(),
             relations: this.relations?.toJSON(),
             joinTables: this.joinTables?.map(table => table.toJSON()),
             hooks: this.hooks?.toJSON(),
             scopes: this.scopes?.toJSON(),
             computedProperties: this.computedProperties?.toJSON(),
-            triggers: this.triggers.toJSON(),
+            triggers: this.triggers?.toJSON(),
             collections: this.collections?.toJSON(),
             paginations: this.paginations?.toJSON(),
         }
-    }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static find(target: EntityTarget): EntityMetadata | undefined {
-        return Reflect.getOwnMetadata('entity-metadata', target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static build(
-        target: EntityTarget,
-        initMap?: EntityMetadataInitMap
-    ) {
-        return new EntityMetadata(target, initMap)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrBuild(
-        target: EntityTarget,
-        initMap?: EntityMetadataInitMap
-    ): EntityMetadata {
-        return this.find(target)?.fill(initMap) ?? this.build(target, initMap)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrThrow(target: EntityTarget): EntityMetadata {
-        return this.find(target)! ?? PolyORMException.Metadata.throw(
-            'UNKNOWN_ENTITY', target.name
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findColumn(
-        target: EntityTarget,
-        name: string
-    ): ColumnMetadata | undefined {
-        return this.find(target)?.columns.findColumn(name)
     }
 }
 
@@ -476,6 +361,7 @@ export {
     RelationsMetadata,
 
     // Join Tables
+    JoinTablesMetadata,
     JoinTableMetadata,
     JoinColumnsMetadata,
     JoinColumnMetadata,

@@ -2,9 +2,7 @@
 import {
     UpdateSQLBuilder,
 
-    type UpdateAttributes,
-    type EntityProperties,
-    type EntityPropertiesKeys
+    type UpdateAttributes
 } from "../../SQLBuilders"
 
 // Query Builders
@@ -15,7 +13,11 @@ import { MySQL2QueryExecutionHandler } from "../../Handlers"
 
 // Types
 import type { ResultSetHeader } from "mysql2"
-import type { EntityTarget } from "../../types/General"
+import type {
+    EntityTarget,
+    EntityProperties,
+    EntityPropertiesKeys
+} from "../../types"
 
 import type {
     OperatorType,

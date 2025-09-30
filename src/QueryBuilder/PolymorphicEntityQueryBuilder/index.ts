@@ -4,7 +4,7 @@ import QueryBuilder from "../QueryBuilder"
 import type {
     PolymorphicEntityTarget,
     TargetMetadata
-} from "../../types/General"
+} from "../../types"
 
 export default class PolymorphicEntityQueryBuilder<
     T extends PolymorphicEntityTarget

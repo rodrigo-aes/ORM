@@ -2,7 +2,7 @@ import type {
     EntityTarget,
     PolymorphicEntityTarget,
     Primitive,
-} from "../../../types/General"
+} from "../../../types"
 import type { OperatorType } from "./types"
 
 export default abstract class Operator<T extends keyof OperatorType> {

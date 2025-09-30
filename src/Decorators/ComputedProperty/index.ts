@@ -8,7 +8,7 @@ import type {
     EntityTarget,
     PolymorphicEntityTarget,
     CollectionTarget
-} from "../../types/General"
+} from "../../types"
 
 export default function ComputedProperty(fn: ComputedPropertyFunction) {
     return function <Target extends InstanceType<

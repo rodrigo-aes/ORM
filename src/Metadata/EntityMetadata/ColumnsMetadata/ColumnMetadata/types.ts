@@ -1,4 +1,4 @@
-import type { EntityTarget } from "../../../../types/General";
+import type { EntityTarget } from "../../../../types";
 import type ColumnMetadata from "."
 import type {
     ForeignKeyReferencesInitMap,
@@ -83,5 +83,6 @@ export type ColumnMetadataJSON = {
     autoIncrement?: boolean
     unsigned?: boolean
     isForeignKey?: boolean
-    references?: ForeignKeyReferencesJSON
+    references?: ForeignKeyReferencesJSON,
+    pattern?: ColumnPattern
 }

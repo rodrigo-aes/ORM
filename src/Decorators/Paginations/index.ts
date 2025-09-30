@@ -6,7 +6,7 @@ import DefaultPagination from "./DefaultPagination"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 import type { Pagination } from "../../BaseEntity"
 
 export default function Paginations(...paginations: (typeof Pagination)[]) {

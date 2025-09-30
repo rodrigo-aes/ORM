@@ -1,7 +1,7 @@
 import { CollectionsMetadata } from "../../../Metadata"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types"
 import type { Collection } from "../../../BaseEntity"
 
 export default function DefaultCollection(collection: typeof Collection) {

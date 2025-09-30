@@ -22,9 +22,7 @@ import type {
     EntityAndQueryOptions,
     RelationAndQueryOptions
 } from "./types"
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
-import type { EntityPropertiesKeys } from "../../types"
-import type { ConditionalQueryOptions } from "../types"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types"
 import type UnionSQLBuilder from "../../UnionSQLBuilder"
 
 
@@ -44,7 +42,7 @@ export default class AndSQLBuilder<T extends EntityTarget | PolymorphicEntityTar
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target!)
+        this.metadata = MetadataHandler.targetMetadata(this.target!)
 
         this.propOptions = this.filterPropetiesOptions()
         this.relOptions = this.filterRelationOptions()

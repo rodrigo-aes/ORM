@@ -1,3 +1,5 @@
+import MetadataArray from "../../MetadataArray"
+
 import RelationMetadata, {
     type RelationJSON,
     type RelationMetadataType,
@@ -49,35 +51,28 @@ import RelationMetadata, {
 } from "./RelationMetadata"
 
 import type { RelationsMetadataJSON } from "./types"
-import type { EntityTarget, Target } from "../../../types/General"
+import type { EntityTarget, Target } from "../../../types"
 
 // Exceptions
-import PolyORMException from "../../../Errors"
+import { type MetadataErrorCode } from "../../../Errors"
 
-export default class RelationsMetadata extends Array<RelationMetadata> {
-    constructor(
-        public target: EntityTarget,
-        ...relations: RelationMetadata[]
-    ) {
-        super(...relations)
-        this.register()
-    }
+export default class RelationsMetadata extends MetadataArray<
+    RelationMetadata
+> {
+    protected static override readonly KEY: string = 'relations-metadata'
+    protected readonly KEY: string = RelationsMetadata.KEY
+
+    protected readonly SEARCH_KEYS: (keyof RelationMetadata)[] = [
+        'name', 'relatedTarget'
+    ]
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
+        'UNKNOWN_RELATION'
+    )
+
+    declare public target: EntityTarget
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public toJSON(): RelationsMetadataJSON {
-        return [...this].map(rel => rel.toJSON())
-    }
-
-    // ------------------------------------------------------------------------
-
-    public addRelations(...relations: RelationMetadata[]) {
-        this.push(...relations)
-        return this
-    }
-
-    // ------------------------------------------------------------------------
-
     public addHasOne(options: HasOneOptions) {
         this.push(new RelationMetadata.HasOne(this.target, options))
     }
@@ -151,70 +146,6 @@ export default class RelationsMetadata extends Array<RelationMetadata> {
         )) as (
                 PolymorphicBelongsToMetadata | undefined
             )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public search(name: string): RelationMetadata | undefined {
-        return this.find(rel => rel.name === name)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public searchByRelated(related: Target): (
-        RelationMetadata | undefined
-    ) {
-        return this.find(({ relatedTarget }) => relatedTarget === related)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public findOrThrow(name: string): RelationMetadata {
-        return this.search(name)! ?? PolyORMException.Metadata.throw(
-            'UNKNOWN_RELATION', name, this.target.name
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public findByRelatedOrthrow(related: Target): RelationMetadata {
-        return this.searchByRelated(related)! ?? (
-            PolyORMException.Metadata.throw(
-                'UNKNOWN_RELATION',
-                `${related.name} entity class`,
-                this.target.name
-            )
-        )
-    }
-
-    // Protecteds -------------------------------------------------------------
-    protected register() {
-        Reflect.defineMetadata('relations', this, this.target)
-    }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static find(target: EntityTarget): RelationsMetadata | undefined {
-        return Reflect.getOwnMetadata('relations', target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static build(
-        target: EntityTarget,
-        ...relations: RelationMetadata[]
-    ) {
-        return new RelationsMetadata(target, ...relations)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrBuild(
-        target: EntityTarget,
-        ...relations: RelationMetadata[]
-    ) {
-        return this.find(target)?.addRelations(...relations)
-            ?? this.build(target, ...relations)
     }
 }
 

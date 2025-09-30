@@ -4,7 +4,7 @@ import HasManyRelation from "../ManyRelation/HasManyRelation"
 import { PolymorphicHasManyHandlerSQLBuilder } from "../../SQLBuilders"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type { PolymorphicHasManyMetadata } from "../../Metadata"
 
 /** HasMany relation handler */

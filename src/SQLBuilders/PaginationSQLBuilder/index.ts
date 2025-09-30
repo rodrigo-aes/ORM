@@ -4,7 +4,7 @@ import FindSQLBuilder, { type FindQueryOptions } from "../FindSQLBuilder"
 import CountSQLBuilder from "../CountSQLBuilder"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type { PaginationQueryOptions } from "./types"
 
 export default class PaginationSQLBuilder<

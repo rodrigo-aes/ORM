@@ -3,7 +3,7 @@ import Command from './Command'
 import MigrationCommander from './MigrationCommander'
 
 // Types
-import type { Constructor } from '../types/General'
+import type { Constructor } from '../types'
 import type { CommandConstructor, CommandMap } from "./types"
 
 // Exceptions

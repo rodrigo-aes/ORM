@@ -10,9 +10,9 @@ import FindOneSQLBuilder from "../FindOneSQLBuilder"
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type { UpdateOrCreateAttibutes } from "./types"
-import type { EntityPropertiesKeys } from "../types"
+import type { EntityPropertiesKeys } from "../../types"
 import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 
 export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
@@ -102,9 +102,7 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
         return new FindOneSQLBuilder(
             this.target,
             {
-                where: this.mergeAttributes() as (
-                    ConditionalQueryOptions<InstanceType<T>>
-                )
+                where: this.mergeAttributes() as any
             },
             this.alias
         )
@@ -160,8 +158,9 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     private mergeAttributes(): UpdateOrCreateAttibutes<InstanceType<T>> {
         const setted = Object.fromEntries(
             this._properties
-                .filter(key => this.metadata.columns.findColumn(key as string))
-                .map((key, index) => [key, this._values[index]]))
+                .filter(key => this.metadata.columns.search(key))
+                .map((key, index) => [key, this._values[index]])
+        )
 
         this.attributes = {
             ...this.attributes,

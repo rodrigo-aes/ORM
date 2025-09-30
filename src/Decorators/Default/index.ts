@@ -1,5 +1,5 @@
 import { ColumnsMetadata } from "../../Metadata"
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 
 export default function Default<Entity extends object>(value: any) {
     return function (
@@ -7,6 +7,6 @@ export default function Default<Entity extends object>(value: any) {
         name: string
     ) {
         ColumnsMetadata.findOrBuild(target.constructor as EntityTarget)
-            .setColumn(name, { defaultValue: value })
+            .set(name, { defaultValue: value })
     }
 }

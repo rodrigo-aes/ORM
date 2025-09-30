@@ -9,7 +9,7 @@ import {
 import CaseQueryBuilder from "../CaseQueryBuilder"
 
 // Types
-import type { Target } from "../../types/General"
+import type { Target } from "../../types"
 import type { CaseQueryHandler } from "../types"
 import type { OrderQueryOptions } from "./types"
 

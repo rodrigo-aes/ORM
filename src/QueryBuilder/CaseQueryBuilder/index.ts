@@ -4,7 +4,7 @@ import { MetadataHandler } from "../../Metadata"
 import ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 // Types
-import type { Target, TargetMetadata } from "../../types/General"
+import type { Target, TargetMetadata } from "../../types"
 import type { CaseQueryOptions, ElseQueryOption } from "../../SQLBuilders"
 import type { CaseQueryTuple } from "./types"
 import type { WhereQueryHandler } from "../types"
@@ -33,7 +33,7 @@ export default class CaseQueryBuilder<T extends Target> {
         /** @internal */
         public alias?: string
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================

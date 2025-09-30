@@ -1,6 +1,7 @@
+import ConnectionsMetadata from "../ConnectionsMetadata"
 import EntityMetadata from "../EntityMetadata"
 import PolymorphicEntityMetadata from "../PolymorphicEntityMetadata"
-import { JoinTableMetadata } from "../EntityMetadata"
+import { JoinTablesMetadata } from "../EntityMetadata"
 
 import BaseEntity from "../../BaseEntity"
 import BasePolymorphicEntity from "../../BasePolymorphicEntity"
@@ -15,7 +16,9 @@ import type {
     PolymorphicEntityTarget,
     Target,
     TargetMetadata,
-} from "../../types/General"
+    TargetRepository,
+    Constructor,
+} from "../../types"
 
 // Exceptions
 import PolyORMException from "../../Errors"
@@ -23,33 +26,37 @@ import PolyORMException from "../../Errors"
 export default class MetadataHandler {
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static registerConnectionEntities(
+    public static registerEntitiesConnection(
         connection: PolyORMConnection,
-        ...entities: EntityTarget[]
+        ...targets: EntityTarget[]
     ): void {
-        for (const entity of entities) EntityMetadata
-            .findOrBuild(entity)
+        for (const target of targets) EntityMetadata
+            .findOrBuild(target)
             .defineDefaultConnection(connection)
     }
 
     // ------------------------------------------------------------------------
 
-    public static normalizeMetadata() {
-        JoinTableMetadata.makeUniqueJoinTables()
+    public static normalize() {
+        JoinTablesMetadata.makeAllUnique()
     }
 
     // ------------------------------------------------------------------------
 
-    public static getTargetConnection(target: EntityTarget): (
-        PolyORMConnection | undefined
-    ) {
-        return Reflect.getOwnMetadata('temp-connection', target)
-            ?? EntityMetadata.findOrBuild(target).connection
+    public static register<T extends Target>(
+        metadata: TargetMetadata<T>,
+        target: T,
+    ): void {
+        Reflect.defineMetadata(
+            this.resolveTargetMetadataKey(target),
+            metadata,
+            target
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    public static loadMetadata<T extends Target>(target: T): (
+    public static targetMetadata<T extends Target>(target: T): (
         TargetMetadata<T>
     ) {
         switch (true) {
@@ -69,19 +76,70 @@ export default class MetadataHandler {
 
             // ----------------------------------------------------------------
 
-            default: PolyORMException.Metadata.throw(
+            default: throw PolyORMException.Metadata.instantiate(
                 'INVALID_ENTITY', target.name
             )
         }
+    }
 
-        throw PolyORMException.Metadata.instantiate(
-            'UNKNOWN_ENTITY', target.name
+    // ------------------------------------------------------------------------
+
+    public static getConnection(target: Target): PolyORMConnection {
+        return Reflect.getOwnMetadata('temp-connection', target)
+            ?? Reflect.getOwnMetadata('default-connection', target)!
+            ?? PolyORMException.Metadata.throw(
+                'MISSING_ENTITY_CONNECTION', target.name
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static setDefaultConnection(
+        connection: PolyORMConnection | string,
+        target: Target
+    ): void {
+        if (!Reflect.getOwnMetadata('default-connection', target)) (
+            Reflect.defineMetadata(
+                'default-connection',
+                this.resolveConnection(connection),
+                target
+            )
         )
     }
 
     // ------------------------------------------------------------------------
 
-    public static getTargetParents<T extends Target>(target: T): T[] {
+    public static setTempConnection(
+        connection: PolyORMConnection | string,
+        target: Target
+    ): void {
+        Reflect.defineMetadata(
+            'temp-connection',
+            this.resolveConnection(connection),
+            target
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static getRepository<T extends Target>(target: T): (
+        Constructor<TargetRepository<T>> | undefined
+    ) {
+        return Reflect.getOwnMetadata('repository', target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static setRepository<T extends Target>(
+        repository: Constructor<TargetRepository<T>>,
+        target: T
+    ): void {
+        Reflect.defineMetadata('repository', repository, target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static parentTargets<T extends Target>(target: T): T[] {
         const parents: T[] = []
         let parent = Object.getPrototypeOf(target)
 
@@ -91,5 +149,39 @@ export default class MetadataHandler {
         }
 
         return parents
+    }
+
+    // Privates ---------------------------------------------------------------
+    private static resolveConnection(connection: PolyORMConnection | string): (
+        PolyORMConnection
+    ) {
+        switch (typeof connection) {
+            case 'object': return connection
+            case 'string': return ConnectionsMetadata.findOrThrow(connection)
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    private static resolveTargetMetadataKey(target: Target): (
+        `${'entity' | 'polymorphic-Entity'}-metadata`
+    ) {
+        switch (true) {
+            case target.prototype instanceof BaseEntity: return (
+                'entity-metadata'
+            )
+
+            // ----------------------------------------------------------------
+
+            case target.prototype instanceof BasePolymorphicEntity: return (
+                'polymorphic-Entity-metadata'
+            )
+
+            // ----------------------------------------------------------------
+
+            default: throw PolyORMException.Metadata.instantiate(
+                'INVALID_ENTITY', target.name
+            )
+        }
     }
 }

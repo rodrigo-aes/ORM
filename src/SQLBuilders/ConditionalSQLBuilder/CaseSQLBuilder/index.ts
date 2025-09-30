@@ -17,7 +17,7 @@ import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 import type {
     CaseQueryOptions,
     CaseQueryTuple,
@@ -39,7 +39,7 @@ export default class CaseSQLBuilder<
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)!
+        this.metadata = MetadataHandler.targetMetadata(this.target)!
     }
 
     // Getters ================================================================

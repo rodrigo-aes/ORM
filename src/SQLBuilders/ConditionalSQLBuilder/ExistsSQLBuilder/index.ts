@@ -22,7 +22,7 @@ import { SQLStringHelper } from "../../../Helpers"
 import type {
     Target,
     TargetMetadata
-} from "../../../types/General"
+} from "../../../types"
 import type { ConditionalQueryOptions } from "../types"
 import type {
     ExistsQueryOptions,
@@ -48,7 +48,7 @@ export default class ExistsSQLBuilder<T extends Target> {
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target!)
+        this.metadata = MetadataHandler.targetMetadata(this.target!)
     }
 
     // Instance Methods =======================================================
@@ -119,7 +119,7 @@ export default class ExistsSQLBuilder<T extends Target> {
                 CrossExistsOption[]
             ))
         ) {
-            const meta = MetadataHandler.loadMetadata(target)
+            const meta = MetadataHandler.targetMetadata(target)
             if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)
 
             if (where) {
@@ -150,7 +150,7 @@ export default class ExistsSQLBuilder<T extends Target> {
         for (const [name, opts] of Object.entries(options)) {
             const relation = metadata.relations.findOrThrow(name)
 
-            const meta = MetadataHandler.loadMetadata(relation.relatedTarget)
+            const meta = MetadataHandler.targetMetadata(relation.relatedTarget)
             if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)
 
             const whereOptions = this.extractWhereOptions(opts)
@@ -183,7 +183,7 @@ export default class ExistsSQLBuilder<T extends Target> {
             new UnionSQLBuilder(
                 metadata.tableName,
                 metadata.target ?? InternalPolymorphicEntities.get(
-                    metadata.targetName
+                    metadata.name
                 )!
             )
                 .SQL()

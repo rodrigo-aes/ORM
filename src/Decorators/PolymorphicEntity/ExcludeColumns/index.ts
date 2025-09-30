@@ -1,7 +1,7 @@
 import { PolymorphicEntityMetadata } from "../../../Metadata"
 
 // Types
-import type { PolymorphicEntityTarget } from "../../../types/General"
+import type { PolymorphicEntityTarget } from "../../../types"
 
 export default function ExcludeColumns(...names: string[]) {
     return function (target: PolymorphicEntityTarget) {

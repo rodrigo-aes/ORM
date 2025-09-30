@@ -7,7 +7,7 @@ import AndSQLBuilder from "../AndSQLBuilder"
 import { MetadataHandler } from "../../../Metadata"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../types"
 import type { OrQueryOptions } from "./types"
 import type UnionSQLBuilder from "../../UnionSQLBuilder"
 
@@ -25,7 +25,7 @@ export default class OrSQLBuilder<
         public options: OrQueryOptions<InstanceType<T>>,
         alias?: string
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)!
+        this.metadata = MetadataHandler.targetMetadata(this.target)!
         this.alias = alias ?? this.target.name.toLowerCase()
 
         this.andSQLBuilders = this.buildAndSQLBulders()

@@ -1,7 +1,7 @@
 import { EntityMetadata } from "../../../../Metadata"
 
 // Types
-import type { EntityTarget } from "../../../../types/General"
+import type { EntityTarget } from "../../../../types"
 import type { ForeignKeyActionListener } from "../../../../Metadata"
 import type { ForeignKeyReferencesSchemaMap } from "./types"
 

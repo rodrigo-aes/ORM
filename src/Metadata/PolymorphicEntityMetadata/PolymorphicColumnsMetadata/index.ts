@@ -1,10 +1,9 @@
-import 'reflect-metadata'
-
+import MetadataArray from '../../MetadataArray'
 import EntityMetadata from '../../EntityMetadata'
 import PolymorphicColumnMetadata from './PolymorphicColumnMetadata'
 
 // Types
-import type { PolymorphicEntityTarget } from '../../../types/General'
+import type { PolymorphicEntityTarget } from '../../../types'
 import type { ColumnMetadata, ColumnsMetadataJSON } from '../../EntityMetadata'
 import type {
     CombinedColumns,
@@ -13,13 +12,25 @@ import type {
 } from './types'
 
 // Exceptions
-import PolyORMException from '../../../Errors'
+import PolyORMException, { type MetadataErrorCode } from '../../../Errors'
 
-export default class PolymorphicColumnsMetadata extends Array<
+export default class PolymorphicColumnsMetadata extends MetadataArray<
     PolymorphicColumnMetadata
 > {
+    protected static override readonly KEY: string = (
+        'polymorphic-columns-metadata'
+    )
+
+    protected readonly KEY: string = PolymorphicColumnsMetadata.KEY
+    protected readonly SEARCH_KEYS: (keyof PolymorphicColumnMetadata)[] = [
+        'name'
+    ]
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
+        'UNKNOWN_RELATION'
+    )
+
     constructor(
-        public target: PolymorphicEntityTarget | null,
+        public target: PolymorphicEntityTarget,
         public sources: ColumnMetadata[]
     ) {
         super()
@@ -49,26 +60,8 @@ export default class PolymorphicColumnsMetadata extends Array<
         )
     }
 
-    // Static Getters =========================================================
-    // Publics ----------------------------------------------------------------
-    public static get [Symbol.species](): typeof Array {
-        return Array
-    }
-
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public toJSON(): ColumnsMetadataJSON {
-        return this.map(column => column.toJSON())
-    }
-
-    // ------------------------------------------------------------------------
-
-    public findColumn(name: string): PolymorphicColumnMetadata | undefined {
-        return this.find((col) => col.name === name)
-    }
-
-    // ------------------------------------------------------------------------
-
     public combine(config: CombinedColumns): void {
         for (const [name, options] of Object.entries(config)) (
             this.mergeColumns(this.extractCombinedColumns(options), {
@@ -155,18 +148,9 @@ export default class PolymorphicColumnsMetadata extends Array<
     private extractCombinedColumns(options: CombinedColumnOptions): (
         ColumnMetadata[]
     ) {
-        return options.map(({ entity, column }) => {
-            const metadata = EntityMetadata
-                .find(entity)?.columns
-                .findColumn(column)
-
-            if (metadata) return metadata
-
-            throw PolyORMException.Metadata.instantiate(
-                'UNKNOWN_ENTITY',
-                entity.name
-            )
-        })
+        return options.map(({ target, column }) =>
+            EntityMetadata.findOrThrow(target).columns.findOrThrow(column)
+        )
     }
 
     // ------------------------------------------------------------------------

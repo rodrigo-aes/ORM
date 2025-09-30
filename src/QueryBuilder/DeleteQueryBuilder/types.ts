@@ -1,4 +1,4 @@
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type ConditionalQueryHandler from "../ConditionalQueryBuilder"
 
 export type WhereQueryFunction<T extends EntityTarget> = (

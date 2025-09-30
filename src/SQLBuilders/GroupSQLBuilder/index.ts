@@ -7,7 +7,7 @@ import { MetadataHandler } from "../../Metadata"
 import { PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type { GroupQueryOptions } from "./types"
 
 export default class GroupSQLBuilder<
@@ -24,7 +24,7 @@ export default class GroupSQLBuilder<
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================

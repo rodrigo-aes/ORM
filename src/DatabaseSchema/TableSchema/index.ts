@@ -25,7 +25,7 @@ import { PolymorphicId } from "../../Triggers"
 import { CurrentTimestamp } from "../../SQLBuilders"
 
 // Types
-import type { EntityTarget, Constructor } from "../../types/General"
+import type { EntityTarget, Constructor } from "../../types"
 import type DatabaseSchema from ".."
 import type { TriggerSchema } from "../TriggersSchema"
 import type { TableSchemaInitMap, TableSchemaAction } from "./types"

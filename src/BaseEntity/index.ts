@@ -56,11 +56,11 @@ import type {
     EntityTarget,
     PolymorphicEntityTarget,
     LocalOrInternalPolymorphicEntityTarget,
-    Constructor
-} from "../types/General"
+    Constructor,
+    EntityProperties
+} from "../types"
 
 import type {
-    EntityProperties,
     FindQueryOptions,
     FindOneQueryOptions,
     PaginationQueryOptions,
@@ -477,7 +477,7 @@ export default abstract class BaseEntity {
     // Privates ---------------------------------------------------------------
     /** @internal */
     private getTrueMetadata(): EntityMetadata {
-        return MetadataHandler.loadMetadata(
+        return MetadataHandler.targetMetadata(
             this.constructor as EntityTarget
         ) as EntityMetadata
     }
@@ -524,8 +524,8 @@ export default abstract class BaseEntity {
     /**
      * Get entity metadata
      */
-    public static getMetadata<T extends EntityTarget>(this: T) {
-        return (this as T & typeof BaseEntity).getTrueMetadata().toJSON<T>()
+    public static getMetadata<T extends EntityTarget>(this: T & typeof BaseEntity) {
+        return this.getTrueMetadata().toJSON<T>()
     }
 
     // ------------------------------------------------------------------------
@@ -673,10 +673,10 @@ export default abstract class BaseEntity {
     * @returns - A entity instance pagination collection
     */
     public static paginate<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
-        options: PaginationQueryOptions<InstanceType<T>>
-    ) {
-        this.getRepository().paginate(options)
+        this: T,
+        options?: PaginationQueryOptions<InstanceType<T>>
+    ): Pagination<InstanceType<T>> {
+        return (this as any).getRepository().paginate(options)
     }
 
     // ------------------------------------------------------------------------
@@ -687,10 +687,10 @@ export default abstract class BaseEntity {
      * @returns - The count number result
      */
     public static count<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+        this: T,
         options: CountQueryOption<InstanceType<T>>
     ): Promise<number> {
-        return this.getRepository().count(options)
+        return (this as any).getRepository().count(options)
     }
 
     // ------------------------------------------------------------------------
@@ -705,10 +705,10 @@ export default abstract class BaseEntity {
         T extends EntityTarget,
         Opts extends CountQueryOptions<InstanceType<T>>
     >(
-        this: T & typeof BaseEntity,
+        this: T,
         options: Opts
     ): Promise<CountManyQueryResult<T, Opts>> {
-        return this.getRepository().countMany(options)
+        return (this as any).getRepository().countMany(options)
     }
 
     // ------------------------------------------------------------------------
@@ -720,10 +720,10 @@ export default abstract class BaseEntity {
      * @returns - A entity instance for created register
      */
     public static create<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+        this: T,
         attributes: CreationAttributes<InstanceType<T>>
     ): Promise<InstanceType<T>> {
-        return this.getRepository().create(attributes)
+        return (this as any).getRepository().create(attributes)
     }
 
     // ------------------------------------------------------------------------
@@ -736,10 +736,10 @@ export default abstract class BaseEntity {
      * @returns - A entity instance collection for created registers
      */
     public static createMany<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+        this: T,
         attributes: CreationAttributes<InstanceType<T>>[]
     ): Promise<InstanceType<T>[]> {
-        return this.getRepository().createMany(attributes)
+        return (this as any).getRepository().createMany(attributes)
     }
 
     // ------------------------------------------------------------------------
@@ -752,13 +752,11 @@ export default abstract class BaseEntity {
      * @returns - A result set header with the count of affected registers
      */
     public static update<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+        this: T,
         attributes: UpdateAttributes<InstanceType<T>>,
         where: ConditionalQueryOptions<InstanceType<T>>
     ): Promise<ResultSetHeader> {
-        return this.getRepository().update(attributes, where) as (
-            Promise<ResultSetHeader>
-        )
+        return (this as any).getRepository().update(attributes, where)
     }
 
     // ------------------------------------------------------------------------
@@ -769,14 +767,10 @@ export default abstract class BaseEntity {
      * @returns - A entity instance for updated or created register
      */
     public static updateOrCreate<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+        this: T,
         attributes: UpdateOrCreateAttibutes<InstanceType<T>>,
     ): Promise<InstanceType<T>> {
-        return this.getRepository().updateOrCreate(
-            attributes as unknown as (
-                UpdateOrCreateAttibutes<InstanceType<T & typeof BaseEntity>>
-            )
-        )
+        return (this as any).getRepository().updateOrCreate(attributes)
     }
 
     // ------------------------------------------------------------------------
@@ -787,10 +781,10 @@ export default abstract class BaseEntity {
      * @returns - A result header containing the count of affected registers
      */
     public static delete<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+        this: T,
         where: ConditionalQueryOptions<InstanceType<T>>
     ): Promise<DeleteResult> {
-        return this.getRepository().delete(where)
+        return (this as any).getRepository().delete(where)
     }
 
     // Privates ---------------------------------------------------------------
@@ -798,7 +792,7 @@ export default abstract class BaseEntity {
     public static getTrueMetadata<T extends EntityTarget>(this: T): (
         EntityMetadata
     ) {
-        return MetadataHandler.loadMetadata(this) as EntityMetadata
+        return MetadataHandler.targetMetadata(this) as EntityMetadata
     }
 
     // ------------------------------------------------------------------------

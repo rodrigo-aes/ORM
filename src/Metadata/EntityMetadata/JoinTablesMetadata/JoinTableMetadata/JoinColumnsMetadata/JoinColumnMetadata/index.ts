@@ -1,7 +1,7 @@
 import JoinForeignKeyReferences from "./JoinForeignKeyReferences"
 
 import type JoinTableMetadata from "../.."
-import type DataType from "../../../DataType"
+import type DataType from "../../../../DataType"
 import type { JoinColumnInitMap, JoinColumnMetadataJSON } from "./types"
 
 export default class JoinColumnMetadata {
@@ -24,7 +24,7 @@ export default class JoinColumnMetadata {
     // ------------------------------------------------------------------------
 
     public get name(): string {
-        return `${this.references.referenced().name.toLowerCase()}Id`
+        return `${this.references.entity.name.toLowerCase()}Id`
     }
 
     // ------------------------------------------------------------------------
@@ -48,29 +48,19 @@ export default class JoinColumnMetadata {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): JoinColumnMetadataJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                dataType: this.dataType.toJSON(),
-                references: this.references.toJSON()
-            }),
-            Object.entries(this).filter(
-                ([key]) => [
-                    'name',
-                    'length',
-                    'unsigned',
-                    'isForeignKey',
-                ]
-                    .includes(key)
-            )
-        ]) as JoinColumnMetadataJSON
+        return {
+            name: this.name,
+            dataType: this.dataType.toJSON(),
+            length: this.length,
+            unsigned: this.unsigned,
+            isForeignKey: this.isForeignKey,
+            references: this.references.toJSON(),
+        }
     }
 
     // Privates ---------------------------------------------------------------
     private makeReferences(initMap: JoinColumnInitMap) {
-        return new JoinForeignKeyReferences(this.table, this, {
-            constrained: true,
-            ...initMap
-        })
+        return new JoinForeignKeyReferences(this.table, initMap)
     }
 }
 

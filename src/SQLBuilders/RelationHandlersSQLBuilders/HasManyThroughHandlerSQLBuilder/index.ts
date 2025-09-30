@@ -7,7 +7,7 @@ import type {
 
 import type {
     EntityTarget
-} from "../../../types/General"
+} from "../../../types"
 import { CreationAttributes } from "../../CreateSQLBuilder"
 
 // Exceptions

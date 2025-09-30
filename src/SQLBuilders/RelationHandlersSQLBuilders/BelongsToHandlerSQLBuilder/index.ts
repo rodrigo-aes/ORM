@@ -7,12 +7,12 @@ import type {
 
 import type {
     EntityTarget,
-    PolymorphicEntityTarget
-} from "../../../types/General"
+    PolymorphicEntityTarget,
+    EntityProperties,
+    OptionalNullable
+} from "../../../types"
 
 import { CreationAttributes } from "../../CreateSQLBuilder"
-import { OptionalNullable } from "../../../types/Properties"
-import { EntityProperties } from "../../types"
 
 // Exceptions
 import PolyORMException from "../../../Errors"

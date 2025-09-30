@@ -2,9 +2,7 @@
 import {
     CountSQLBuilder,
 
-    type CountQueryOptions,
-    type EntityProperties,
-    type EntityPropertiesKeys
+    type CountQueryOptions
 } from "../../SQLBuilders"
 
 // Query Builders
@@ -17,7 +15,11 @@ import {
 } from "../../Handlers"
 
 // Types
-import type { Target } from "../../types/General"
+import type {
+    Target,
+    EntityProperties,
+    EntityPropertiesKeys
+} from "../../types"
 
 import type {
     CompatibleOperators,

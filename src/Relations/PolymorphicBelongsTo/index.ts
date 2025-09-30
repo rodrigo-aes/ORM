@@ -10,7 +10,7 @@ import {
 } from "../../Handlers"
 
 // Types
-import type { PolymorphicEntityTarget } from "../../types/General"
+import type { PolymorphicEntityTarget } from "../../types"
 import type { PolymorphicBelongsToMetadata } from "../../Metadata"
 
 export default class PolymorphicBelongsTo<

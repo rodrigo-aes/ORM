@@ -10,7 +10,7 @@ import {
 } from "../../Handlers"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type { BelongsToThroughMetadata } from "../../Metadata"
 
 /** BelongsToThrough relation handler */

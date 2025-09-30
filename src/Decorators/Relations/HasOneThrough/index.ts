@@ -5,7 +5,7 @@ import {
 } from "../../../Metadata"
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 import type { HasOneThroughOptions } from "./types"
 
 export default function HasOneThrough(

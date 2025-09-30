@@ -1,7 +1,7 @@
 import ManyRelation from ".."
 
 // Types
-import type { EntityTarget } from "../../../types/General"
+import type { EntityTarget } from "../../../types"
 import type {
     HasManyMetadata,
     PolymorphicHasManyMetadata,

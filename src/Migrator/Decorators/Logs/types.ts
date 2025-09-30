@@ -1,4 +1,4 @@
-import type { Constructor } from "../../../types/General"
+import type { Constructor } from "../../../types"
 import type DatabaseSchema from "../../../DatabaseSchema"
 import type { TableSchema, ActionType } from "../../../DatabaseSchema"
 import type DatabaseMigrator from "../../DatabaseMigrator"

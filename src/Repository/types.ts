@@ -1,4 +1,4 @@
-import type { EntityTarget, PolymorphicEntityTarget } from "../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../types"
 import type BaseEntity from "../BaseEntity"
 import type BasePolymorphicEntity from "../BasePolymorphicEntity"
 import type { ResultSetHeader } from "mysql2"

@@ -8,7 +8,7 @@ import { MetadataHandler } from "../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 import type { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 import type { CreationAttributesOptions } from "../../SQLBuilders"
 
@@ -22,7 +22,7 @@ export default class EntityBuilder<
         public attibutes: CreationAttributesOptions<InstanceType<T>>,
         public primary?: any
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================

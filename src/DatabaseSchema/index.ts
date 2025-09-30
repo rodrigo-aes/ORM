@@ -17,7 +17,7 @@ import { databaseSchemaQuery } from "./static"
 
 // Types
 import type { PolyORMConnection } from "../Metadata"
-import type { Constructor } from "../types/General"
+import type { Constructor } from "../types"
 import type {
     DatabaseSchemaAction,
     ActionType,

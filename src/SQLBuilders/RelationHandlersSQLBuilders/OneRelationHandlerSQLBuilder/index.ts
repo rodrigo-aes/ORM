@@ -14,7 +14,7 @@ import type { OneRelationMetadataType } from "../../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import type { CreationAttributes } from "../../CreateSQLBuilder"
 import type { UpdateAttributes } from "../../UpdateSQLBuilder"

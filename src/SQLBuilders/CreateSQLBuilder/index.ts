@@ -10,7 +10,7 @@ import { MetadataHandler } from "../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 import type {
     CreationAttributesOptions,
     CreationAttributes,
@@ -36,7 +36,7 @@ export default class CreateSQLBuilder<
         public absolute: boolean = false
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target) as (
+        this.metadata = MetadataHandler.targetMetadata(this.target) as (
             EntityMetadata
         )
 
@@ -186,7 +186,7 @@ export default class CreateSQLBuilder<
         CreationAttibutesKey<InstanceType<T>>[]
     ) {
         return Object.keys(attributes ?? this.attributes ?? {})
-            .filter(key => this.metadata.columns.findColumn(key)) as (
+            .filter(key => this.metadata.columns.search(key)) as (
                 CreationAttibutesKey<InstanceType<T>>[]
             )
     }
@@ -218,8 +218,8 @@ export default class CreateSQLBuilder<
         return this.columnsNames.map(column => {
             if (attributes[column]) return attributes[column]
 
-            const defaultValue = this.metadata.columns
-                .findColumn(column as string)?.defaultValue
+            const defaultValue = this.metadata.columns.search(column as string)
+                ?.defaultValue
 
             if (typeof defaultValue === 'function') return PropertySQLHelper
                 .valueSQL(defaultValue())

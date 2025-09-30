@@ -35,7 +35,7 @@ import type {
     EntityTarget,
     PolymorphicEntityTarget,
     AsEntityTarget
-} from "../../types/General"
+} from "../../types"
 import type {
     SQLBuilder,
     ExecResult,
@@ -52,7 +52,7 @@ import type {
 
 export default class MySQL2QueryExecutionHandler<
     T extends EntityTarget | PolymorphicEntityTarget,
-    Builder extends SQLBuilder<T>,
+    Builder extends SQLBuilder,
     MapTo extends ResultMapOption
 > {
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
@@ -64,7 +64,7 @@ export default class MySQL2QueryExecutionHandler<
         public sqlBuilder: Builder,
         public mapTo: MapTo
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Getters ================================================================
@@ -285,10 +285,7 @@ export default class MySQL2QueryExecutionHandler<
     ) {
         return new EntityBuilder(
             this.target,
-            (
-                (this.sqlBuilder as CreateSQLBuilder<Extract<T, EntityTarget>>)
-                    .attributes!
-            ),
+            (this.sqlBuilder as any).attributes!,
             resultHeader.insertId ?? undefined
         )
             .build() as ExecResult<T, Builder, MapTo>

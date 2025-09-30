@@ -1,4 +1,4 @@
-import type { PolymorphicEntityTarget, EntityTarget } from "../../types/General"
+import type { PolymorphicEntityTarget, EntityTarget } from "../../types"
 import type EntityMetadata from "../EntityMetadata"
 import type {
     ColumnsMetadataJSON,

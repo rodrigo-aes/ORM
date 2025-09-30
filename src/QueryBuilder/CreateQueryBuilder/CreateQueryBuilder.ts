@@ -8,7 +8,7 @@ import {
 } from "../../SQLBuilders"
 
 // Types
-import type { EntityTarget } from "../../types/General"
+import type { EntityTarget } from "../../types"
 
 export default abstract class CreateQueryBuilder<T extends EntityTarget> {
     /** @internal */
@@ -21,7 +21,7 @@ export default abstract class CreateQueryBuilder<T extends EntityTarget> {
         public target: T,
         public alias?: string,
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
         this.sqlBuilder = new CreateSQLBuilder(
             this.target,
             undefined,

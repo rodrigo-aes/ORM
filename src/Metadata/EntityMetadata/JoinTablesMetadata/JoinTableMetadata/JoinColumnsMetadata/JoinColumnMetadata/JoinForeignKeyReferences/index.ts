@@ -1,8 +1,8 @@
-import EntityMetadata from "../../../.."
+import EntityMetadata from "../../../../.."
 
 import type JoinTableMetadata from "../../.."
 import type JoinColumnMetadata from ".."
-import type { ColumnMetadata } from "../../../../ColumnsMetadata"
+import type { ColumnMetadata } from "../../../../../ColumnsMetadata"
 
 import type {
     JoinForeignKeyReferencedGetter,
@@ -20,7 +20,6 @@ export default class JoinForeignKeyReferences {
 
     constructor(
         private table: JoinTableMetadata,
-        private _column: JoinColumnMetadata,
         initMap: ForeignKeyReferencesInitMap
     ) {
         Object.assign(this, initMap)
@@ -40,28 +39,21 @@ export default class JoinForeignKeyReferences {
 
     // ------------------------------------------------------------------------
 
-    public get name(): string | undefined {
-        return `fk_${this.table.tableName}_${this._column.name}`
+    public get name(): string {
+        return `fk_${this.table.tableName}_${this.entity.name.toLowerCase()}Id`
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): JoinForeignKeyReferencesJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                entity: this.entity.toJSON(),
-                column: this.column.toJSON()
-            }),
-            ...Object.entries(this).filter(
-                ([key]) => [
-                    'name',
-                    'constrained',
-                    'onDelete',
-                    'onUpdate',
-                ]
-                    .includes(key)
-            )
-        ]) as JoinForeignKeyReferencesJSON
+        return {
+            entity: this.entity.toJSON(),
+            column: this.column.toJSON(),
+            name: this.name,
+            constrained: this.constrained,
+            onDelete: this.onDelete,
+            onUpdate: this.onUpdate,
+        }
     }
 }
 

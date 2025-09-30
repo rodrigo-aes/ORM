@@ -3,7 +3,7 @@ import TriggerSQLBuilder from "../SQLBuilders/DatabaseSQLBuilders/TriggerSQLBuil
 import { MetadataHandler, type EntityMetadata } from "../Metadata"
 
 // Types
-import type { Constructor } from "../types/General"
+import type { Constructor } from "../types"
 import type BaseEntity from "../BaseEntity"
 
 export default abstract class Trigger<
@@ -14,7 +14,7 @@ export default abstract class Trigger<
 
     constructor(public target: Constructor<T>) {
         super()
-        this.metadata = MetadataHandler.loadMetadata(this.target) as (
+        this.metadata = MetadataHandler.targetMetadata(this.target) as (
             EntityMetadata
         )
     }

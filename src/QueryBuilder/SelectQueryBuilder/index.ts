@@ -15,7 +15,7 @@ import CaseQueryBuilder from "../CaseQueryBuilder"
 import CountQueryBuilder from "../CountQueryBuilder"
 
 // Types
-import type { Target, TargetMetadata } from "../../types/General"
+import type { Target, TargetMetadata } from "../../types"
 import type { CountQueryHandler, CaseQueryHandler } from "../types"
 import type { SelectPropertyType, SelectPropertiesOptions } from "./types"
 
@@ -40,7 +40,7 @@ export default class SelectQueryBuilder<T extends Target> {
         /** @internal */
         public alias?: string
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================

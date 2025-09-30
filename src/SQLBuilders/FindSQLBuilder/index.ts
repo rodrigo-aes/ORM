@@ -10,7 +10,7 @@ import { ScopeMetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types/General"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
 import type { FindQueryOptions } from "./types"
 
 export default class FindSQLBuilder<

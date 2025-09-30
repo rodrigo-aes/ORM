@@ -18,7 +18,7 @@ import type { PolyORMConnection } from "../../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import type { Collection } from "../../../BaseEntity"
 
@@ -36,7 +36,7 @@ export default class RelationQueryExecutionHandler<
     protected metadata: EntityMetadata | PolymorphicEntityMetadata
 
     constructor(public target: T) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================

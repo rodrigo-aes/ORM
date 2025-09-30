@@ -12,7 +12,7 @@ import ForeignKeyReferencesSchema, {
 } from "./ForeignKeyReferencesSchema"
 
 // Types
-import type { EntityTarget, Constructor } from "../../../types/General"
+import type { EntityTarget, Constructor } from "../../../types"
 import type { ColumnPattern } from "../../../Metadata"
 import type { ActionType } from "../../types"
 import type {

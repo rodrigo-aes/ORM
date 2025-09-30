@@ -8,13 +8,14 @@ import OperatorQueryBuilder from "../OperatorQueryBuilder"
 import ExistsQueryBuilder from "../ExistsQueryBuilder"
 
 // Types
-import type { Target, TargetMetadata } from "../../types/General"
-
 import type {
-    AndQueryOptions,
+    Target,
+    TargetMetadata,
     EntityProperties,
     EntityPropertiesKeys
-} from "../../SQLBuilders"
+} from "../../types"
+
+import type { AndQueryOptions } from "../../SQLBuilders"
 
 import type {
     CompatibleOperators,
@@ -44,7 +45,7 @@ export default class AndQueryBuilder<T extends Target> {
         /** @internal */
         public alias?: string
     ) {
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Getters ================================================================

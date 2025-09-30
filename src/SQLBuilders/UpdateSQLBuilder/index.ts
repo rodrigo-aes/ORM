@@ -21,7 +21,7 @@ import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../types/General"
+} from "../../types"
 
 import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 
@@ -52,7 +52,7 @@ export default class UpdateSQLBuilder<
         alias?: string
     ) {
         this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.loadMetadata(this.target)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
 
         this.applyConditionalScope()
 
@@ -158,7 +158,7 @@ export default class UpdateSQLBuilder<
         UpdateAtt5ributesKey<InstanceType<T>>[]
     ) {
         return Object.keys(attributes ?? this.attributes ?? {})
-            .filter(key => this.metadata.columns.findColumn(key)) as (
+            .filter(key => this.metadata.columns.search(key)) as (
                 UpdateAtt5ributesKey<InstanceType<T>>[]
             )
     }

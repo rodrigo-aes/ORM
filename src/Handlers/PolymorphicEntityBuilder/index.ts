@@ -5,7 +5,7 @@ import BasePolymorphicEntity, {
 import { MetadataHandler } from "../../Metadata"
 
 import type { PolymorphicEntityMetadata, EntityMetadata } from "../../Metadata"
-import type { PolymorphicEntityTarget, EntityTarget } from "../../types/General"
+import type { PolymorphicEntityTarget, EntityTarget } from "../../types"
 
 export default class PolymorphicEntityBuilder {
     public static readonly entityNameRegExp = /^[A-Z][A-Za-z0-9]*$/
@@ -19,34 +19,35 @@ export default class PolymorphicEntityBuilder {
         source: Source,
         target: T
     ): InstanceType<Source> {
-        const meta = MetadataHandler.loadMetadata(source)
-        const primary = meta.columns.primary.name
+        const meta = MetadataHandler.targetMetadata(source)
 
         return new source({
-            ...(Object.fromEntries(Object.entries(target).flatMap(
-                ([key, value]) => meta.columns.findColumn(key)
+            [meta.columns.primary.name]: target.primaryKey,
+
+            ...Object.fromEntries(Object.entries(target).flatMap(
+                ([key, value]) => meta.columns.search(key)
                     ? [[key, value]]
                     : []
-            ))),
-            [primary]: target.primaryKey
+            )),
+
         }) as InstanceType<Source>
     }
 
     // ------------------------------------------------------------------------
 
-    public static buildInternalEntityUnion(
+    public static buildInternalPolymorphicEntity(
         metadata: PolymorphicEntityMetadata
     ): PolymorphicEntityTarget {
-        if (!this.entityNameRegExp.test(metadata.targetName)) throw new Error
+        if (!this.entityNameRegExp.test(metadata.name)) throw new Error
 
         const entity = new Function(
             'BasePolymorphicEntity',
             `
-                return class ${metadata.targetName} 
+                return class ${metadata.name} 
                 extends BasePolymorphicEntity {
                     constructor () {
                         super()
-                        ${this.fillDinamicColumns(metadata)}
+                        ${this.polymorphicColumns(metadata)}
                     }
                 }
             `
@@ -57,7 +58,7 @@ export default class PolymorphicEntityBuilder {
     }
 
     // Privates ---------------------------------------------------------------
-    private static fillDinamicColumns(metadata: PolymorphicEntityMetadata): (
+    private static polymorphicColumns(metadata: PolymorphicEntityMetadata): (
         string
     ) {
         return metadata.columns.map(col => `this['${col.name}'] = null`)

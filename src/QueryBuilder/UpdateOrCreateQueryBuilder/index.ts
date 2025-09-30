@@ -3,14 +3,17 @@ import {
     UpdateOrCreateSQLBuilder,
 
     type UpdateOrCreateAttibutes,
-    type EntityPropertiesKeys
 } from "../../SQLBuilders"
 
 // Handlers
 import { MySQL2QueryExecutionHandler } from "../../Handlers"
 
 // Types
-import type { EntityTarget, AsEntityTarget } from "../../types/General"
+import type {
+    EntityTarget,
+    AsEntityTarget,
+    EntityPropertiesKeys
+} from "../../types"
 
 /**
  * Build a Update or Create query
@@ -27,7 +30,7 @@ export default class UpdateOrCreateQueryBuilder<T extends EntityTarget> {
     ) {
         this.sqlBuilder = new UpdateOrCreateSQLBuilder(
             this.target,
-            {},
+            {} as any,
             this.alias
         )
     }

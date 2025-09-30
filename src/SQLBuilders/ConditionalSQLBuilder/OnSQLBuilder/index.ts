@@ -23,7 +23,7 @@ import { SQLStringHelper } from "../../../Helpers"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 import type { ConditionalQueryOptions } from "../types"
 
 export default class OnSQLBuilder<
@@ -55,7 +55,7 @@ export default class OnSQLBuilder<
     // ------------------------------------------------------------------------
 
     public fixedSQL(): string {
-        switch (RelationMetadata.relationType(this.relation)) {
+        switch (this.relation.type) {
             case "HasOne":
             case "HasMany": return this.fixedHasSQL()
 

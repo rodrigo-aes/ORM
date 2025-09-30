@@ -15,7 +15,7 @@ import type { ManyRelationMetadatatype } from "../../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import type { ConditionalQueryOptions } from "../../ConditionalSQLBuilder"
 import type { CreationAttributes } from "../../CreateSQLBuilder"

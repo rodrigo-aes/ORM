@@ -4,7 +4,7 @@ import { ScopesMetadata } from "../../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget
-} from "../../../types/General"
+} from "../../../types"
 
 import type { FindQueryOptions } from "../../../SQLBuilders"
 
