@@ -13,8 +13,8 @@ import EntityMetadata, {
 import PolymorphicColumnsMetadata, {
     PolymorphicColumnMetadata,
 
-    type CombinedColumns,
-    type CombinedColumnOptions
+    type IncludedColumns,
+    type IncludeColumnOptions
 } from "./PolymorphicColumnsMetadata"
 
 import PolymorphicRelationsMetadata from "./PolymorphicRelationsMetadata"
@@ -61,7 +61,7 @@ export default class PolymorphicEntityMetadata extends Metadata {
     constructor(
         target: PolymorphicEntityTarget | undefined,
         tablename: string | undefined,
-        public sources: EntityTarget[] | PolymorphicParentRelatedGetter
+        private _sources: EntityTarget[] | PolymorphicParentRelatedGetter
     ) {
         if (!target && !tablename) throw new Error(
             'Polymorphic metadata needs a PolymorphicEntityTarget or tablename'
@@ -72,26 +72,25 @@ export default class PolymorphicEntityMetadata extends Metadata {
         this.target = target ?? (
             PolymorphicEntityBuilder.buildInternalPolymorphicEntity(this)
         )
-
-        this.loadEntities()
-        this.loadSourcesMetadata()
-        this.loadColumns()
-        this.loadRelations()
-
-        if (target) this.mergeCombined()
-
-        // MetadataHandler.register(this, this.target)
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get name(): string {
-        return this.target.name ?? this.tableName
+        return this.target?.name ?? this.tableName
             .split('_')
             .map(word => (
                 word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
             ))
             .join('')
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get sources(): EntityTarget[] {
+        return this._sources = typeof this._sources === 'function'
+            ? this._sources()
+            : this._sources
     }
 
     // ------------------------------------------------------------------------
@@ -103,34 +102,30 @@ export default class PolymorphicEntityMetadata extends Metadata {
     // ------------------------------------------------------------------------
 
     public get entities(): UnionEntitiesMap {
-        if (Object.values(this._entities ?? {}).length === 0) (
-            this.loadEntities()
+        return this._entities = this._entities ?? Object.fromEntries(
+            this.sources.map(target => [target.name, target])
         )
-
-        return this._entities
     }
 
     // ------------------------------------------------------------------------
 
     public get sourcesMetadata(): SourcesMetadata {
-        if (Object.values(this._sourcesMetadata ?? {}).length === 0) (
-            this.loadEntities()
-        )
-
-        return this._sourcesMetadata
+        return this._sourcesMetadata = this._sourcesMetadata
+            ?? Object.fromEntries(this.sources.map(target => [
+                target.name, EntityMetadata.findOrThrow(target)
+            ]))
     }
 
     // ------------------------------------------------------------------------
 
     public get columns(): PolymorphicColumnsMetadata {
-        if (typeof this.sources === 'function') this.loadSourcesMetadata()
-        return this._columns ?? this.loadColumns()
+        return PolymorphicColumnsMetadata.findOrBuild(this.target)
     }
 
     // ------------------------------------------------------------------------
 
     public get relations(): PolymorphicRelationsMetadata {
-        return this._relations ?? this.loadRelations()
+        throw new Error
     }
 
     // ------------------------------------------------------------------------
@@ -154,9 +149,7 @@ export default class PolymorphicEntityMetadata extends Metadata {
 
     // ------------------------------------------------------------------------
 
-    public get combined(): CombinedColumns {
-        return Reflect.getOwnMetadata('combined-columns', this.target!)
-    }
+
 
     // ------------------------------------------------------------------------
 
@@ -180,22 +173,6 @@ export default class PolymorphicEntityMetadata extends Metadata {
 
     public get foreignKeys(): PolymorphicColumnMetadata[] {
         return this.columns.filter(({ isForeignKey }) => isForeignKey)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public get constrainedForeignKeys(): PolymorphicColumnMetadata[] {
-        return this.foreignKeys.filter(
-            ({ references }) => references?.constrained
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public get dependencies(): EntityTarget[] {
-        return this.constrainedForeignKeys.flatMap(
-            ({ references }) => references!.referenced()
-        )
     }
 
     // Instance Methods =======================================================
@@ -232,86 +209,7 @@ export default class PolymorphicEntityMetadata extends Metadata {
             : EntityToJSONProcessMetadata.apply(() => this.buildJSON())
     }
 
-    // ------------------------------------------------------------------------
-
-    public combineColumn(name: string, options: CombinedColumnOptions): void {
-        this.combined[name] = options
-    }
-
-    // ------------------------------------------------------------------------
-
-    public excludeColumns(...columnNames: string[]): void {
-        this.exclude = columnNames
-    }
-
     // Privates ---------------------------------------------------------------
-    private loadEntities(): void {
-        try {
-            if (typeof this.sources === 'function') (
-                this.sources = this.sources()
-            )
-
-            this._entities = Object.fromEntries(
-                this.sources.map(source => [source.name, source])
-            )
-
-        } catch (error) {
-            this._entities = {}
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadSourcesMetadata(): void {
-        try {
-            if (typeof this.sources === 'function') (
-                this.sources = this.sources()
-            )
-
-            this._sourcesMetadata = Object.fromEntries(this.sources.map(
-                source => [source.name, EntityMetadata.findOrBuild(source)]
-            ))
-
-        } catch (error) {
-            this._sourcesMetadata = {}
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadColumns(): PolymorphicColumnsMetadata {
-        const metas = Object.values(this.sourcesMetadata)
-
-        this._columns = new PolymorphicColumnsMetadata(
-            this.target,
-            metas.flatMap(meta => meta.columns
-                .filter(({ name }) => !this.exclude?.includes(name))
-            )
-        )
-
-        return this._columns
-    }
-
-    // ------------------------------------------------------------------------
-
-    private mergeCombined(): void {
-        if (this.combined) this._columns!.combine(this.combined)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadRelations(): PolymorphicRelationsMetadata {
-        const metas = Object.values(this.sourcesMetadata)
-        const relations = metas.flatMap(meta => meta.relations)
-
-        this._relations = new PolymorphicRelationsMetadata(
-            this.target, ...relations
-        )
-
-        return this._relations
-    }
-
-    // ------------------------------------------------------------------------
 
     private buildJSON<T extends PolymorphicEntityTarget = any>(): (
         PolymorphicEntityMetadataJSON | undefined
@@ -377,5 +275,6 @@ export {
     PolymorphicColumnMetadata,
 
     type UnionEntitiesMap,
-    type CombinedColumnOptions
+    type IncludedColumns,
+    type IncludeColumnOptions
 }

@@ -1,9 +1,9 @@
 // Types
-import type { EntityTarget, PolymorphicEntityTarget, Target } from "../../../../types"
-import type { RelationOptions, RelationMetadataName } from "./types"
+import type { Target } from "../../../../types"
+import type { RelationType } from "./types"
 
 export default abstract class RelationMetadata {
-    constructor(public target: EntityTarget, public name: string) { }
+    constructor(public target: Target, public name: string) { }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
@@ -11,9 +11,9 @@ export default abstract class RelationMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get type(): RelationMetadataName {
+    public get type(): RelationType {
         return this.constructor.name.replace('Metadata', '') as (
-            RelationMetadataName
+            RelationType
         )
     }
 

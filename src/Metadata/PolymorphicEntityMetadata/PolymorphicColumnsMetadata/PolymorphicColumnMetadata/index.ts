@@ -11,6 +11,7 @@ import type {
 import type { ColumnMetadata, ColumnMetadataJSON } from "../../../EntityMetadata"
 
 export default class PolymorphicColumnMetadata {
+    public dataType: DataType | DataType[]
     public length?: number
     public nullable?: boolean
     public defaultValue?: any
@@ -19,14 +20,32 @@ export default class PolymorphicColumnMetadata {
     public autoIncrement?: boolean
     public unsigned?: boolean
     public isForeignKey?: boolean
-    public references?: PolymorphicForeignKeyReferences
+
+    // public references?: PolymorphicForeignKeyReferences
+
+    private static readonly commonPropsKeys: (keyof ColumnMetadata)[] = [
+        'nullable',
+        'defaultValue',
+        'unique',
+        'primary',
+        'autoIncrement',
+        'unsigned',
+        'isForeignKey',
+    ]
 
     constructor(
         public target: PolymorphicEntityTarget | null,
         public name: string,
-        public dataType: DataType,
-        public sources?: ColumnMetadata[]
-    ) { }
+        public sources?: ColumnMetadata[],
+        dataType?: DataType
+    ) {
+        if (sources) {
+            this.dataType = this.mergeDataTypes()
+            Object.assign(this, this.getCommonProps())
+        }
+        else this.dataType = dataType ?? (() => { throw new Error })()
+
+    }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
@@ -36,39 +55,50 @@ export default class PolymorphicColumnMetadata {
 
     // ------------------------------------------------------------------------
 
-    public toJSON(): ColumnMetadataJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                dataType: this.dataType?.toJSON(),
-                references: this.references?.toJSON()
-            }),
-            ...Object.entries(this).filter(
-                ([key]) => [
-                    'name',
-                    'length',
-                    'nullable',
-                    'defaultValue',
-                    'unique',
-                    'primary',
-                    'autoIncrement',
-                    'unsigned',
-                    'isForeignKey',
-                ]
-                    .includes(key)
-            )
-        ]) as ColumnMetadataJSON
+    public toJSON() {
+        return {
+            name: this.name,
+
+            dataTypes: Array.isArray(this.dataType)
+                ? this.dataType.map(dataType => dataType.toJSON())
+                : this.dataType,
+
+            length: this.length,
+            nullable: this.nullable,
+            defaultValue: this.defaultValue,
+            unique: this.unique,
+            primary: this.primary,
+            autoIncrement: this.autoIncrement,
+            unsigned: this.unsigned,
+            isForeignKey: this.isForeignKey,
+        }
     }
 
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static buildEntityTypeColumn(
-        target: PolymorphicEntityTarget | null,
-        ...types: EntityTarget[]
-    ): PolymorphicColumnMetadata {
-        return new PolymorphicColumnMetadata(
-            target,
-            'entityType',
-            DataType.ENUM(...types.map(target => target.name))
+    // Private ----------------------------------------------------------------
+    private mergeDataTypes(): DataType[] {
+        const types = new Set<string>()
+
+        return this.sources!
+            .map(({ dataType }) => dataType)
+            .filter(dataType => types.has(dataType.type)
+                ? false
+                : types.add(dataType.type)
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private getCommonProps(): any {
+        return Object.fromEntries(
+            PolymorphicColumnMetadata.commonPropsKeys.flatMap(key => {
+                const [first] = this.sources!
+
+                return this.sources!.every(
+                    source => source[key] === first[key]
+                )
+                    ? [[key, first[key]]]
+                    : []
+            })
         )
     }
 }

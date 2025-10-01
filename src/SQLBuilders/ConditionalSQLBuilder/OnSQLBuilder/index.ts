@@ -1,7 +1,8 @@
 import ConditionalSQLBuilder from "../ConditionalSQLBuilder"
+import BasePolymorphicEntity from "../../../BasePolymorphicEntity"
 
 import {
-    RelationMetadata,
+    MetadataHandler,
 
     type RelationMetadataType,
     type HasOneMetadata,
@@ -20,100 +21,117 @@ import {
 import { SQLStringHelper } from "../../../Helpers"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../../types"
+import type { Target, TargetMetadata } from "../../../types"
 import type { ConditionalQueryOptions } from "../types"
 
 export default class OnSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> extends ConditionalSQLBuilder<T> {
-    constructor(
-        public relation: RelationMetadataType,
-        public parentAlias: string,
-        alias: string,
+    Parent extends Target,
+    Related extends Target
+> extends ConditionalSQLBuilder<Related> {
+    private parentMetadata: TargetMetadata<Parent>
 
-        target: T,
-        options?: ConditionalQueryOptions<InstanceType<T>>,
+    constructor(
+        public parentTarget: Parent,
+        public target: Related,
+        public relation: RelationMetadataType,
+        options?: ConditionalQueryOptions<InstanceType<Related>>,
+        public parentAlias: string = parentTarget.name.toLowerCase(),
+        alias: string = relation.name,
     ) {
         super(target, options, alias)
+
+        this.parentMetadata = MetadataHandler.targetMetadata(this.parentTarget)
+    }
+
+    // Getters ================================================================
+    // Privates ---------------------------------------------------------------
+    private get relatedPrimary(): string {
+        return `${this.alias}.${this.metadata.columns.primary.name}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get parentPrimary(): string {
+        return (
+            `${this.parentAlias}.${this.parentMetadata.columns.primary.name}`
+        )
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
-        const fixedRelationSQL = this.fixedSQL()
-        const conditionalSQL = this.conditionalSQL()
-
         return SQLStringHelper.normalizeSQL(`
-            ON ${fixedRelationSQL}
-            ${conditionalSQL ? ` AND ${conditionalSQL}` : ''}
+            ON ${this.fixedConditionalSQL()} ${this.conditionalSQL(' AND')}
         `)
     }
 
     // ------------------------------------------------------------------------
 
-    public fixedSQL(): string {
+    public fixedConditionalSQL(): string {
         switch (this.relation.type) {
             case "HasOne":
             case "HasMany": return this.fixedHasSQL()
 
+            // ----------------------------------------------------------------
+
             case "HasOneThrough":
             case "HasManyThrough": return this.fixedHasThroughSQL()
 
+            // ----------------------------------------------------------------
+
             case "BelongsTo": return this.fixedBelongsTo()
+
+            // ----------------------------------------------------------------
 
             case "BelongsToThrough": return this.fixedBelongsToThrough()
 
+            // ----------------------------------------------------------------
+
             case "BelongsToMany": return this.fixedBelongsToMany()
+
+            // ----------------------------------------------------------------
 
             case "PolymorphicHasOne":
             case "PolymorphicHasMany": return this.fixedPolymorphicHas()
 
-            case "PolymorphicBelongsTo": return this.fixedPolymorphicBelongsTo()
+            // ----------------------------------------------------------------
+
+            case "PolymorphicBelongsTo": return (
+                this.fixedPolymorphicBelongsTo()
+            )
         }
     }
 
     // Privates ---------------------------------------------------------------
     private fixedHasSQL(): string {
-        const primary = this.metadata.columns.primary.name
-        const { foreignKey } = this.relation as (
+        const { relatedFKName } = this.relation as (
             HasOneMetadata |
             HasManyMetadata
         )
 
-        return `
-            ${this.alias}.${foreignKey.name} = 
-                ${this.parentAlias}.${primary}
-        `
+        return `${this.alias}.${relatedFKName} = ${this.parentPrimary}`
     }
 
     // ------------------------------------------------------------------------
 
     private fixedHasThroughSQL(): string {
-        const primary = this.metadata.columns.primary.name
         const {
-            entity,
-            foreignKey,
-
-            throughEntity,
-            throughEntityName,
-            throughForeignKey,
+            relatedTable,
+            throughTable,
+            throughPrimary,
+            relatedFKName,
+            throughFKName
         } = this.relation as (
             HasOneThroughMetadata |
             HasManyThroughMetadata
         )
-        const throughPrimary = throughEntity.columns.primary.name
 
         return `EXISTS (
-            SELECT 1 FROM ${entity.tableName} ${this.alias} 
+            SELECT 1 FROM ${relatedTable} ${this.alias} 
                 WHERE EXISTS (
-                    SELECT 1 FROM ${throughEntity.tableName} ${throughEntityName}
-                        WHERE ${throughEntityName}.${throughForeignKey.name} =
-                            ${this.parentAlias}.${primary}
-                        AND ${this.alias}.${foreignKey.name} = 
-                            ${throughEntityName}.${throughPrimary}
+                    SELECT 1 FROM ${throughTable}
+                        WHERE ${throughFKName} = ${this.parentPrimary}
+                        AND ${this.alias}.${relatedFKName} = ${throughPrimary}
                 )
         )`
     }
@@ -121,42 +139,27 @@ export default class OnSQLBuilder<
     // ------------------------------------------------------------------------
 
     private fixedBelongsTo(): string {
-        const { entity, foreignKey } = this.relation as (
-            BelongsToMetadata
-        )
-        const entityPrimary = entity.columns.primary.name
-
-        return `
-            ${this.alias}.${entityPrimary} =
-            ${this.parentAlias}.${foreignKey.name} 
-        `
+        const { FKName } = this.relation as BelongsToMetadata
+        return `${this.relatedPrimary} = ${this.parentAlias}.${FKName}`
     }
 
     // ------------------------------------------------------------------------
 
     private fixedBelongsToThrough(): string {
         const {
-            entity,
-            foreignKey,
-
-            throughEntity,
-            throughEntityName,
-            throughForeignKey
-        } = this.relation as (
-            BelongsToThroughMetadata
-        )
-        const entityPrimary = entity.columns.primary.name
-        const throughPrimary = throughEntity.columns.primary.name
+            relatedTable,
+            throughTable,
+            throughPrimary,
+            relatedFKName,
+            throughFKName
+        } = this.relation as BelongsToThroughMetadata
 
         return `EXISTS(
-            SELECT 1 FROM ${entity.tableName} ${this.alias}
-                WHERE EXISTS (
-                    SELECT 1 FROM ${throughEntity.tableName} ${throughEntityName}
-                        WHERE ${throughEntityName}.${throughForeignKey.name} =
-                            ${this.alias}.${entityPrimary}
-                        AND ${throughEntityName}.${throughPrimary} =
-                            ${this.parentAlias}.${foreignKey.name}
-                )
+            SELECT 1 FROM ${relatedTable} ${this.alias} WHERE EXISTS(
+                SELECT 1 FROM ${throughTable}
+                WHERE ${throughFKName} = ${this.relatedPrimary}
+                AND ${throughPrimary} = ${this.parentAlias}.${relatedFKName}
+            )
         )`
     }
 
@@ -164,29 +167,21 @@ export default class OnSQLBuilder<
 
     private fixedBelongsToMany(): string {
         const {
-            joinTable,
-
-            entity,
-            entityForeignKey,
-
-            targetForeignKey
+            relatedTable,
+            JT,
+            parentFKname,
+            relatedFKName,
         } = this.relation as (
             BelongsToManyMetadata
         )
 
-        const primary = this.metadata.columns.primary.name
-        const entityPrimary = entity.columns.primary.name
-        const joinTableAlias = `${joinTable.tableName}_jt`
-
         return `EXISTS(
-            SELECT 1 FROM ${entity.tableName} ${this.alias}
+            SELECT 1 FROM ${relatedTable} ${this.alias}
                 WHERE EXISTS(
-                    SELECT 1 FROM ${joinTable.tableName} ${joinTableAlias}
-                        WHERE ${joinTableAlias}.${entityForeignKey.name} =
-                            ${this.alias}.${entityPrimary}
-                        AND ${joinTableAlias}.${targetForeignKey.name} = 
-                            ${this.parentAlias}.${primary}
-                )
+                    SELECT 1 FROM ${JT}
+                        WHERE ${parentFKname} = ${this.parentPrimary}
+                        AND ${relatedFKName} = ${this.relatedPrimary}
+            )
         )`
     }
 
@@ -194,38 +189,56 @@ export default class OnSQLBuilder<
 
     private fixedPolymorphicHas(): string {
         const {
-            foreignKey,
-            typeKey,
-            targetType
+            FKName,
+            TKName,
+            parentType
         } = this.relation as (
             PolymorphicHasOneMetadata |
             PolymorphicHasManyMetadata
         )
-        const primary = this.metadata.columns.primary.name
 
-        return `
-            ${this.alias}.${foreignKey.name} = ${this.parentAlias}.${primary}
-            ${typeKey ? `AND ${this.alias}.${typeKey} = "${targetType}"` : ''}
-        `
+        return `${this.alias}.${FKName} = ${this.parentPrimary}` + (
+            TKName
+                ? ` AND ${this.parentAlias}.${TKName} = ${(
+                    this.resolvePolymorphicParentType(parentType)
+                )}`
+                : ''
+        )
     }
 
     // ------------------------------------------------------------------------
 
     private fixedPolymorphicBelongsTo(): string {
         const {
-            foreignKey,
-            typeKey,
-            unionName
+            FKName,
+            TKName,
+            relatedTable
         } = this.relation as (
             PolymorphicBelongsToMetadata
         )
 
-        return `
-            ${unionName}.primaryKey = ${this.parentAlias}.${foreignKey.name}
-            ${typeKey
-                ? `AND ${unionName}.entityType = ${this.parentAlias}.${typeKey}`
+        const relAlias = this.resolvePolymorphicReletedAlias(relatedTable)
+
+        return `${relAlias}.primaryKey = ${this.parentAlias}.${FKName}` + (
+            TKName
+                ? ` AND ${relAlias}.entityType = ${this.parentAlias}.${TKName}`
                 : ''
-            }
-        `
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private resolvePolymorphicParentType(fixedType: string): string {
+        return this.parentTarget.isPrototypeOf(BasePolymorphicEntity)
+            ? `${this.parentAlias}.entityType`
+            : `"${fixedType}"`
+    }
+
+    // ------------------------------------------------------------------------
+
+    private resolvePolymorphicReletedAlias(fixedTableName: string): string {
+        return this.parentTarget.isPrototypeOf(BasePolymorphicEntity)
+            ? this.parentAlias
+            : fixedTableName
     }
 }

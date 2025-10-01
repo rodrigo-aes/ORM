@@ -38,7 +38,7 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
         protected metadata: PolymorphicBelongsToMetadata,
         protected target: Target,
         protected related: Related = InternalPolymorphicEntities.get(
-            metadata.unionTargetName
+            metadata.relatedTargetName
         ) as Related
     ) {
         super(metadata, target, related)
@@ -63,7 +63,7 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private get union(): string {
-        return this.metadata.unionName
+        return this.metadata.relatedTable
     }
 
     // ------------------------------------------------------------------------
@@ -81,7 +81,7 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get typeKey(): keyof Target | undefined {
-        return this.metadata.typeKey as keyof Target | undefined
+        return this.metadata.TKName as keyof Target | undefined
     }
 
     // ------------------------------------------------------------------------
@@ -202,7 +202,7 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private loadSourceMetadata(): EntityMetadata {
-        this._sourceMetadata = this.metadata.entities[this.sourceType]
+        this._sourceMetadata = this.metadata.relatedMetadata[this.sourceType]
         return this._sourceMetadata
     }
 
@@ -210,7 +210,7 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
 
     private unionSQL(): string {
         return new UnionSQLBuilder(
-            this.metadata.unionName,
+            this.metadata.relatedTable,
             this.related
         )
             .SQL()

@@ -1,20 +1,27 @@
 import MetadataArray from "../../MetadataArray"
+import { EntityMetadata } from "../../.."
 
-import type { PolymorphicEntityTarget, Target } from "../../../types"
+// Types
+import type { PolymorphicEntityTarget } from "../../../types"
 import type {
     RelationMetadata,
     RelationsMetadataJSON
 } from "../../EntityMetadata"
+import type { IncludedRelations, IncludeRelationOptions } from "./types"
 
 // Exceptions
 import PolyORMException, { type MetadataErrorCode } from "../../../Errors"
+
 
 export default class PolymorphicRelationsMetadata extends MetadataArray<
     RelationMetadata
 > {
     protected static override readonly KEY: string = 'relations-metadata'
-    protected readonly KEY: string = PolymorphicRelationsMetadata.KEY
+    protected static readonly UNCLUDED_KEY: string = (
+        'included-polymorphic-relations'
+    )
 
+    protected readonly KEY: string = PolymorphicRelationsMetadata.KEY
     protected readonly SEARCH_KEYS: (keyof RelationMetadata)[] = [
         'name', 'relatedTarget'
     ]
@@ -24,32 +31,24 @@ export default class PolymorphicRelationsMetadata extends MetadataArray<
 
     constructor(
         public target: PolymorphicEntityTarget,
-        ...relations: RelationMetadata[]
+        private sources: EntityMetadata[]
     ) {
-        super(target, ...relations)
-        this.mergeRelations(relations)
+        super(target)
+        this.mergeRelations()
+    }
+
+    // Getters ================================================================
+    // Privates ---------------------------------------------------------------
+    private get included(): IncludedRelations {
+        return PolymorphicRelationsMetadata.included(this.target)
     }
 
     // Instance Methods =======================================================
     // Privates ---------------------------------------------------------------
-    private mergeRelations(relations: RelationMetadata[]): void {
-        const keys = Object.keys(this.target)
-
-        this.push(
-            ...relations.flatMap(({ name }) => {
-                const rels = relations.filter(rel => (
-                    keys.includes(name) &&
-                    rel.name === name
-                ))
-
-                if (rels.length > 1) {
-                    this.verifyCompatibility(rels)
-                    return rels[0]
-                }
-
-                return rels
-            })
-        )
+    private mergeRelations(): void {
+        // this.push(...Object.entries(this.included).map(
+        //     ([name, options])
+        // ))
     }
 
     // ------------------------------------------------------------------------
@@ -65,6 +64,28 @@ export default class PolymorphicRelationsMetadata extends MetadataArray<
             relations.map(({ type }) => type),
             name,
             this.target!.name
+        )
+    }
+
+    // Static Methods =========================================================
+    // Publics ----------------------------------------------------------------
+    public static included(target: PolymorphicEntityTarget): (
+        IncludedRelations
+    ) {
+        return Reflect.getOwnMetadata(this.UNCLUDED_KEY, target) ?? {}
+    }
+
+    // ------------------------------------------------------------------------
+
+    public static include(
+        target: PolymorphicEntityTarget,
+        name: string,
+        options: IncludeRelationOptions
+    ): void {
+        Reflect.defineMetadata(
+            this.UNCLUDED_KEY,
+            { ...this.included(target), [name]: options },
+            target
         )
     }
 }

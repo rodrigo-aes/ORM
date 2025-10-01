@@ -14,48 +14,78 @@ import type {
 
 export default class BelongsToManyMetadata extends RelationMetadata {
     public related!: BelongsToManyRelatedGetter
-    public joinTable: JoinTableMetadata
+    public joinTableMetadata: JoinTableMetadata
     public onDelete?: ForeignKeyActionListener
     public onUpdate?: ForeignKeyActionListener
 
     constructor(
-        target: EntityTarget,
+        public target: EntityTarget,
         { name, joinTable, ...options }: BelongsToManyOptions
     ) {
         super(target, name)
 
         Object.assign(this, options)
-        this.joinTable = this.registerJoinTable(joinTable)
+        this.joinTableMetadata = this.registerJoinTable(joinTable)
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get entity(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.related())
-    }
-
-    // ------------------------------------------------------------------------
-
     public get relatedTarget(): EntityTarget {
         return this.related()
     }
 
     // ------------------------------------------------------------------------
 
-    public get entityName(): string {
-        return this.entity.name
+    public get JTName(): string {
+        return `${this.joinTableMetadata.tableName}`
     }
 
     // ------------------------------------------------------------------------
 
-    public get entityForeignKey(): JoinColumnMetadata {
-        return this.joinTable.getTargetColumn(this.related())
+    public get JTAlias(): string {
+        return `__${this.JTName}JT`
     }
 
     // ------------------------------------------------------------------------
 
-    public get targetForeignKey(): JoinColumnMetadata {
-        return this.joinTable.getTargetColumn(this.target)
+    public get JT(): string {
+        return `${this.JTName} ${this.JTAlias}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedMetadata(): EntityMetadata {
+        return EntityMetadata.findOrBuild(this.related())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedTable(): string {
+        return this.relatedMetadata.tableName
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedForeignKey(): JoinColumnMetadata {
+        return this.joinTableMetadata.getTargetColumn(this.related())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedFKName(): string {
+        return `${this.JTAlias}.${this.relatedForeignKey.name}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get parentForeignKey(): JoinColumnMetadata {
+        return this.joinTableMetadata.getTargetColumn(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get parentFKname(): string {
+        return `${this.JTAlias}.${this.parentForeignKey.name}`
     }
 
     // Instance Methods =======================================================
@@ -63,7 +93,7 @@ export default class BelongsToManyMetadata extends RelationMetadata {
     public toJSON(): BelongsToManyMetadataJSON {
         return Object.fromEntries([
             ...Object.entries({
-                entity: this.entity.toJSON(),
+                entity: this.relatedMetadata.toJSON(),
                 type: this.type
             }),
             ...Object.entries(this).filter(

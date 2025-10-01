@@ -1,16 +1,10 @@
 import type { EntityTarget } from "../../../types"
 
-export type CombinedColumnOptions = {
+export type IncludeColumnOptions = {
     target: EntityTarget,
     column: string
 }[]
 
-export type CombinedColumns = {
-    [Key: string]: CombinedColumnOptions
-}
-
-export type MergeSourceColumnsConfig = {
-    internalName?: string,
-    shouldVerifyDataType?: boolean,
-    shouldAssignCommonProperties?: boolean
+export type IncludedColumns = {
+    [Key: string]: IncludeColumnOptions
 }

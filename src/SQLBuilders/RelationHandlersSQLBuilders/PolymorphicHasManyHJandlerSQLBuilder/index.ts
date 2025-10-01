@@ -50,7 +50,7 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get typeKey(): string | undefined {
-        return this.metadata.typeKey
+        return this.metadata.TKName
     }
 
     // ------------------------------------------------------------------------
@@ -58,7 +58,7 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
     private get targetType(): string {
         return this.target instanceof BasePolymorphicEntity
             ? this.target.entityType
-            : this.metadata.targetType
+            : this.metadata.parentType
     }
 
     // ------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 import type EntityMetadata from "../.."
+import type PolymorphicEntityMetadata from "../../../PolymorphicEntityMetadata"
 
 import type RelationMetadata from "./RelationMetadata"
 import type HasOneMetadata from "./HasOneMetadata"
@@ -31,7 +32,7 @@ export interface RelationOptions {
 }
 
 export type RelatedEntitiesMap = {
-    [key: string]: EntityMetadata
+    [key: string]: EntityMetadata | PolymorphicEntityMetadata
 }
 
 export type RelationMetadataType = (
@@ -64,7 +65,7 @@ export type ManyRelationMetadatatype = Omit<RelationMetadataType, (
     'PolymorphicBelongsToMetadata'
 )>
 
-export type RelationMetadataName = (
+export type RelationType = (
     'HasOne' |
     'HasMany' |
     'HasOneThrough' |
@@ -79,7 +80,7 @@ export type RelationMetadataName = (
 
 export type RelationMetadataJSON = {
     name: string,
-    type: RelationMetadataName
+    type: RelationType
 }
 
 export type RelationJSON = (

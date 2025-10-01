@@ -1,9 +1,7 @@
 import Entity from "./Entity"
 import PolymorphicEntity, {
-    ExcludeColumns,
-    Combine,
-
-    type CombinedColumnOptions
+    IncludeColumn,
+    type IncludeColumnOptions
 } from "./PolymorphicEntity"
 
 import Column from "./Column"
@@ -119,8 +117,7 @@ import {
 export {
     Entity,
     PolymorphicEntity,
-    ExcludeColumns,
-    Combine,
+    IncludeColumn,
 
     Column,
     ComputedColumn,
@@ -189,7 +186,7 @@ export {
     type PolymorphicForeignIdOptions,
     type PolymorphicTypeKeyRelateds,
 
-    type CombinedColumnOptions,
+    type IncludeColumnOptions,
     type ComputedPropertyFunction,
 
     type HasOneOptions,

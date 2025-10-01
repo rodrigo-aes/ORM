@@ -41,31 +41,31 @@ export default class HasOneThroughHandlerSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private get throughTableAlias(): string {
-        return `${this.metadata.throughEntity.tableName} ${this.throughAlias}`
+        return `${this.metadata.throughMetadata.tableName} ${this.throughAlias}`
     }
 
     // ------------------------------------------------------------------------
 
     private get throughAlias(): string {
-        return this.metadata.throughEntityName
+        return this.metadata.throughAlias
     }
 
     // ------------------------------------------------------------------------
 
     private get foreignKey(): string {
-        return this.metadata.foreignKeyName
+        return this.metadata.relatedFKName
     }
 
     // ------------------------------------------------------------------------
 
     private get throughForeignKey(): string {
-        return this.metadata.throughForeigKeyName
+        return this.metadata._throughForeignKeyName
     }
 
     // ------------------------------------------------------------------------
 
     private get throughPrimary(): string {
-        return this.metadata.throughEntity.columns.primary.name
+        return this.metadata.throughMetadata.columns.primary.name
     }
 
     // Instance Methods =======================================================

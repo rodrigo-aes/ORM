@@ -5,7 +5,7 @@ import ColumnsMetadata, {
 } from "../../../ColumnsMetadata"
 
 // Types
-import type { EntityTarget } from "../../../../../types"
+import type { Target, EntityTarget } from "../../../../../types"
 import type {
     BelongsToThroughOptions,
     BelongsToThroughRelatedGetter,
@@ -17,11 +17,11 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
     public related!: BelongsToThroughRelatedGetter
     public through!: BelongsToThroughGetter
 
-    private foreignKeyName: string
-    private throughForeignKeyName: string
+    public relatedFKName: string
+    private _throughFKName: string
 
     constructor(
-        target: EntityTarget,
+        target: Target,
         { name, foreignKey, throughForeignKey, ...options }: (
             BelongsToThroughOptions
         )
@@ -29,54 +29,74 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
         super(target, name)
         Object.assign(this, options)
 
-        this.foreignKeyName = foreignKey
-        this.throughForeignKeyName = throughForeignKey
+        this.relatedFKName = foreignKey
+        this._throughFKName = throughForeignKey
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get entity(): EntityMetadata {
-        return EntityMetadata.findOrThrow(this.related())
-    }
-
-    // ------------------------------------------------------------------------
-
     public get relatedTarget(): EntityTarget {
         return this.related()
     }
 
     // ------------------------------------------------------------------------
 
-    public get entityName(): string {
-        return this.entity.target.name.toLowerCase()
+    public get relatedMetadata(): EntityMetadata {
+        return EntityMetadata.findOrThrow(this.related())
     }
 
     // ------------------------------------------------------------------------
 
-    public get throughEntity(): EntityMetadata {
+    public get relatedTable(): string {
+        return this.relatedMetadata.tableName
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedForeignKey(): ColumnMetadata {
+        return EntityMetadata.findOrThrow(this.target)
+            .columns
+            .findOrThrow(this.relatedFKName)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get throughMetadata(): EntityMetadata {
         return EntityMetadata.findOrThrow(this.through())
     }
 
     // ------------------------------------------------------------------------
 
-    public get throughEntityName(): string {
-        return this.throughEntity.target.name.toLowerCase()
+    public get throughAlias(): string {
+        return `__through${this.throughMetadata.target.name.toLowerCase()}`
     }
 
     // ------------------------------------------------------------------------
 
-    public get foreignKey(): ColumnMetadata {
-        return EntityMetadata.findOrThrow(this.target).columns.findOrThrow(
-            this.foreignKeyName
+    public get throughTable(): string {
+        return `${this.throughMetadata.tableName} ${this.throughAlias}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get throughPrimary(): string {
+        return (
+            `${this.throughAlias}.${this.throughMetadata.columns.primary.name}`
         )
     }
 
     // ------------------------------------------------------------------------
 
     public get throughForeignKey(): ColumnMetadata {
-        return this.throughEntity.columns.findOrThrow(
-            this.throughForeignKeyName
-        )
+        return this.throughMetadata
+            .columns
+            .findOrThrow(this._throughFKName)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get throughFKName(): string {
+        return `${this.throughAlias}.${this.throughForeignKey.name}`
     }
 
     // Instance Methods =======================================================
@@ -84,9 +104,9 @@ export default class BelongsToThroughMetadata extends RelationMetadata {
     public toJSON(): BelongsToThroughMetadataJSON {
         return Object.fromEntries([
             ...Object.entries({
-                entity: this.entity.toJSON(),
-                throughEntity: this.throughEntity.toJSON(),
-                foreignKey: this.foreignKey.toJSON(),
+                entity: this.relatedMetadata.toJSON(),
+                throughEntity: this.throughMetadata.toJSON(),
+                foreignKey: this.relatedForeignKey.toJSON(),
                 throughForeignKey: this.throughForeignKey.toJSON(),
                 type: this.type
             }),

@@ -55,7 +55,7 @@ import {
 import type {
     RelatedEntitiesMap,
     RelationMetadataType,
-    RelationMetadataName,
+    RelationType,
     OneRelationMetadataType,
     ManyRelationMetadatatype,
     RelationJSON

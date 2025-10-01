@@ -33,7 +33,7 @@ export default class BelongsToManyHandlerSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private get joinTable(): string {
-        return this.metadata.joinTable.tableName
+        return this.metadata.joinTableMetadata.tableName
     }
 
     // ------------------------------------------------------------------------
@@ -45,13 +45,13 @@ export default class BelongsToManyHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get targetForeignKey(): string {
-        return this.metadata.targetForeignKey.name
+        return this.metadata.parentForeignKey.name
     }
 
     // ------------------------------------------------------------------------
 
     private get relatedForeignKey(): string {
-        return this.metadata.entityForeignKey.name
+        return this.metadata.relatedForeignKey.name
     }
 
     // ------------------------------------------------------------------------

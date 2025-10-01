@@ -2,7 +2,7 @@ import RelationMetadata from "../../RelationMetadata"
 import EntityMetadata from "../../../.."
 
 // Types
-import type { EntityTarget } from "../../../../../../types"
+import type { Target, EntityTarget } from "../../../../../../types"
 import type { ColumnMetadata } from "../../../.."
 import type {
     PolymorphicChildOptions,
@@ -14,55 +14,51 @@ export default class PolymorphicHasOneMetadata extends RelationMetadata {
     public related!: PolymorphicChildRelatedGetter
     public scope?: any
 
-    private foreignKeyName: string
-    public typeKey?: string
+    public FKName: string
+    public TKName?: string
 
     constructor(
-        target: EntityTarget,
+        target: Target,
         { name, typeKey, foreignKey, ...options }: PolymorphicChildOptions
     ) {
         super(target, name)
 
         Object.assign(this, options)
 
-        this.foreignKeyName = foreignKey
-        this.typeKey = typeKey
+        this.FKName = foreignKey
+        this.TKName = typeKey
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get entity(): EntityMetadata {
-        return this.loadEntity()
-    }
-
-    // ------------------------------------------------------------------------
-
     public get relatedTarget(): EntityTarget {
         return this.related()
     }
 
     // ------------------------------------------------------------------------
 
-    public get entityName(): string {
-        return this.entity.target.name.toLowerCase()
+    public get relatedMetadata(): EntityMetadata {
+        return this.loadEntity()
     }
 
     // ------------------------------------------------------------------------
 
     public get foreignKey(): ColumnMetadata {
-        return this.entity.columns.findOrThrow(this.foreignKeyName)
+        return this.relatedMetadata.columns.findOrThrow(this.FKName)
     }
 
     // ------------------------------------------------------------------------
 
-    public get targetType(): string {
+    public get parentType(): string {
         return this.target.name
     }
 
     // ------------------------------------------------------------------------
 
     public get typeColumn(): ColumnMetadata | undefined {
-        if (this.typeKey) return this.entity.columns.findOrThrow(this.typeKey)
+        if (this.TKName) return this.relatedMetadata
+            .columns
+            .findOrThrow(this.TKName)
     }
 
     // Instance Methods =======================================================
@@ -70,7 +66,7 @@ export default class PolymorphicHasOneMetadata extends RelationMetadata {
     public toJSON(): PolymorphicHasOneMetadataJSON {
         return Object.fromEntries([
             ...Object.entries({
-                entity: this.entity.toJSON(),
+                entity: this.relatedMetadata.toJSON(),
                 foreignKey: this.foreignKey.toJSON(),
                 typeColumn: this.typeColumn?.toJSON(),
                 type: this.type

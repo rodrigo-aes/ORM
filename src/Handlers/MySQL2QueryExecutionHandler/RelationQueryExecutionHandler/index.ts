@@ -144,11 +144,11 @@ export default class RelationQueryExecutionHandler<
     private entityBuilder(
         attributes: CreationAttributesOptions<InstanceType<T>>,
         primary: any | undefined
-    ): EntityBuilder<T> {
+    ): EntityBuilder<Extract<T, EntityTarget>> {
         return new EntityBuilder(
-            this.target,
+            this.target as EntityTarget,
             attributes,
             primary
-        )
+        ) as EntityBuilder<Extract<T, EntityTarget>>
     }
 }

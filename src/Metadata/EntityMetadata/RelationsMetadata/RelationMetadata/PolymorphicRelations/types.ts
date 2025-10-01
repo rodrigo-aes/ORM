@@ -1,8 +1,10 @@
-import type { EntityTarget } from "../../../../../types"
+import type { EntityTarget, PolymorphicEntityTarget } from "../../../../../types"
 import type { RelationOptions } from "../types"
 
 // Polymorphic Parent =========================================================
-export type PolymorphicParentRelatedGetter = () => EntityTarget[]
+export type PolymorphicParentRelatedGetter = () => (
+    EntityTarget[] | PolymorphicEntityTarget
+)
 
 export interface PolymorphicParentOptions extends RelationOptions {
     related: PolymorphicParentRelatedGetter,

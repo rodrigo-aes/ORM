@@ -12,10 +12,8 @@ import type {
 import type { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
 import type { CreationAttributesOptions } from "../../SQLBuilders"
 
-export default class EntityBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
+export default class EntityBuilder<T extends EntityTarget> {
+    protected metadata: EntityMetadata
 
     constructor(
         public target: T,

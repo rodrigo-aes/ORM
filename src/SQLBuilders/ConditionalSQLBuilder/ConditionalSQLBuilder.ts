@@ -9,6 +9,8 @@ import { MetadataHandler, ScopeMetadataHandler } from "../../Metadata"
 
 // Types
 import type {
+    Target,
+    TargetMetadata,
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../types"
@@ -16,11 +18,8 @@ import type {
 import type { ConditionalQueryOptions } from "./types"
 import type UnionSQLBuilder from "../UnionSQLBuilder"
 
-export default abstract class ConditionalSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata!: EntityMetadata | PolymorphicEntityMetadata
-
+export default abstract class ConditionalSQLBuilder<T extends Target> {
+    protected metadata!: TargetMetadata<T>
     protected sqlBuilder: AndSQLBuilder<T> | OrSQLBuilder<T> | undefined
 
     constructor(
@@ -28,8 +27,8 @@ export default abstract class ConditionalSQLBuilder<
         public options?: ConditionalQueryOptions<InstanceType<T>>,
         public alias?: string
     ) {
-        this.metadata = MetadataHandler.targetMetadata(this.target!)!
-        this.alias = alias ?? this.target?.name.toLowerCase()
+        this.metadata = MetadataHandler.targetMetadata(this.target)
+        this.alias = alias ?? this.target.name.toLowerCase()
 
         if (this.options) ScopeMetadataHandler.applyScope(
             this.target,
@@ -48,8 +47,8 @@ export default abstract class ConditionalSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    public conditionalSQL(): string {
-        return this.sqlBuilder?.SQL() ?? ''
+    public conditionalSQL(prefixed?: string): string {
+        return prefixed ?? '' + this.sqlBuilder?.SQL() ?? ''
     }
 
     // Privates ---------------------------------------------------------------

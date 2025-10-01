@@ -19,32 +19,38 @@ import ConditionalSQLBuilder, {
 import UnionSQLBuilder from "../UnionSQLBuilder"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
+import type { Target, TargetMetadata } from "../../types"
 import type { RelationOptions, RelationsOptions } from "./types"
 
-export default class JoinSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    private metadata: EntityMetadata | PolymorphicEntityMetadata
-
-    public target: T
-    public alias: string
+export default class JoinSQLBuilder<T extends Target> {
+    private metadata: TargetMetadata<T>
+    private relatedMetadata: TargetMetadata<any>
 
     public required?: boolean
-    public select?: SelectOptions<InstanceType<T>>
-    public on?: ConditionalQueryOptions<InstanceType<T>>
+    public select?: SelectOptions<any>
+    public on?: ConditionalQueryOptions<any>
 
     constructor(
+        public target: T,
         public relation: RelationMetadataType,
-        public parentAlias: string,
-        options: Omit<RelationOptions<InstanceType<T>>, 'relations'>,
-        alias?: string
+        options: Omit<RelationOptions<any>, 'relations'>,
+        public alias: string = target.name.toLowerCase(),
+        public relatedAlias: string = (
+            relation.relatedTarget.name.toLowerCase()
+        ),
     ) {
         Object.assign(this, options)
 
-        this.target = this.relation.relatedTarget as T
-        this.alias = alias ?? this.handleAlias()
         this.metadata = MetadataHandler.targetMetadata(this.target)
+        this.relatedMetadata = MetadataHandler.targetMetadata(
+            this.relatedTarget
+        )
+    }
+
+    // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get relatedTarget(): Target {
+        return this.relation.relatedTarget
     }
 
     // Instance Methods =======================================================
@@ -69,16 +75,16 @@ export default class JoinSQLBuilder<
     // ------------------------------------------------------------------------
 
     public tableSQL(): string {
-        return `${this.metadata.tableName} ${this.alias}`
+        return `${this.relatedMetadata.tableName} ${this.relatedAlias}`
     }
 
     // ------------------------------------------------------------------------
 
-    public selectQueryBuilder(): SelectSQLBuilder<T> {
+    public selectQueryBuilder(): SelectSQLBuilder<any> {
         return new SelectSQLBuilder(
-            this.target,
+            this.relatedTarget,
             this.select,
-            this.alias
+            this.relatedAlias
         )
     }
 
@@ -87,8 +93,8 @@ export default class JoinSQLBuilder<
     public tableUnionQueryBuilder(): UnionSQLBuilder | undefined {
         if (this.relation instanceof PolymorphicBelongsToMetadata) {
             return new UnionSQLBuilder(
-                this.relation.unionName,
-                InternalPolymorphicEntities.get(this.relation.unionTargetName)!
+                this.relation.relatedTable,
+                InternalPolymorphicEntities.get(this.relation.relatedTargetName)!
             )
         }
     }
@@ -101,7 +107,7 @@ export default class JoinSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private handleAlias(): string {
-        return `${this.parentAlias}_${this.relation.name}`
+        return `${this.relatedAlias}_${this.relation.name}`
     }
 
     // ------------------------------------------------------------------------
@@ -109,8 +115,8 @@ export default class JoinSQLBuilder<
     private onSQL(): string {
         return ConditionalSQLBuilder.on(
             this.relation,
-            this.parentAlias,
-            this.alias,
+            this.relatedAlias,
+            this.relatedAlias,
             this.target,
             this.on
         )

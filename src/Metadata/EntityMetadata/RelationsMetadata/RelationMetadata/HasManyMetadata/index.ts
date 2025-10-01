@@ -2,7 +2,7 @@ import EntityMetadata from "../../.."
 import RelationMetadata from "../RelationMetadata"
 
 // Types
-import type { EntityTarget } from "../../../../../types"
+import type { Target, EntityTarget } from "../../../../../types"
 import type { ColumnMetadata } from "../../../ColumnsMetadata"
 import type {
     HasManyOptions,
@@ -11,27 +11,27 @@ import type {
 } from "./types"
 
 export default class HasManyMetadata extends RelationMetadata {
-    public entity: EntityMetadata
+    public relatedMetadata: EntityMetadata
     public related!: HasManyRelatedGetter
     public scope?: any
 
-    private foreignKeyName: string
+    public relatedFKName: string
 
     constructor(
-        target: EntityTarget,
+        target: Target,
         { name, foreignKey, ...options }: HasManyOptions
     ) {
         super(target, name)
         Object.assign(this, options)
 
-        this.entity = this.loadEntity()
-        this.foreignKeyName = foreignKey
+        this.relatedMetadata = this.loadEntity()
+        this.relatedFKName = foreignKey
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get entityName(): string {
-        return this.entity.constructor.name.toLowerCase()
+    public get relatedName(): string {
+        return this.relatedMetadata.constructor.name.toLowerCase()
     }
 
     // ------------------------------------------------------------------------
@@ -42,8 +42,8 @@ export default class HasManyMetadata extends RelationMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get foreignKey(): ColumnMetadata {
-        return this.entity.columns.findOrThrow(this.foreignKeyName)
+    public get relatedForeignKey(): ColumnMetadata {
+        return this.relatedMetadata.columns.findOrThrow(this.relatedFKName)
     }
 
     // Instance Methods =======================================================
@@ -51,8 +51,8 @@ export default class HasManyMetadata extends RelationMetadata {
     public toJSON(): HasManyMetadataJSON {
         return Object.fromEntries([
             ...Object.entries({
-                entity: this.entity.toJSON(),
-                foreignKey: this.foreignKey.toJSON(),
+                entity: this.relatedMetadata.toJSON(),
+                foreignKey: this.relatedForeignKey.toJSON(),
                 type: this.type
             }),
             ...Object.entries(this).filter(

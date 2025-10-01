@@ -92,7 +92,7 @@ export default class ConditionalQueryJoinsHandler<
         const next = this.handleJoin(
             `${second}.${rest.join('.')}`,
             metadata,
-            join.alias
+            join.relatedAlias
         )
 
         return [

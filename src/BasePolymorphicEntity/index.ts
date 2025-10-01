@@ -43,10 +43,7 @@ import {
 } from '../Relations'
 
 // Decorators
-import {
-    ExcludeColumns,
-    Combine
-} from "../Decorators"
+import { IncludeColumn } from "../Decorators"
 
 // Handlers
 import { PolymorphicEntityBuilder } from "../Handlers"
@@ -568,19 +565,10 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     // Static Getters =========================================================
     // Decorators -------------------------------------------------------------
     /**
-     * Static decorator to define combined columns
+     * Define polymorphic column decorator
      */
-    public static get Combine() {
-        return Combine
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Static decorator to define excluded columns
-     */
-    public static get Exclude() {
-        return ExcludeColumns
+    public static get Column() {
+        return IncludeColumn
     }
 
     // Static Methods =========================================================

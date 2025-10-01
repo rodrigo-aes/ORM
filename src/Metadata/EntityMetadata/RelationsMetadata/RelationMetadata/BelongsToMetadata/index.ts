@@ -5,7 +5,7 @@ import ColumnsMetadata, {
 } from "../../../ColumnsMetadata"
 
 // Types
-import type { EntityTarget } from "../../../../../types"
+import type { EntityTarget, Target } from "../../../../../types"
 import type {
     BelongsToOptions,
     BelongsToRelatedGetter,
@@ -17,41 +17,41 @@ export default class BelongsToMetadata extends RelationMetadata {
     public related!: BelongsToRelatedGetter
     public scope?: any
 
-    private foreignKeyName: string
+    public FKName: string
 
     constructor(
-        target: EntityTarget,
+        target: Target,
         { name, foreignKey, ...options }: BelongsToOptions
     ) {
         super(target, name)
         Object.assign(this, options)
 
-        this.foreignKeyName = foreignKey
+        this.FKName = foreignKey
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get entity(): EntityMetadata {
-        return this.getEntity(this.related())
-    }
-
-    // ------------------------------------------------------------------------
-
     public get relatedTarget(): EntityTarget {
         return this.related()
     }
 
     // ------------------------------------------------------------------------
 
-    public get entityName(): string {
-        return this.entity.target.name.toLowerCase()
+    public get relatedMetadata(): EntityMetadata {
+        return this.getEntity(this.related())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedPK(): string {
+        return this.relatedMetadata.columns.primary.name
     }
 
     // ------------------------------------------------------------------------
 
     public get foreignKey(): ColumnMetadata {
         return ColumnsMetadata.findOrBuild(this.target).findOrThrow(
-            this.foreignKeyName
+            this.FKName
         )
     }
 
@@ -60,7 +60,7 @@ export default class BelongsToMetadata extends RelationMetadata {
     public toJSON(): BelongsToMetadataJSON {
         return Object.fromEntries([
             ...Object.entries({
-                entity: this.entity.toJSON(),
+                entity: this.relatedMetadata.toJSON(),
                 foreignKey: this.foreignKey.toJSON(),
                 type: this.type
             }),

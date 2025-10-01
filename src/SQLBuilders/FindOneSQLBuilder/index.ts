@@ -176,7 +176,7 @@ export default class FindOneSQLBuilder<
 
             if (relations.relations) this.buildJoins(
                 relations.relations,
-                join.alias
+                join.relatedAlias
             )
         }
     }

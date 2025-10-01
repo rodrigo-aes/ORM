@@ -42,13 +42,13 @@ export default class PolymorphicHasOneHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get typeKey(): string | undefined {
-        return this.metadata.typeKey
+        return this.metadata.TKName
     }
 
     // ------------------------------------------------------------------------
 
     private get targetType(): string {
-        return this.metadata.targetType
+        return this.metadata.parentType
     }
 
     // ------------------------------------------------------------------------

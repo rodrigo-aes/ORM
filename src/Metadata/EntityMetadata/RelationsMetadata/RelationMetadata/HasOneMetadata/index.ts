@@ -2,7 +2,7 @@ import EntityMetadata from "../../.."
 import RelationMetadata from "../RelationMetadata"
 
 // Types
-import type { EntityTarget } from "../../../../../types"
+import type { Target, EntityTarget } from "../../../../../types"
 import type { ColumnMetadata } from "../../../ColumnsMetadata"
 import type {
     HasOneOptions,
@@ -11,21 +11,21 @@ import type {
 } from "./types"
 
 export default class HasOneMetadata extends RelationMetadata {
-    public entity: EntityMetadata
+    public relatedMetadata: EntityMetadata
     public related!: HasOneRelatedGetter
     public scope?: any
 
-    private foreignKeyName: string
+    public relatedFKName: string
 
     constructor(
-        target: EntityTarget,
+        target: Target,
         { name, foreignKey, ...options }: HasOneOptions
     ) {
         super(target, name)
         Object.assign(this, options)
 
-        this.entity = this.loadEntity()
-        this.foreignKeyName = foreignKey
+        this.relatedMetadata = this.loadEntity()
+        this.relatedFKName = foreignKey
     }
 
     // Getters ================================================================
@@ -36,14 +36,14 @@ export default class HasOneMetadata extends RelationMetadata {
 
     // ------------------------------------------------------------------------
 
-    public get entityName(): string {
-        return this.entity.constructor.name.toLowerCase()
+    public get relatedName(): string {
+        return this.relatedMetadata.constructor.name.toLowerCase()
     }
 
     // ------------------------------------------------------------------------
 
-    public get foreignKey(): ColumnMetadata {
-        return this.entity.columns.findOrThrow(this.foreignKeyName)
+    public get relatedForeignKey(): ColumnMetadata {
+        return this.relatedMetadata.columns.findOrThrow(this.relatedFKName)
     }
 
     // Instance Methods =======================================================
@@ -51,8 +51,8 @@ export default class HasOneMetadata extends RelationMetadata {
     public toJSON(): HasOneMetadataJSON {
         return Object.fromEntries([
             ...Object.entries({
-                entity: this.entity.toJSON(),
-                foreignKey: this.foreignKey.toJSON(),
+                entity: this.relatedMetadata.toJSON(),
+                foreignKey: this.relatedForeignKey.toJSON(),
                 type: this.type
             }),
             ...Object.entries(this).filter(

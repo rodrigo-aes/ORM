@@ -41,19 +41,19 @@ export default class BelongsToThroughHandlerSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private get throughTableAlias(): string {
-        return `${this.metadata.throughEntity.tableName} ${this.throughAlias}`
+        return `${this.metadata.throughMetadata.tableName} ${this.throughAlias}`
     }
 
     // ------------------------------------------------------------------------
 
     private get throughAlias(): string {
-        return this.metadata.throughEntityName
+        return this.metadata.throughAlias
     }
 
     // ------------------------------------------------------------------------
 
     private get foreignKey(): string {
-        return this.metadata.foreignKey.name
+        return this.metadata.relatedForeignKey.name
     }
 
     // ------------------------------------------------------------------------
@@ -65,7 +65,7 @@ export default class BelongsToThroughHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get throughPrimary(): string {
-        return this.metadata.throughEntity.columns.primary.name
+        return this.metadata.throughMetadata.columns.primary.name
     }
 
     // Instance Methods =======================================================

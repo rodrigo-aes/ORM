@@ -150,7 +150,7 @@ import PolymorphicEntityMetadata, {
     PolymorphicColumnMetadata,
 
     type UnionEntitiesMap,
-    type CombinedColumnOptions
+    type IncludeColumnOptions
 } from "./PolymorphicEntityMetadata"
 
 import MetadataHandler from "./MetadataHandler"
@@ -245,7 +245,7 @@ export {
     type ColumnPattern,
 
     type UnionEntitiesMap,
-    type CombinedColumnOptions,
+    type IncludeColumnOptions,
 
     type TextLength,
     type IntegerLength,
