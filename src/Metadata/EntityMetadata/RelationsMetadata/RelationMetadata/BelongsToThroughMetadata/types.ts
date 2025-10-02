@@ -3,7 +3,8 @@ import type { RelationOptions } from "../types"
 import type { ColumnMetadata } from "../../../ColumnsMetadata"
 import type { RelationMetadataJSON } from "../types"
 import type { EntityMetadataJSON } from "../../../types"
-import type { ColumnMetadataJSON } from "../../../ColumnsMetadata/ColumnMetadata"
+import type { ColumnMetadataJSON } from "../../../ColumnsMetadata"
+import type { ConditionalQueryOptions } from '../../../../../SQLBuilders'
 
 export type BelongsToThroughRelatedGetter = () => EntityTarget
 export type BelongsToThroughGetter = () => EntityTarget
@@ -13,7 +14,7 @@ export interface BelongsToThroughOptions extends RelationOptions {
     through: BelongsToThroughGetter
     foreignKey: string
     throughForeignKey: string
-    scope?: any
+    scope?: ConditionalQueryOptions<any>
 }
 
 export type ThroughForeignKeysMap = {
@@ -21,8 +22,9 @@ export type ThroughForeignKeysMap = {
 }
 
 export interface BelongsToThroughMetadataJSON extends RelationMetadataJSON {
-    entity: EntityMetadataJSON
-    throughEntity: EntityMetadataJSON
-    foreignKey: ColumnMetadataJSON
+    related: EntityMetadataJSON
+    through: EntityMetadataJSON
+    relatedForeignKey: ColumnMetadataJSON
     throughForeignKey: ColumnMetadataJSON
+    scope?: ConditionalQueryOptions<any>
 }

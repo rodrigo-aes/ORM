@@ -1,4 +1,5 @@
 import type { EntityTarget } from "../../../types"
+import type { PolymorphicColumnMetadataJSON } from './PolymorphicColumnMetadata'
 
 export type IncludeColumnOptions = {
     target: EntityTarget,
@@ -8,3 +9,5 @@ export type IncludeColumnOptions = {
 export type IncludedColumns = {
     [Key: string]: IncludeColumnOptions
 }
+
+export type PolymorphicColumnsMetadataJSON = PolymorphicColumnMetadataJSON[]

@@ -1,5 +1,9 @@
 import type EntityMetadata from "../.."
+import type { EntityMetadataJSON } from "../.."
 import type PolymorphicEntityMetadata from "../../../PolymorphicEntityMetadata"
+import type {
+    PolymorphicEntityMetadataJSON
+} from "../../../PolymorphicEntityMetadata"
 
 import type RelationMetadata from "./RelationMetadata"
 import type HasOneMetadata from "./HasOneMetadata"
@@ -33,6 +37,10 @@ export interface RelationOptions {
 
 export type RelatedEntitiesMap = {
     [key: string]: EntityMetadata | PolymorphicEntityMetadata
+}
+
+export type RelatedEntitiesMapJSON = {
+    [key: string]: EntityMetadataJSON | PolymorphicEntityMetadataJSON
 }
 
 export type RelationMetadataType = (

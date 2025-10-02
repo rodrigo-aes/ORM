@@ -12,9 +12,7 @@ export default abstract class RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get type(): RelationType {
-        return this.constructor.name.replace('Metadata', '') as (
-            RelationType
-        )
+        return this.constructor.name.replace('Metadata', '') as RelationType
     }
 
     // instance Methods =======================================================

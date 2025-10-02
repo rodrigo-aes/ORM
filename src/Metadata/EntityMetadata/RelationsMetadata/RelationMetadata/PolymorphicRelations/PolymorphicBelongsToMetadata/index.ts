@@ -1,4 +1,3 @@
-import EntityMetadata from "../../../.."
 import PolymorphicEntityMetadata from "../../../../../PolymorphicEntityMetadata"
 import RelationMetadata from "../../RelationMetadata"
 
@@ -8,17 +7,18 @@ import {
     InternalPolymorphicEntities
 } from "../../../../../../BasePolymorphicEntity"
 
+// Helpers
+import GeneralHelper from "../../../../../../Helpers/GeneralHelper"
+
 // Types
-import type {
-    Target,
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../../../../../types"
+import type { Target, PolymorphicEntityTarget } from "../../../../../../types"
 import type { ColumnMetadata } from "../../../../ColumnsMetadata"
 import type {
-    PolymorphicColumnMetadata
+    PolymorphicColumnMetadata,
+    PolymorphicEntityMetadataJSON
 } from "../../../../../PolymorphicEntityMetadata"
-import type { RelatedEntitiesMap } from "../../types"
+import type { ConditionalQueryOptions } from '../../../../../../SQLBuilders'
+import type { RelatedEntitiesMap, RelatedEntitiesMapJSON } from "../../types"
 import type {
     PolymorphicParentOptions,
     PolymorphicParentRelatedGetter
@@ -27,35 +27,41 @@ import type { PolymorphicBelongsToMetadataJSON } from "./types"
 
 export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     private _relatedMetadata?: PolymorphicEntityMetadata | RelatedEntitiesMap
+    private _relatedTarget?: PolymorphicEntityTarget
+    private _relatedTable?: string
+    private _relatedTargetName?: string
 
     public related!: PolymorphicParentRelatedGetter
-    public scope?: any
+    public scope?: ConditionalQueryOptions<any>
 
     public FKName: string
     public TKName?: string
 
     constructor(
         target: Target,
-        { name, typeKey, foreignKey, ...options }: PolymorphicParentOptions
+        options: PolymorphicParentOptions
     ) {
-        super(target, name)
+        const { name, typeKey, foreignKey, ...opts } = options
 
-        Object.assign(this, options)
+        super(target, name)
 
         this.FKName = foreignKey
         this.TKName = typeKey
+        Object.assign(this, opts)
 
-        this.registerPolymorphicParent()
+        this.handleRegisterPolymorphicParent()
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get relatedTarget(): PolymorphicEntityTarget {
-        return this.relatedMetadata instanceof PolymorphicEntityMetadata
-            ? this.relatedMetadata.target
-            : InternalPolymorphicEntities.get(this.relatedTargetName) as (
-                PolymorphicEntityTarget
-            )
+        return this._relatedTarget = this._relatedTarget ?? (
+            this.relatedMetadata instanceof PolymorphicEntityMetadata
+                ? this.relatedMetadata.target
+                : InternalPolymorphicEntities.get(this.relatedTargetName) as (
+                    PolymorphicEntityTarget
+                )
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -64,27 +70,27 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
         PolymorphicEntityMetadata | RelatedEntitiesMap
     ) {
         return this._relatedMetadata = (
-            this._relatedMetadata ?? this.loadEntities()
+            this._relatedMetadata ?? this.getMetadata()
         )
     }
 
     // ------------------------------------------------------------------------ 
 
     public get relatedTable(): string {
-        return this.relatedMetadata instanceof PolymorphicEntityMetadata
-            ? this.relatedMetadata.tableName
-            : `${this.target.name.toLowerCase()}_${this.name}`
+        return this._relatedTable = this._relatedTable ?? (
+            this.relatedMetadata instanceof PolymorphicEntityMetadata
+                ? this.relatedMetadata.tableName
+                : `${this.target.name.toLowerCase()}_${this.name}`
+        )
     }
     // ------------------------------------------------------------------------
 
     public get relatedTargetName(): string {
-        return this.relatedMetadata instanceof PolymorphicEntityMetadata
-            ? this.relatedMetadata.target.name
-            : this.relatedTable.split('_')
-                .map(word => (
-                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                ))
-                .join('')
+        return this._relatedTargetName = this._relatedTargetName ?? (
+            this.relatedMetadata instanceof PolymorphicEntityMetadata
+                ? this.relatedMetadata.target.name
+                : GeneralHelper.toPascalCase(...this.relatedTable.split('_'))
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -108,25 +114,18 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): PolymorphicBelongsToMetadataJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                entities: this.entitiesToJSON(),
-                foreignKey: this.foreignKey.toJSON(),
-                typeColumn: this.typeColum?.toJSON(),
-                type: this.type
-            }),
-            ...Object.entries(this).filter(
-                ([key]) => [
-                    'name',
-                    'scope',
-                ]
-                    .includes(key)
-            )
-        ]) as PolymorphicBelongsToMetadataJSON
+        return {
+            name: this.name,
+            type: this.type,
+            related: this.relatedJSON(),
+            foreignKey: this.foreignKey.toJSON(),
+            typeColumn: this.typeColum?.toJSON(),
+            scope: this.scope
+        }
     }
 
-    // Protecteds -------------------------------------------------------------
-    protected loadEntities() {
+    // Privates ---------------------------------------------------------------
+    private getMetadata() {
         const related = this.related()
 
         return Array.isArray(related)
@@ -138,19 +137,27 @@ export default class PolymorphicBelongsToMetadata extends RelationMetadata {
             )
     }
 
-    // Privates ---------------------------------------------------------------
-    private registerPolymorphicParent(): void {
-        new PolymorphicEntityMetadata(undefined, this.relatedTable, this.related)
+    // ------------------------------------------------------------------------
+
+    private handleRegisterPolymorphicParent(): void {
+        const related = this.related()
+        if (Array.isArray(related)) new PolymorphicEntityMetadata(
+            undefined,
+            this.relatedTable,
+            related
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    private entitiesToJSON() {
-        return Object.fromEntries(
-            Object.entries(this.relatedMetadata).map(
-                ([key, entity]) => [key, entity.toJSON()]
-            )
-        )
+    private relatedJSON(): (
+        PolymorphicEntityMetadataJSON | RelatedEntitiesMapJSON
+    ) {
+        return this.relatedMetadata instanceof PolymorphicEntityMetadata
+            ? this.relatedMetadata.toJSON()
+            : Object.fromEntries(Object.entries(this.relatedMetadata).map(
+                ([key, metadata]) => [key, metadata.toJSON()]
+            ))
     }
 }
 

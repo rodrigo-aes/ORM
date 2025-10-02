@@ -4,6 +4,7 @@ import RelationMetadata from "../RelationMetadata"
 // Types
 import type { Target, EntityTarget } from "../../../../../types"
 import type { ColumnMetadata } from "../../../ColumnsMetadata"
+import type { ConditionalQueryOptions } from '../../../../../SQLBuilders'
 import type {
     HasManyOptions,
     HasManyRelatedGetter,
@@ -11,63 +12,47 @@ import type {
 } from "./types"
 
 export default class HasManyMetadata extends RelationMetadata {
-    public relatedMetadata: EntityMetadata
     public related!: HasManyRelatedGetter
-    public scope?: any
+    public scope?: ConditionalQueryOptions<any>
+    public FKName: string
 
-    public relatedFKName: string
+    constructor(target: Target, options: HasManyOptions) {
+        const { name, foreignKey, ...opts } = options
 
-    constructor(
-        target: Target,
-        { name, foreignKey, ...options }: HasManyOptions
-    ) {
         super(target, name)
-        Object.assign(this, options)
 
-        this.relatedMetadata = this.loadEntity()
-        this.relatedFKName = foreignKey
+        this.FKName = foreignKey
+        Object.assign(this, opts)
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get relatedName(): string {
-        return this.relatedMetadata.constructor.name.toLowerCase()
-    }
-
-    // ------------------------------------------------------------------------
-
     public get relatedTarget(): EntityTarget {
         return this.related()
     }
 
     // ------------------------------------------------------------------------
 
-    public get relatedForeignKey(): ColumnMetadata {
-        return this.relatedMetadata.columns.findOrThrow(this.relatedFKName)
+    public get relatedMetadata(): EntityMetadata {
+        return EntityMetadata.findOrThrow(this.relatedTarget)
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get foreignKey(): ColumnMetadata {
+        return this.relatedMetadata.columns.findOrThrow(this.FKName)
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): HasManyMetadataJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                entity: this.relatedMetadata.toJSON(),
-                foreignKey: this.relatedForeignKey.toJSON(),
-                type: this.type
-            }),
-            ...Object.entries(this).filter(
-                ([key]) => [
-                    'name',
-                    'scope',
-                ]
-                    .includes(key)
-            )
-        ]) as HasManyMetadataJSON
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadEntity() {
-        return EntityMetadata.findOrBuild(this.related())
+        return {
+            name: this.name,
+            type: this.type,
+            related: this.relatedMetadata.toJSON(),
+            foreignKey: this.foreignKey.toJSON(),
+            scope: this.scope
+        }
     }
 }
 

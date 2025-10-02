@@ -43,7 +43,7 @@ import {
 } from '../Relations'
 
 // Decorators
-import { IncludeColumn } from "../Decorators"
+import { PolymorphicColumn } from "../Decorators"
 
 // Handlers
 import { PolymorphicEntityBuilder } from "../Handlers"
@@ -568,7 +568,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * Define polymorphic column decorator
      */
     public static get Column() {
-        return IncludeColumn
+        return PolymorphicColumn
     }
 
     // Static Methods =========================================================

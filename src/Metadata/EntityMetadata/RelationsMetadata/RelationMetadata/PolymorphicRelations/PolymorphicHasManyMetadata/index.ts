@@ -4,6 +4,7 @@ import RelationMetadata from "../../RelationMetadata"
 // Types
 import type { Target, EntityTarget } from "../../../../../../types"
 import type { ColumnMetadata } from "../../../.."
+import type { ConditionalQueryOptions } from '../../../../../../SQLBuilders'
 import type {
     PolymorphicChildOptions,
     PolymorphicChildRelatedGetter
@@ -12,21 +13,20 @@ import type { PolymorphicHasManyMetadataJSON } from "./types"
 
 export default class PolymorphicHasManyMetadata extends RelationMetadata {
     public related!: PolymorphicChildRelatedGetter
-    public scope?: any
 
     public FKName: string
     public TKName?: string
 
-    constructor(
-        target: Target,
-        { name, typeKey, foreignKey, ...options }: PolymorphicChildOptions
-    ) {
-        super(target, name)
+    public scope?: ConditionalQueryOptions<any>
 
-        Object.assign(this, options)
+    constructor(target: Target, options: PolymorphicChildOptions) {
+        const { name, typeKey, foreignKey, ...opts } = options
+
+        super(target, name)
 
         this.FKName = foreignKey
         this.TKName = typeKey
+        Object.assign(this, opts)
     }
 
     // Getters ================================================================
@@ -38,7 +38,7 @@ export default class PolymorphicHasManyMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get relatedMetadata(): EntityMetadata {
-        return this.loadEntity()
+        return EntityMetadata.findOrThrow(this.related())
     }
 
     // ------------------------------------------------------------------------
@@ -64,26 +64,14 @@ export default class PolymorphicHasManyMetadata extends RelationMetadata {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): PolymorphicHasManyMetadataJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                entity: this.relatedMetadata.toJSON(),
-                foreignKey: this.foreignKey.toJSON(),
-                typeColumn: this.typeColumn?.toJSON(),
-                type: this.type
-            }),
-            ...Object.entries(this).filter(
-                ([key]) => [
-                    'name',
-                    'scope',
-                ]
-                    .includes(key)
-            )
-        ]) as PolymorphicHasManyMetadataJSON
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadEntity() {
-        return EntityMetadata.findOrBuild(this.related())
+        return {
+            name: this.name,
+            type: this.type,
+            related: this.relatedMetadata.toJSON(),
+            foreignKey: this.foreignKey.toJSON(),
+            typeColumn: this.typeColumn?.toJSON(),
+            scope: this.scope
+        }
     }
 }
 

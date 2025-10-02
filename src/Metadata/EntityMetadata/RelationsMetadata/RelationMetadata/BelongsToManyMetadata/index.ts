@@ -3,9 +3,12 @@ import EntityMetadata from "../../.."
 
 // Types
 import type { EntityTarget } from "../../../../../types"
-import type JoinTableMetadata from "../../../JoinTablesMetadata/JoinTableMetadata"
-import type { JoinColumnMetadata } from "../../../JoinTablesMetadata/JoinTableMetadata"
-import type { ForeignKeyActionListener } from "../../.."
+import type {
+    JoinTableMetadata,
+    JoinColumnMetadata
+} from "../../../JoinTablesMetadata"
+import type { ForeignKeyActionListener } from "../../../ColumnsMetadata"
+import type { ConditionalQueryOptions } from '../../../../../SQLBuilders'
 import type {
     BelongsToManyRelatedGetter,
     BelongsToManyOptions,
@@ -17,14 +20,14 @@ export default class BelongsToManyMetadata extends RelationMetadata {
     public joinTableMetadata: JoinTableMetadata
     public onDelete?: ForeignKeyActionListener
     public onUpdate?: ForeignKeyActionListener
+    public scope?: ConditionalQueryOptions<any>
 
-    constructor(
-        public target: EntityTarget,
-        { name, joinTable, ...options }: BelongsToManyOptions
-    ) {
+    constructor(public target: EntityTarget, options: BelongsToManyOptions) {
+        const { name, joinTable, ...opts } = options
+
         super(target, name)
 
-        Object.assign(this, options)
+        Object.assign(this, opts)
         this.joinTableMetadata = this.registerJoinTable(joinTable)
     }
 
@@ -37,7 +40,7 @@ export default class BelongsToManyMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get JTName(): string {
-        return `${this.joinTableMetadata.tableName}`
+        return this.joinTableMetadata.tableName
     }
 
     // ------------------------------------------------------------------------
@@ -91,25 +94,20 @@ export default class BelongsToManyMetadata extends RelationMetadata {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): BelongsToManyMetadataJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                entity: this.relatedMetadata.toJSON(),
-                type: this.type
-            }),
-            ...Object.entries(this).filter(
-                ([key]) => [
-                    'name',
-                    'onDelete',
-                    'onUpdate'
-                ]
-                    .includes(key)
-            )
-        ]) as BelongsToManyMetadataJSON
+        return {
+            name: this.name,
+            type: this.type,
+            related: this.relatedMetadata.toJSON(),
+            joinTable: this.joinTableMetadata.toJSON(),
+            onDelete: this.onDelete,
+            onUpdate: this.onDelete,
+            scope: this.scope
+        }
     }
 
     // Privates ---------------------------------------------------------------
     private registerJoinTable(name?: string) {
-        return EntityMetadata.findOrBuild(this.target).addJoinTable(
+        return EntityMetadata.findOrThrow(this.target).addJoinTable(
             () => [
                 {
                     target: this.target,

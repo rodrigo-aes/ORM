@@ -51,7 +51,7 @@ import RelationMetadata, {
 } from "./RelationMetadata"
 
 import type { RelationsMetadataJSON } from "./types"
-import type { EntityTarget, Target } from "../../../types"
+import type { EntityTarget } from "../../../types"
 
 // Exceptions
 import { type MetadataErrorCode } from "../../../Errors"
@@ -133,19 +133,6 @@ export default class RelationsMetadata extends MetadataArray<
         this.push(
             new RelationMetadata.PolymorphicBelongsTo(this.target, options)
         )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public findPolymorphicBelongsToByRelateds(relateds: EntityTarget[]): (
-        PolymorphicBelongsToMetadata | undefined
-    ) {
-        return this.find(relation => (
-            relation instanceof PolymorphicBelongsToMetadata &&
-            relation.related().every(related => relateds.includes(related))
-        )) as (
-                PolymorphicBelongsToMetadata | undefined
-            )
     }
 }
 

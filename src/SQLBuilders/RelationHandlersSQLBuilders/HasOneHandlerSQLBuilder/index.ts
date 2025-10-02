@@ -28,7 +28,7 @@ export default class HasOneHandlerSQLBuilder<
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
     protected get includedAtrributes(): any {
-        return { [this.metadata.relatedForeignKey.name]: this.targetPrimaryValue }
+        return { [this.metadata.foreignKey.name]: this.targetPrimaryValue }
     }
 
     // Privates ---------------------------------------------------------------
@@ -39,7 +39,7 @@ export default class HasOneHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get foreignKeyAsSQL(): string {
-        return this.relatedColumnAsSQL(this.metadata.relatedForeignKey.name)
+        return this.relatedColumnAsSQL(this.metadata.foreignKey.name)
     }
 
 

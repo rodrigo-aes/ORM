@@ -1,4 +1,8 @@
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../../../types"
+import type {
+    EntityTarget,
+    PolymorphicEntityTarget
+} from "../../../../../types"
+import type { ConditionalQueryOptions } from '../../../../../SQLBuilders'
 import type { RelationOptions } from "../types"
 
 // Polymorphic Parent =========================================================
@@ -10,7 +14,7 @@ export interface PolymorphicParentOptions extends RelationOptions {
     related: PolymorphicParentRelatedGetter,
     foreignKey: string
     typeKey?: string
-    scope?: any
+    scope?: ConditionalQueryOptions<any>
 }
 
 // Polymorphic Child ==========================================================
@@ -20,5 +24,5 @@ export interface PolymorphicChildOptions extends RelationOptions {
     related: PolymorphicChildRelatedGetter
     foreignKey: string
     typeKey?: string
-    scope?: any
+    scope?: ConditionalQueryOptions<any>
 }

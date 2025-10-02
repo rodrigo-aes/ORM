@@ -1,14 +1,14 @@
 import { DataType } from "../../../EntityMetadata"
 import PolymorphicForeignKeyReferences from "./PolymorphicForeignKeyReferences"
 
-
 // Types
 import type {
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../../../types"
 
-import type { ColumnMetadata, ColumnMetadataJSON } from "../../../EntityMetadata"
+import type { ColumnMetadata } from "../../../EntityMetadata"
+import type { PolymorphicColumnMetadataJSON } from "./types"
 
 export default class PolymorphicColumnMetadata {
     public dataType: DataType | DataType[]
@@ -55,13 +55,13 @@ export default class PolymorphicColumnMetadata {
 
     // ------------------------------------------------------------------------
 
-    public toJSON() {
+    public toJSON(): PolymorphicColumnMetadataJSON {
         return {
             name: this.name,
 
             dataTypes: Array.isArray(this.dataType)
                 ? this.dataType.map(dataType => dataType.toJSON())
-                : this.dataType,
+                : [this.dataType.toJSON()],
 
             length: this.length,
             nullable: this.nullable,
@@ -101,4 +101,8 @@ export default class PolymorphicColumnMetadata {
             })
         )
     }
+}
+
+export {
+    type PolymorphicColumnMetadataJSON
 }

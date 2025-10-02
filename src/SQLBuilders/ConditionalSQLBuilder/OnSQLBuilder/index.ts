@@ -61,7 +61,7 @@ export default class OnSQLBuilder<
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            ON ${this.fixedConditionalSQL()} ${this.conditionalSQL(' AND')}
+            ON ${this.fixedConditionalSQL()} ${this.conditionalSQL(true)}
         `)
     }
 
@@ -104,12 +104,12 @@ export default class OnSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private fixedHasSQL(): string {
-        const { relatedFKName } = this.relation as (
+        const { FKName } = this.relation as (
             HasOneMetadata |
             HasManyMetadata
         )
 
-        return `${this.alias}.${relatedFKName} = ${this.parentPrimary}`
+        return `${this.relatedCol(FKName)} = ${this.parentPrimary}`
     }
 
     // ------------------------------------------------------------------------
@@ -127,12 +127,11 @@ export default class OnSQLBuilder<
         )
 
         return `EXISTS (
-            SELECT 1 FROM ${relatedTable} ${this.alias} 
-                WHERE EXISTS (
-                    SELECT 1 FROM ${throughTable}
-                        WHERE ${throughFKName} = ${this.parentPrimary}
-                        AND ${this.alias}.${relatedFKName} = ${throughPrimary}
-                )
+            SELECT 1 FROM ${relatedTable} ${this.alias} WHERE EXISTS (
+                SELECT 1 FROM ${throughTable}
+                WHERE ${throughFKName} = ${this.parentPrimary}
+                AND ${this.relatedCol(relatedFKName)} = ${throughPrimary}
+            )
         )`
     }
 
@@ -140,7 +139,7 @@ export default class OnSQLBuilder<
 
     private fixedBelongsTo(): string {
         const { FKName } = this.relation as BelongsToMetadata
-        return `${this.relatedPrimary} = ${this.parentAlias}.${FKName}`
+        return `${this.relatedPrimary} = ${this.parentCol(FKName)}`
     }
 
     // ------------------------------------------------------------------------
@@ -158,7 +157,7 @@ export default class OnSQLBuilder<
             SELECT 1 FROM ${relatedTable} ${this.alias} WHERE EXISTS(
                 SELECT 1 FROM ${throughTable}
                 WHERE ${throughFKName} = ${this.relatedPrimary}
-                AND ${throughPrimary} = ${this.parentAlias}.${relatedFKName}
+                AND ${throughPrimary} = ${this.parentCol(relatedFKName)}
             )
         )`
     }
@@ -176,11 +175,10 @@ export default class OnSQLBuilder<
         )
 
         return `EXISTS(
-            SELECT 1 FROM ${relatedTable} ${this.alias}
-                WHERE EXISTS(
-                    SELECT 1 FROM ${JT}
-                        WHERE ${parentFKname} = ${this.parentPrimary}
-                        AND ${relatedFKName} = ${this.relatedPrimary}
+            SELECT 1 FROM ${relatedTable} ${this.alias} WHERE EXISTS(
+                SELECT 1 FROM ${JT}
+                WHERE ${parentFKname} = ${this.parentPrimary}
+                AND ${relatedFKName} = ${this.relatedPrimary}
             )
         )`
     }
@@ -197,9 +195,9 @@ export default class OnSQLBuilder<
             PolymorphicHasManyMetadata
         )
 
-        return `${this.alias}.${FKName} = ${this.parentPrimary}` + (
+        return `${this.relatedCol(FKName)} = ${this.parentPrimary}` + (
             TKName
-                ? ` AND ${this.parentAlias}.${TKName} = ${(
+                ? ` AND ${this.parentCol(TKName)} = ${(
                     this.resolvePolymorphicParentType(parentType)
                 )}`
                 : ''
@@ -219,11 +217,23 @@ export default class OnSQLBuilder<
 
         const relAlias = this.resolvePolymorphicReletedAlias(relatedTable)
 
-        return `${relAlias}.primaryKey = ${this.parentAlias}.${FKName}` + (
+        return `${relAlias}.primaryKey = ${this.parentCol(FKName)}` + (
             TKName
-                ? ` AND ${relAlias}.entityType = ${this.parentAlias}.${TKName}`
+                ? ` AND ${relAlias}.entityType = ${this.parentCol(TKName)}`
                 : ''
         )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private relatedCol(column: string): string {
+        return `${this.alias}.${column}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    private parentCol(column: string): string {
+        return `${this.parentAlias}.${column}`
     }
 
     // ------------------------------------------------------------------------

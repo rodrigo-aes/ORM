@@ -2,6 +2,8 @@ import type { RelationOptions, RelationMetadataJSON } from "../types"
 import type { EntityTarget } from "../../../../../types"
 import type { ForeignKeyActionListener } from "../../../ColumnsMetadata"
 import type { EntityMetadataJSON } from "../../../types"
+import type { JoinTableMetadataJSON } from "../../../JoinTablesMetadata"
+import type { ConditionalQueryOptions } from '../../../../../SQLBuilders'
 
 export type BelongsToManyRelatedGetter = () => EntityTarget
 
@@ -10,12 +12,13 @@ export interface BelongsToManyOptions extends RelationOptions {
     joinTable?: string
     onDelete?: ForeignKeyActionListener
     onUpdate?: ForeignKeyActionListener
+    scope?: ConditionalQueryOptions<any>
 }
 
 export interface BelongsToManyMetadataJSON extends RelationMetadataJSON {
-    entity: EntityMetadataJSON
+    related: EntityMetadataJSON
+    joinTable: JoinTableMetadataJSON
     onDelete?: ForeignKeyActionListener
     onUpdate?: ForeignKeyActionListener
-    // joinTable
-    // Implement this...
+    scope?: ConditionalQueryOptions<any>
 }

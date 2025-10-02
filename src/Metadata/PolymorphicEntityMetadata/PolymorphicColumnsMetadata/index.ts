@@ -1,11 +1,14 @@
 import MetadataArray from '../../MetadataArray'
 import EntityMetadata, { DataType } from '../../EntityMetadata'
-import PolymorphicColumnMetadata from './PolymorphicColumnMetadata'
+import PolymorphicColumnMetadata, {
+    type PolymorphicColumnMetadataJSON
+} from './PolymorphicColumnMetadata'
 
 // Types
 import type { PolymorphicEntityTarget } from '../../../types'
 
 import type {
+    PolymorphicColumnsMetadataJSON,
     IncludedColumns,
     IncludeColumnOptions
 } from './types'
@@ -121,6 +124,8 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
 export {
     PolymorphicColumnMetadata,
 
+    type PolymorphicColumnsMetadataJSON,
+    type PolymorphicColumnMetadataJSON,
     type IncludedColumns,
     type IncludeColumnOptions
 }

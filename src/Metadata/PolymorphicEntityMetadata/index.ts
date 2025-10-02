@@ -6,13 +6,13 @@ import EntityMetadata, {
     ComputedPropertiesMetadata,
     CollectionsMetadata,
     PaginationsMetadata,
-
-    type PolymorphicParentRelatedGetter,
 } from "../EntityMetadata"
 
 import PolymorphicColumnsMetadata, {
     PolymorphicColumnMetadata,
 
+    type PolymorphicColumnsMetadataJSON,
+    type PolymorphicColumnMetadataJSON,
     type IncludedColumns,
     type IncludeColumnOptions
 } from "./PolymorphicColumnsMetadata"
@@ -27,6 +27,9 @@ import MetadataHandler from '../MetadataHandler'
 import { PolymorphicEntityBuilder } from "../../Handlers"
 import { EntityToJSONProcessMetadata } from "../ProcessMetadata"
 
+// Helpers
+import GeneralHelper from "../../Helpers/GeneralHelper"
+
 // Types
 import type { PolyORMConnection } from "../../Metadata"
 import type { PolymorphicEntityTarget, EntityTarget } from "../../types"
@@ -37,7 +40,7 @@ import type {
 } from "./types"
 
 // Exceptions
-import PolyORMException, { type MetadataErrorCode } from '../../Errors'
+import type { MetadataErrorCode } from '../../Errors'
 
 export default class PolymorphicEntityMetadata extends Metadata {
     protected static override readonly KEY: string = (
@@ -61,7 +64,7 @@ export default class PolymorphicEntityMetadata extends Metadata {
     constructor(
         target: PolymorphicEntityTarget | undefined,
         tablename: string | undefined,
-        private _sources: EntityTarget[] | PolymorphicParentRelatedGetter
+        private _sources: EntityTarget[] | (() => EntityTarget[])
     ) {
         if (!target && !tablename) throw new Error(
             'Polymorphic metadata needs a PolymorphicEntityTarget or tablename'
@@ -77,12 +80,9 @@ export default class PolymorphicEntityMetadata extends Metadata {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get name(): string {
-        return this.target?.name ?? this.tableName
-            .split('_')
-            .map(word => (
-                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-            ))
-            .join('')
+        return this.target?.name ?? GeneralHelper.toPascalCase(
+            ...this.tableName.split('_')
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -146,10 +146,6 @@ export default class PolymorphicEntityMetadata extends Metadata {
     public get scopes(): ScopesMetadata | undefined {
         return ScopesMetadata.find(this.target!)
     }
-
-    // ------------------------------------------------------------------------
-
-
 
     // ------------------------------------------------------------------------
 
@@ -274,6 +270,9 @@ export {
     PolymorphicColumnsMetadata,
     PolymorphicColumnMetadata,
 
+    type PolymorphicEntityMetadataJSON,
+    type PolymorphicColumnsMetadataJSON,
+    type PolymorphicColumnMetadataJSON,
     type UnionEntitiesMap,
     type IncludedColumns,
     type IncludeColumnOptions

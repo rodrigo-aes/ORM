@@ -1,6 +1,6 @@
 import Entity from "./Entity"
 import PolymorphicEntity, {
-    IncludeColumn,
+    Column as PolymorphicColumn,
     type IncludeColumnOptions
 } from "./PolymorphicEntity"
 
@@ -117,9 +117,9 @@ import {
 export {
     Entity,
     PolymorphicEntity,
-    IncludeColumn,
 
     Column,
+    PolymorphicColumn,
     ComputedColumn,
     Primary,
     ForeignKey,

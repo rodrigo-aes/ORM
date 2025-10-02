@@ -4,6 +4,7 @@ import RelationMetadata from "../RelationMetadata"
 // Types
 import type { Target, EntityTarget } from "../../../../../types"
 import type { ColumnMetadata } from "../../../ColumnsMetadata"
+import type { ConditionalQueryOptions } from '../../../../../SQLBuilders'
 import type {
     HasManyThroughOptions,
     HasManyThroughRelatedGetter,
@@ -12,34 +13,40 @@ import type {
 } from "./types"
 
 export default class HasManyThroughMetadata extends RelationMetadata {
-    public relatedMetadata: EntityMetadata
-    public throughMetadata: EntityMetadata
-
     public related!: HasManyThroughRelatedGetter
     public through!: HasManyThroughGetter
 
     public relatedFKName: string
     private _throughFKName: string
 
-    public scope: any
+    public scope?: ConditionalQueryOptions<any>
 
-    constructor(
-        target: Target,
-        { name, foreignKey, throughForeignKey, ...options }: HasManyThroughOptions
-    ) {
+    constructor(target: Target, options: HasManyThroughOptions) {
+        const { name, foreignKey, throughForeignKey, ...opts } = options
+
         super(target, name)
-        Object.assign(this, options)
+        Object.assign(this, opts)
 
         this.relatedFKName = foreignKey
         this._throughFKName = throughForeignKey
-        this.relatedMetadata = this.loadEntity()
-        this.throughMetadata = this.loadThroughEntity()
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get relatedTarget(): EntityTarget {
         return this.related()
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get relatedMetadata(): EntityMetadata {
+        return EntityMetadata.findOrThrow(this.related())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get throughMetadata(): EntityMetadata {
+        return EntityMetadata.findOrThrow(this.through())
     }
 
     // ------------------------------------------------------------------------
@@ -77,9 +84,7 @@ export default class HasManyThroughMetadata extends RelationMetadata {
     // ------------------------------------------------------------------------
 
     public get throughForeignKey(): ColumnMetadata {
-        return this.throughMetadata.columns.findOrThrow(
-            this._throughFKName
-        )
+        return this.throughMetadata.columns.findOrThrow(this._throughFKName)
     }
 
     // ------------------------------------------------------------------------
@@ -91,32 +96,15 @@ export default class HasManyThroughMetadata extends RelationMetadata {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public toJSON(): HasManyThroughMetadataJSON {
-        return Object.fromEntries([
-            ...Object.entries({
-                entity: this.relatedMetadata.toJSON(),
-                throughEntity: this.throughMetadata.toJSON(),
-                foreignKey: this.relatedForeignKey.toJSON(),
-                throughForeignKey: this.throughForeignKey.toJSON(),
-                type: this.type
-            }),
-            ...Object.entries(this).filter(
-                ([key]) => [
-                    'name'
-                ]
-                    .includes(key)
-            )
-        ]) as HasManyThroughMetadataJSON
-    }
-
-    // Privates ---------------------------------------------------------------
-    private loadEntity() {
-        return EntityMetadata.findOrBuild(this.related())
-    }
-
-    // ------------------------------------------------------------------------
-
-    private loadThroughEntity() {
-        return EntityMetadata.findOrBuild(this.through())
+        return {
+            name: this.name,
+            type: this.type,
+            related: this.relatedMetadata.toJSON(),
+            through: this.throughMetadata.toJSON(),
+            relatedForeignKey: this.relatedForeignKey.toJSON(),
+            throughForeignKey: this.throughForeignKey.toJSON(),
+            scope: this.scope
+        }
     }
 }
 

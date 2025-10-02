@@ -1,7 +1,7 @@
 import { PolymorphicEntityMetadata } from "../../Metadata"
 
 // Decorators
-import IncludeColumn, { type IncludeColumnOptions } from "./Include"
+import Column, { type IncludeColumnOptions } from "./Column"
 
 // Types
 import type { PolymorphicEntityTarget, EntityTarget } from "../../types"
@@ -17,6 +17,6 @@ export default function PolymorphicEntity(...entities: EntityTarget[]) {
 }
 
 export {
-    IncludeColumn,
+    Column,
     type IncludeColumnOptions
 }
