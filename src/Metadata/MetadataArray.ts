@@ -10,7 +10,7 @@ export default abstract class MetadataArray<
     T extends any = any
 > extends Array<T> {
     protected abstract readonly KEY: string
-    protected readonly SEARCH_KEYS: (keyof T)[] = []
+    protected readonly SEARCH_KEYS: (keyof T | string)[] = []
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode
 
     constructor(
@@ -38,7 +38,7 @@ export default abstract class MetadataArray<
     // Publics ----------------------------------------------------------------
     public search(search: any): T | undefined {
         return this.find(child => this.SEARCH_KEYS.some(
-            key => child[key] === search
+            key => child[key as keyof T] === search
         ))
     }
 

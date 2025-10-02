@@ -7,12 +7,17 @@ export enum MetadataErrorCodes {
     INVALID_POLYMORPHIC_SOURCE = 'INVALID_POLYMORPHIC_SOURCE',
     INVALID_INCLUDED_VALUE = 'INVALID_INCLUDED_VALUE',
 
+    UNKNOWN_COLUMN = 'UNKNOWN_COLUMN',
+    MISSING_PRIMARY_KEY = 'MISSING_PRIMARY_KEY',
+
     INVALID_RELATION = 'INVALID_RELATION',
     UNKNOWN_RELATION = 'UNKNOWN_RELATION',
 
     UNKNOWN_SCOPE = 'UNKNOWN_SCOPE',
 
     UNKNOWN_COLLECTION = 'UNKNOWN_COLLECTION',
+
+    UNKNOWN_PAGINATION = 'UNKNOWN_PAGINATION',
 
     INVALID_GENERATED_COLUMN_DATATYPE = 'INVALID_GENERATED_COLUMN_DATATYPE',
     IMCOMPATIBLE_POLYMORPHIC_COLUMN_DATATYPES = (
@@ -29,6 +34,9 @@ export enum MetadataErrorNoCodes {
     UNKNOWN_ENTITY = 2002,
     INVALID_POLYMORPHIC_SOURCE = 2003,
     INVALID_INCLUDED_VALUE = 2008,
+
+    UNKNOWN_COLUMN = 3102,
+    MISSING_PRIMARY_KEY = 3103,
 
     INVALID_RELATION = 3201,
     UNKNOWN_RELATION = 2302,
@@ -56,6 +64,9 @@ export enum MetadataErrorStates {
     INVALID_POLYMORPHIC_SOURCE = 'META-03',
     INVALID_INCLUDED_VALUE = 'META-08',
 
+    UNKNOWN_COLUMN = 'COLMETA-02',
+    MISSING_PRIMARY_KEY = 'COLMETA-03',
+
     INVALID_RELATION = 'RELMETA-01',
     UNKNOWN_RELATION = 'RELMETA-02',
 
@@ -82,6 +93,9 @@ export enum MetadataErrorMessages {
     INVALID_POLYMORPHIC_SOURCE = 'Invalid operation source entity "%s" for polymorphic entity class %s',
     INVALID_INCLUDED_VALUE = 'Invalid value "%s" of type "%s" in %s entity class included properties/getters',
 
+    UNKNOWN_COLUMN = 'Missing "%s" column metadata register for entity %s',
+    MISSING_PRIMARY_KEY = 'Missing PRIMARY KEY column metadata register for entity %s',
+
     INVALID_RELATION = 'Invalid relation type "%s" for relation "%s" of type "%s"',
     UNKNOWN_RELATION = 'Missing "%s" relation metadata register for entity %s',
 
@@ -95,8 +109,8 @@ export enum MetadataErrorMessages {
 
     INVALID_GENERATED_COLUMN_DATATYPE = '%s DataType is invalid for %s GENERATED column',
 
-    IMCOMPATIBLE_POLYMORPHIC_COLUMN_DATATYPES = 'Imcompatible DataTypes (%s) for polymorphic entity class %s column "%s"',
-    IMCOMPATIBLE_POLYMORPHIC_RELATIONS = 'Imcompatible relations types (%s) with the same name "%s" for polymorphic entity class %s'
+    IMCOMPATIBLE_POLYMORPHIC_COLUMN_DATATYPES = 'Imcompatible DataTypes (%s) for polymorphic entity %s column "%s"',
+    IMCOMPATIBLE_POLYMORPHIC_RELATIONS = 'Imcompatible relations types (%s) with the same name "%s" for polymorphic entity %s'
 }
 
 export type MetadataErrorCode = keyof typeof MetadataErrorCodes

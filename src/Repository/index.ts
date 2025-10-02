@@ -27,6 +27,8 @@ import {
 import {
     MySQL2QueryExecutionHandler,
 
+    type FindOneResult,
+    type FindResult,
     type ResultMapOption,
     type DeleteResult,
 } from "../Handlers"
@@ -294,13 +296,9 @@ export default class Repository<T extends EntityTarget> {
 }
 
 export {
-    type FindQueryOptions,
-    type FindOneQueryOptions,
+    type FindOneResult,
+    type FindResult,
     type CountManyQueryResult,
-    type CreationAttributes,
-    type UpdateAttributes,
-    type UpdateOrCreateAttibutes,
-    type ConditionalQueryOptions,
     type ResultMapOption,
     type DeleteResult,
 }

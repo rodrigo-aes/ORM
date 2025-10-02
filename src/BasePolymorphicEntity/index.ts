@@ -19,13 +19,15 @@ import {
 
 // Childs
 import { InternalPolymorphicEntities } from "./Components"
-import { ColumnsSnapshots, Collection } from "../BaseEntity"
+import { ColumnsSnapshots, Collection, Pagination } from "../BaseEntity"
 
 // Query Builder
 import { PolymorphicEntityQueryBuilder } from "../QueryBuilder"
 
 // Repository
 import PolymorphicRepository, {
+    type FindOneResult,
+    type FindResult,
     type CountManyQueryResult
 } from "../PolymorphicRepository"
 
@@ -576,10 +578,10 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     /**
      * Get polymorphic entity metadata
      */
-    public static getMetadata<T extends PolymorphicEntityTarget>(
-        this: T & typeof BasePolymorphicEntity
-    ) {
-        return this.getTrueMetadata().toJSON()
+    public static getMetadata<T extends PolymorphicEntityTarget>(this: T) {
+        return (this as T & typeof BasePolymorphicEntity)
+            .getMetadataInstance()
+            .toJSON()
     }
 
     // ------------------------------------------------------------------------
@@ -590,11 +592,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         T extends PolymorphicRepository<Target> = PolymorphicRepository<
             typeof this
         >,
-        Target extends (
-            PolymorphicEntityTarget & typeof BasePolymorphicEntity
-        ) = any
+        Target extends PolymorphicEntityTarget = any
     >(this: Target): T {
-        return this.getTrueMetadata().getRepository() as T
+        return (this as Target & typeof BasePolymorphicEntity)
+            .getMetadataInstance()
+            .getRepository() as T
     }
 
     // ------------------------------------------------------------------------
@@ -616,19 +618,23 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns - Scoped static polymorphic entity
      */
     public static scope<T extends PolymorphicEntityTarget>(
-        this: T & typeof BasePolymorphicEntity,
+        this: T,
         name: string,
         ...args: any[]
     ): T {
-        const scope = this.getTrueMetadata().scopes?.getScope(name, ...args)
-        if (!scope) throw PolyORMException.Metadata.instantiate(
-            "UNKNOWN_SCOPE", name, this.name
+        const scoped: T = (this as T & typeof BasePolymorphicEntity).reply()
+        TempMetadata.reply(scoped, this).setScope(
+            scoped,
+            (this as (
+                T & typeof BasePolymorphicEntity
+            )).getMetadataInstance().scopes?.getScope(name, ...args)! ?? (
+                PolyORMException.Metadata.throw(
+                    "UNKNOWN_SCOPE", name, this.name
+                )
+            )
         )
 
-        const scoped = this.reply()
-        TempMetadata.reply(scoped, this).setScope(scoped, scope)
-
-        return scoped as T
+        return scoped
     }
 
     // ------------------------------------------------------------------------
@@ -639,21 +645,23 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns - Scoped static polymorphic entity
      */
     public static collection<T extends PolymorphicEntityTarget>(
-        this: T & typeof BasePolymorphicEntity,
+        this: T,
         collection: string | typeof Collection
     ): T {
-        const coll: typeof Collection = typeof collection === 'object'
-            ? collection
-            : this.getTrueMetadata().collections?.search(collection as string)
-
-        if (!coll) throw PolyORMException.Metadata.instantiate(
-            'UNKNOWN_COLLECTION', collection, this.name
+        const scoped: T = (this as T & typeof BasePolymorphicEntity).reply()
+        TempMetadata.reply(scoped, this).setCollection(
+            scoped,
+            typeof collection === 'object'
+                ? collection
+                : (this as (
+                    T & typeof BasePolymorphicEntity
+                )).getMetadataInstance().collections?.findOrThrow(collection)
+                ?? PolyORMException.Metadata.throw(
+                    'UNKNOWN_COLLECTION', collection, this.name
+                )
         )
 
-        const scoped = this.reply()
-        TempMetadata.reply(scoped, this).setCollection(scoped, coll)
-
-        return scoped as T
+        return scoped
     }
 
     // ------------------------------------------------------------------------
@@ -680,12 +688,17 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @default - 'entity'
      * @returns - Entity instance or `null`
      */
-    public static findByPk<T extends PolymorphicEntityTarget>(
-        this: T & typeof BasePolymorphicEntity,
+    public static findByPk<
+        T extends PolymorphicEntityTarget,
+        M extends ResultMapOption = 'entity'
+    >(
+        this: T,
         pk: any,
-        mapTo: ResultMapOption = 'entity'
-    ) {
-        return this.getRepository().findByPk(pk, mapTo)
+        mapTo?: M
+    ): Promise<FindOneResult<T, M>> {
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .findByPk(pk, mapTo) as Promise<FindOneResult<T, M>>
     }
 
     // ------------------------------------------------------------------------
@@ -697,12 +710,17 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     * @default 'entity'
     * @returns - A polymorphic entity instance collection
     */
-    public static find<T extends PolymorphicEntityTarget>(
-        this: T & typeof BasePolymorphicEntity,
+    public static find<
+        T extends PolymorphicEntityTarget,
+        M extends ResultMapOption = 'entity'
+    >(
+        this: T,
         options: FindQueryOptions<InstanceType<T>>,
-        mapTo: ResultMapOption = 'entity'
-    ) {
-        return this.getRepository().find(options, mapTo)
+        mapTo?: M
+    ): Promise<FindResult<T, M>> {
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .find(options, mapTo) as Promise<FindResult<T, M>>
     }
 
     // ------------------------------------------------------------------------
@@ -714,12 +732,17 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     * @default 'entity'
     * @returns - A polymorphic entity instance or `null`
     */
-    public static findOne<T extends PolymorphicEntityTarget>(
-        this: T & typeof BasePolymorphicEntity,
+    public static findOne<
+        T extends PolymorphicEntityTarget,
+        M extends ResultMapOption = 'entity'
+    >(
+        this: T,
         options: FindOneQueryOptions<InstanceType<T>>,
-        mapTo: ResultMapOption = 'entity'
-    ) {
-        return this.getRepository().findOne(options, mapTo)
+        mapTo?: M
+    ): Promise<FindOneResult<T, M>> {
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .findOne(options, mapTo) as Promise<FindOneResult<T, M>>
     }
 
     // ------------------------------------------------------------------------
@@ -732,10 +755,12 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     * @returns - A polymorphic entity instance pagination collection
     */
     public static paginate<T extends PolymorphicEntityTarget>(
-        this: T & typeof BasePolymorphicEntity,
+        this: T,
         options: PaginationQueryOptions<InstanceType<T>>
-    ) {
-        this.getRepository().paginate(options)
+    ): Promise<Pagination<InstanceType<T>>> {
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .paginate(options) as Promise<Pagination<InstanceType<T>>>
     }
 
     // ------------------------------------------------------------------------
@@ -745,11 +770,13 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @param options - Count options
      * @returns - The count number result
      */
-    public static count<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+    public static count<T extends PolymorphicEntityTarget>(
+        this: T,
         options: CountQueryOption<InstanceType<T>>
     ): Promise<number> {
-        return this.getRepository().count(options)
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .count(options)
     }
 
     // ------------------------------------------------------------------------
@@ -761,13 +788,15 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns - A object with count names keys and count results
      */
     public static countMany<
-        T extends EntityTarget,
+        T extends PolymorphicEntityTarget,
         Opts extends CountQueryOptions<InstanceType<T>>
     >(
-        this: T & typeof BaseEntity,
+        this: T,
         options: Opts
     ): Promise<CountManyQueryResult<T, Opts>> {
-        return this.getRepository().countMany(options)
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .countMany(options)
     }
 
     // ------------------------------------------------------------------------
@@ -785,12 +814,14 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         T extends PolymorphicEntityTarget,
         Source extends EntityTarget
     >(
-        this: T & typeof BasePolymorphicEntity,
+        this: T,
         source: Source,
         attributes: CreationAttributes<InstanceType<Source>>,
         mapTo: 'this' | 'source' = 'this'
-    ) {
-        return this.getRepository().create(source, attributes, mapTo)
+    ): Promise<InstanceType<T>> {
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .create(source, attributes, mapTo) as Promise<InstanceType<T>>
     }
 
     // ------------------------------------------------------------------------
@@ -810,12 +841,16 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         T extends PolymorphicEntityTarget,
         Source extends EntityTarget
     >(
-        this: T & typeof BasePolymorphicEntity,
+        this: T,
         source: Source,
         attributes: CreationAttributes<InstanceType<Source>>[],
         mapTo: 'this' | 'source' = 'this'
-    ) {
-        return this.getRepository().createMany(source, attributes, mapTo)
+    ): Promise<Collection<InstanceType<T>>> {
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .createMany(source, attributes, mapTo) as (
+                Promise<Collection<InstanceType<T>>>
+            )
     }
 
     // ------------------------------------------------------------------------
@@ -832,14 +867,14 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         T extends PolymorphicEntityTarget,
         Source extends EntityTarget
     >(
-        this: T & typeof BasePolymorphicEntity,
+        this: T,
         source: Source,
         attributes: UpdateAttributes<InstanceType<Source>>,
         where: ConditionalQueryOptions<InstanceType<Source>>
     ): Promise<ResultSetHeader> {
-        return this.getRepository().update(source, attributes, where) as (
-            Promise<ResultSetHeader>
-        )
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .update(source, attributes, where) as Promise<ResultSetHeader>
     }
 
     // ------------------------------------------------------------------------
@@ -858,12 +893,16 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         T extends PolymorphicEntityTarget,
         Source extends EntityTarget
     >(
-        this: T & typeof BasePolymorphicEntity,
+        this: T,
         source: Source,
         attributes: UpdateOrCreateAttibutes<InstanceType<Source>>,
         mapTo: 'this' | 'source' = 'this'
-    ) {
-        return this.getRepository().updateOrCreate(source, attributes, mapTo)
+    ): Promise<Collection<InstanceType<T>>> {
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .updateOrCreate(source, attributes, mapTo) as (
+                Promise<Collection<InstanceType<T>>>
+            )
     }
 
     // ------------------------------------------------------------------------
@@ -879,16 +918,18 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         T extends PolymorphicEntityTarget,
         Source extends EntityTarget
     >(
-        this: T & typeof BasePolymorphicEntity,
+        this: T,
         source: Source,
         where: ConditionalQueryOptions<InstanceType<Source>>
     ): Promise<DeleteResult> {
-        return this.getRepository().delete(source, where)
+        return (this as T & typeof BasePolymorphicEntity)
+            .getRepository()
+            .delete(source, where)
     }
 
     // Privates ---------------------------------------------------------------
     /** @internal */
-    private static getTrueMetadata<T extends PolymorphicEntityTarget>(
+    private static getMetadataInstance<T extends PolymorphicEntityTarget>(
         this: T
     ): PolymorphicEntityMetadata {
         return MetadataHandler.targetMetadata(this)

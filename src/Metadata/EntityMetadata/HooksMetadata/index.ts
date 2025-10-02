@@ -54,7 +54,7 @@ import type {
 import type { DeleteResult } from "../../../Handlers"
 import type { HooksMetadataJSON } from "./types"
 
-import PolyORMException, { type MetadataErrorCode } from "../../../Errors"
+import { type MetadataErrorCode } from "../../../Errors"
 
 export default class HooksMetadata extends Metadata {
     protected static override readonly KEY: string = 'entity-metadata'

@@ -7,6 +7,9 @@ import CollectionsMetadataHandler from "./CollectionsMetadataHandler"
 import type { Target } from "../../../types"
 import type { CollectionsMetadataJSON } from "./types"
 
+// Exceptions
+import type { MetadataErrorCode } from "../../../Errors"
+
 export default class CollectionsMetadata<
     T extends Target = Target,
     C extends typeof Collection<InstanceType<T>> = any
@@ -14,6 +17,13 @@ export default class CollectionsMetadata<
     protected static override readonly KEY: string = 'collections-metadata'
 
     protected readonly KEY: string = CollectionsMetadata.KEY
+    protected readonly SEARCH_KEYS: (keyof C | 'name')[] = [
+        'name', 'alias'
+    ]
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
+        'UNKNOWN_COLLECTION'
+    )
+
     public default: typeof Collection = Collection
 
     // Static Getters =========================================================
@@ -24,12 +34,6 @@ export default class CollectionsMetadata<
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public search(search: string): C | undefined {
-        return this.find(({ name, alias }) => [name, alias].includes(search))
-    }
-
-    // ------------------------------------------------------------------------
-
     public setDefault(collection: typeof Collection): void {
         this.default = collection
     }

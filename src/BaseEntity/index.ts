@@ -32,6 +32,8 @@ import {
 
 // Repository
 import Repository, {
+    type FindOneResult,
+    type FindResult,
     type CountManyQueryResult,
     type ResultMapOption,
     type DeleteResult
@@ -524,8 +526,8 @@ export default abstract class BaseEntity {
     /**
      * Get entity metadata
      */
-    public static getMetadata<T extends EntityTarget>(this: T & typeof BaseEntity) {
-        return this.getTrueMetadata().toJSON<T>()
+    public static getMetadata<T extends EntityTarget>(this: T) {
+        return (this as T & typeof BaseEntity).getMetadataInstance().toJSON<T>()
     }
 
     // ------------------------------------------------------------------------
@@ -534,9 +536,11 @@ export default abstract class BaseEntity {
      */
     public static getRepository<
         T extends Repository<Target> = Repository<typeof this>,
-        Target extends (EntityTarget & typeof BaseEntity) = any
+        Target extends EntityTarget = any
     >(this: Target): T {
-        return this.getTrueMetadata().getRepository() as T
+        return (this as Target & typeof BaseEntity)
+            .getMetadataInstance()
+            .getRepository() as T
     }
 
     // ------------------------------------------------------------------------
@@ -558,19 +562,21 @@ export default abstract class BaseEntity {
      * @returns - Scoped static entity
      */
     public static scope<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+        this: T,
         name: string,
         ...args: any[]
     ): T {
-        const scope = this.getTrueMetadata().scopes?.getScope(name, ...args)
-        if (!scope) throw PolyORMException.Metadata.instantiate(
-            "UNKNOWN_SCOPE", name, this.name
+        const scoped: T = (this as T & typeof BaseEntity).reply()
+
+        TempMetadata.reply(scoped, this).setScope(
+            scoped,
+            (this as T & typeof BaseEntity).getMetadataInstance().scopes
+                ?.getScope(name, ...args)! ?? PolyORMException.Metadata.throw(
+                    "UNKNOWN_SCOPE", name, this.name
+                )
         )
 
-        const scoped = this.reply()
-        TempMetadata.reply(scoped, this).setScope(scoped, scope)
-
-        return scoped as T
+        return scoped
     }
 
     // ------------------------------------------------------------------------
@@ -581,21 +587,24 @@ export default abstract class BaseEntity {
      * @returns - Scoped static entity
      */
     public static collection<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+        this: T,
         collection: string | typeof Collection
     ): T {
-        const coll: typeof Collection = typeof collection === 'object'
-            ? collection
-            : this.getTrueMetadata().collections?.search(collection as string)
+        const scoped: T = (this as T & typeof BaseEntity).reply()
 
-        if (!coll) throw PolyORMException.Metadata.instantiate(
-            'UNKNOWN_COLLECTION', collection, this.name
+        TempMetadata.reply(scoped, this).setCollection(
+            scoped,
+            typeof collection === 'object'
+                ? collection
+                : (this as T & typeof BaseEntity).getMetadataInstance()
+                    .collections?.findOrThrow(collection) ?? (
+                    PolyORMException.Metadata.throw(
+                        'UNKNOWN_COLLECTION', collection, this.name
+                    )
+                )
         )
 
-        const scoped = this.reply()
-        TempMetadata.reply(scoped, this).setCollection(scoped, coll)
-
-        return scoped as T
+        return scoped
     }
 
     // ------------------------------------------------------------------------
@@ -621,12 +630,17 @@ export default abstract class BaseEntity {
      * @default - 'entity'
      * @returns - Entity instance or `null`
      */
-    public static findByPk<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+    public static findByPk<
+        T extends EntityTarget,
+        M extends ResultMapOption = 'entity'
+    >(
+        this: T,
         pk: any,
-        mapTo: ResultMapOption = 'entity'
-    ) {
-        return this.getRepository().findByPk(pk, mapTo)
+        mapTo?: M
+    ): Promise<FindOneResult<T, M>> {
+        return (this as T & typeof BaseEntity)
+            .getRepository()
+            .findByPk(pk, mapTo) as Promise<FindOneResult<T, M>>
     }
 
     // ------------------------------------------------------------------------
@@ -638,12 +652,17 @@ export default abstract class BaseEntity {
      * @default 'entity'
      * @returns - A entity instance collection
      */
-    public static find<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+    public static find<
+        T extends EntityTarget,
+        M extends ResultMapOption = 'entity'
+    >(
+        this: T,
         options: FindQueryOptions<InstanceType<T>>,
-        mapTo: ResultMapOption = 'entity'
-    ) {
-        return this.getRepository().find(options, mapTo)
+        mapTo?: M
+    ): Promise<FindResult<T, M>> {
+        return (this as T & typeof BaseEntity)
+            .getRepository()
+            .find(options, mapTo) as Promise<FindResult<T, M>>
     }
 
     // ------------------------------------------------------------------------
@@ -655,12 +674,17 @@ export default abstract class BaseEntity {
     * @default 'entity'
     * @returns - A entity instance or `null`
     */
-    public static findOne<T extends EntityTarget>(
-        this: T & typeof BaseEntity,
+    public static findOne<
+        T extends EntityTarget,
+        M extends ResultMapOption = 'entity'
+    >(
+        this: T,
         options: FindOneQueryOptions<InstanceType<T>>,
-        mapTo: ResultMapOption = 'entity'
-    ) {
-        return this.getRepository().findOne(options, mapTo)
+        mapTo?: M
+    ): Promise<FindOneResult<T, M>> {
+        return (this as T & typeof BaseEntity)
+            .getRepository()
+            .findOne(options, mapTo) as Promise<FindOneResult<T, M>>
     }
 
     // ------------------------------------------------------------------------
@@ -668,15 +692,17 @@ export default abstract class BaseEntity {
     /**
     *  Search all register matched by options in database and paginate
     * @param options - Find options
-    * @param mapTo @param mapTo - Switch data mapped return
+    * @param mapTo - Switch data mapped return
     * @default 'entity'
     * @returns - A entity instance pagination collection
     */
     public static paginate<T extends EntityTarget>(
         this: T,
-        options?: PaginationQueryOptions<InstanceType<T>>
-    ): Pagination<InstanceType<T>> {
-        return (this as any).getRepository().paginate(options)
+        options: PaginationQueryOptions<InstanceType<T>>
+    ): Promise<Pagination<InstanceType<T>>> {
+        return (this as T & typeof BaseEntity).getRepository().paginate(
+            options
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -690,7 +716,7 @@ export default abstract class BaseEntity {
         this: T,
         options: CountQueryOption<InstanceType<T>>
     ): Promise<number> {
-        return (this as any).getRepository().count(options)
+        return (this as T & typeof BaseEntity).getRepository().count(options)
     }
 
     // ------------------------------------------------------------------------
@@ -708,7 +734,9 @@ export default abstract class BaseEntity {
         this: T,
         options: Opts
     ): Promise<CountManyQueryResult<T, Opts>> {
-        return (this as any).getRepository().countMany(options)
+        return (this as T & typeof BaseEntity).getRepository().countMany(
+            options
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -723,7 +751,9 @@ export default abstract class BaseEntity {
         this: T,
         attributes: CreationAttributes<InstanceType<T>>
     ): Promise<InstanceType<T>> {
-        return (this as any).getRepository().create(attributes)
+        return (this as T & typeof BaseEntity)
+            .getRepository<Repository<T>>()
+            .create(attributes)
     }
 
     // ------------------------------------------------------------------------
@@ -739,7 +769,9 @@ export default abstract class BaseEntity {
         this: T,
         attributes: CreationAttributes<InstanceType<T>>[]
     ): Promise<InstanceType<T>[]> {
-        return (this as any).getRepository().createMany(attributes)
+        return (this as T & typeof BaseEntity)
+            .getRepository<Repository<T>>()
+            .createMany(attributes)
     }
 
     // ------------------------------------------------------------------------
@@ -756,7 +788,9 @@ export default abstract class BaseEntity {
         attributes: UpdateAttributes<InstanceType<T>>,
         where: ConditionalQueryOptions<InstanceType<T>>
     ): Promise<ResultSetHeader> {
-        return (this as any).getRepository().update(attributes, where)
+        return (this as T & typeof BaseEntity)
+            .getRepository()
+            .update(attributes, where) as Promise<ResultSetHeader>
     }
 
     // ------------------------------------------------------------------------
@@ -770,7 +804,9 @@ export default abstract class BaseEntity {
         this: T,
         attributes: UpdateOrCreateAttibutes<InstanceType<T>>,
     ): Promise<InstanceType<T>> {
-        return (this as any).getRepository().updateOrCreate(attributes)
+        return (this as T & typeof BaseEntity)
+            .getRepository<Repository<T>>()
+            .updateOrCreate(attributes)
     }
 
     // ------------------------------------------------------------------------
@@ -784,12 +820,12 @@ export default abstract class BaseEntity {
         this: T,
         where: ConditionalQueryOptions<InstanceType<T>>
     ): Promise<DeleteResult> {
-        return (this as any).getRepository().delete(where)
+        return (this as T & typeof BaseEntity).getRepository().delete(where)
     }
 
     // Privates ---------------------------------------------------------------
     /** @internal */
-    public static getTrueMetadata<T extends EntityTarget>(this: T): (
+    public static getMetadataInstance<T extends EntityTarget>(this: T): (
         EntityMetadata
     ) {
         return MetadataHandler.targetMetadata(this) as EntityMetadata

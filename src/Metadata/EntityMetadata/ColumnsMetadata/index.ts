@@ -21,14 +21,14 @@ import type { EntityTarget } from "../../../types"
 import type { ColumnsMetadataJSON } from './types'
 
 // Exceptions
-import type { MetadataErrorCode } from '../../../Errors'
+import PolyORMException, { type MetadataErrorCode } from '../../../Errors'
 export default class ColumnsMetadata extends MetadataArray<ColumnMetadata> {
     protected static override readonly KEY: string = 'columns-metadata'
 
     protected readonly KEY: string = ColumnsMetadata.KEY
     protected readonly SEARCH_KEYS: (keyof ColumnMetadata)[] = ['name']
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
-        'UNKNOWN_RELATION'
+        'UNKNOWN_COLUMN'
     )
 
     declare public target: EntityTarget
@@ -36,7 +36,10 @@ export default class ColumnsMetadata extends MetadataArray<ColumnMetadata> {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get primary(): ColumnMetadata {
-        return this.find(({ primary }) => primary)!
+        return this.find(({ primary }) => primary)! ?? PolyORMException
+            .Metadata
+            .throw('MISSING_PRIMARY_KEY', this.target.name)
+
     }
 
     // ------------------------------------------------------------------------

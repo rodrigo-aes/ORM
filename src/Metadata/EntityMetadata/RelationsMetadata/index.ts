@@ -54,7 +54,7 @@ import type { RelationsMetadataJSON } from "./types"
 import type { EntityTarget } from "../../../types"
 
 // Exceptions
-import { type MetadataErrorCode } from "../../../Errors"
+import type { MetadataErrorCode } from "../../../Errors"
 
 export default class RelationsMetadata extends MetadataArray<
     RelationMetadata

@@ -14,7 +14,7 @@ import type {
 } from './types'
 
 // Exceptions
-import { type MetadataErrorCode } from '../../../Errors'
+import PolyORMException, { type MetadataErrorCode } from '../../../Errors'
 
 export default class PolymorphicColumnsMetadata extends MetadataArray<
     PolymorphicColumnMetadata
@@ -31,7 +31,7 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
         'name'
     ]
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
-        'UNKNOWN_RELATION'
+        'UNKNOWN_COLUMN'
     )
 
     constructor(
@@ -48,7 +48,9 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get primary(): PolymorphicColumnMetadata {
-        return this.findOrThrow('primaryKey')
+        return this.find(({ primary }) => primary)! ?? PolyORMException
+            .Metadata
+            .throw('MISSING_PRIMARY_KEY', this.target.name)
     }
 
     // ------------------------------------------------------------------------

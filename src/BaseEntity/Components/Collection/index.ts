@@ -10,7 +10,7 @@ import type {
 import type { UpdateAttributes } from "../../../SQLBuilders"
 
 export default class Collection<T extends Entity> extends Array<T> {
-    public static alias: string = this.name
+    public static readonly alias: string = this.name
 
     constructor(...entities: T[]) {
         super(...entities)

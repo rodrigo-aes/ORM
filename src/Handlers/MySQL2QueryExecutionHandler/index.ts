@@ -146,10 +146,16 @@ export default class MySQL2QueryExecutionHandler<
 
     // Privates ---------------------------------------------------------------
     private async executeFindByPk(): Promise<FindOneResult<T, MapTo>> {
-        return this.handleDataMapTo(
+        await this.callBeforeFindHook()
+
+        const result = this.handleDataMapTo(
             await this.connection.query(this.sqlBuilder.SQL()),
             'One'
         ) as FindOneResult<T, MapTo>
+
+        await this.callAfterFindHook(result)
+
+        return result
     }
 
     // ------------------------------------------------------------------------

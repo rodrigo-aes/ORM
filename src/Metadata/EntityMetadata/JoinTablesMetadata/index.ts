@@ -22,9 +22,6 @@ export default class JoinTablesMetadata extends MetadataArray<
 
     protected readonly KEY: string = JoinTablesMetadata.KEY
     protected readonly SEARCH_KEYS: (keyof JoinTableMetadata)[] = ['tableName']
-    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
-        'UNKNOWN_RELATION'
-    )
 
     declare public target: EntityTarget
 
