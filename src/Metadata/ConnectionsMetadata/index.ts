@@ -1,22 +1,17 @@
+import MetadataMap from "../MetadataMap"
+
+// Types
 import type { PolyORMConnection, MySQLConnection } from "./contracts"
 
 // Exceptions
-import PolyORMException from "../../Errors"
+import { type MetadataErrorCode } from "../../Errors"
 
-class ConnectionsMetadata extends Map<string, PolyORMConnection> {
-    // Instance Methods =======================================================
-    // Publics ----------------------------------------------------------------
-    public all(): PolyORMConnection[] {
-        return Array.from(this.values())
-    }
-
-    // ------------------------------------------------------------------------
-
-    public findOrThrow(name: string): PolyORMConnection {
-        return this.get(name)! ?? PolyORMException.Metadata.throw(
-            'INEXISTENT_CONNECTION', name
-        )
-    }
+class ConnectionsMetadata extends MetadataMap<string, PolyORMConnection> {
+    protected static override readonly KEY: string = 'connections-metadata'
+    protected readonly KEY: string = ConnectionsMetadata.KEY
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
+        'UNKNOWN_CONNECTION'
+    )
 }
 
 export default new ConnectionsMetadata

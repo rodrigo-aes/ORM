@@ -1,5 +1,5 @@
 export enum MetadataErrorCodes {
-    INEXISTENT_CONNECTION = 'INEXISTENT_CONNECTION',
+    UNKNOWN_CONNECTION = 'UNKNOWN_CONNECTION',
     MISSING_ENTITY_CONNECTION = 'MISSING_ENTITY_CONNECTION',
 
     INVALID_ENTITY = 'INVALID_ENTITY',
@@ -27,7 +27,7 @@ export enum MetadataErrorCodes {
 }
 
 export enum MetadataErrorNoCodes {
-    INEXISTENT_CONNECTION = 1001,
+    UNKNOWN_CONNECTION = 1001,
     MISSING_ENTITY_CONNECTION = 1002,
 
     INVALID_ENTITY = 2001,
@@ -56,7 +56,7 @@ export enum MetadataErrorNoCodes {
 }
 
 export enum MetadataErrorStates {
-    INEXISTENT_CONNECTION = 'CONN-01',
+    UNKNOWN_CONNECTION = 'CONN-01',
     MISSING_ENTITY_CONNECTION = 'CONN-02',
 
     INVALID_ENTITY = 'META-01',
@@ -85,7 +85,7 @@ export enum MetadataErrorStates {
 }
 
 export enum MetadataErrorMessages {
-    INEXISTENT_CONNECTION = 'inexistent connection metadata referenced by name "%s"',
+    UNKNOWN_CONNECTION = 'inexistent connection metadata referenced by name "%s"',
     MISSING_ENTITY_CONNECTION = 'Missing connection metadata for "%s" entity class. Entities should be registered on a connection instance',
 
     INVALID_ENTITY = 'Invalid entity target class "%s". Entities should be extends BaseEntity or BasePolymorphicEntity classes',

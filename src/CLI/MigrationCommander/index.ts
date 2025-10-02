@@ -78,7 +78,7 @@ export default class MigrationCommander extends Command {
 
         if (this.opts.connections) return this.opts.connnection
             .split(',')
-            .map((name: string) => ConnectionsMetadata.findOrThrow(
+            .map((name: string) => ConnectionsMetadata.getOrThrow(
                 name.trim()
             ))
 

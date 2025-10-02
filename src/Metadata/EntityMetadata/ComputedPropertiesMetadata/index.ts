@@ -1,3 +1,6 @@
+import MetadataMap from "../../MetadataMap"
+import { Collection } from "../../../BaseEntity"
+
 // Types
 import type {
     EntityTarget,
@@ -5,17 +8,25 @@ import type {
     CollectionTarget
 } from "../../../types"
 
-import { Collection } from "../../../BaseEntity"
 import type { ComputedPropertyFunction, ComputedPropertiesJSON } from "./types"
+
+// Exceptions
+import type { MetadataErrorCode } from "../../../Errors"
 
 export default class ComputedPropertiesMetadata<
     T extends EntityTarget | PolymorphicEntityTarget = any,
     Target extends T | CollectionTarget = any
-> extends Map<
+> extends MetadataMap<
     keyof InstanceType<Target>, ComputedPropertyFunction<T>
 > {
+    protected static override readonly KEY: string = 'connections-metadata'
+    protected readonly KEY: string = ComputedPropertiesMetadata.KEY
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
+        'UNKNOWN_CONNECTION'
+    )
+
     constructor(public target: Target) {
-        super()
+        super(target)
 
         this.register()
     }
@@ -30,23 +41,11 @@ export default class ComputedPropertiesMetadata<
             : this.assignEntity(target)
     }
 
-    // ------------------------------------------------------------------------
-
-    public toJSON(): ComputedPropertiesJSON {
-        return Object.fromEntries(this.entries())
-    }
-
     // Privates ---------------------------------------------------------------
-    private register() {
-        Reflect.defineMetadata('computed-properties', this, this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private async assignEntity(entity: InstanceType<T>): Promise<void> {
-        for (const [prop, fn] of Array.from(this.entries())) entity[prop as (
-            keyof InstanceType<T>
-        )] = await fn(undefined, entity)
+        for (const [prop, fn] of Array.from(this.entries())) entity[
+            prop as keyof InstanceType<T>
+        ] = await fn(undefined, entity)
     }
 
     // ------------------------------------------------------------------------
@@ -58,31 +57,6 @@ export default class ComputedPropertiesMetadata<
 
             Object.assign(collection, { [prop]: value })
         }
-
-    }
-
-    // Static Methods =========================================================
-    // Publics ================================================================
-    public static find(
-        target: EntityTarget | PolymorphicEntityTarget | CollectionTarget
-    ): ComputedPropertiesMetadata | undefined {
-        return Reflect.getOwnMetadata('computed-properties', target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static build(
-        target: EntityTarget | PolymorphicEntityTarget | CollectionTarget
-    ) {
-        return new ComputedPropertiesMetadata(target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrBuild(
-        target: EntityTarget | PolymorphicEntityTarget | CollectionTarget
-    ) {
-        return this.find(target) ?? this.build(target)
     }
 }
 

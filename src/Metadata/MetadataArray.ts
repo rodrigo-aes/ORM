@@ -12,15 +12,13 @@ export default abstract class MetadataArray<
     protected abstract readonly KEY: string
     protected readonly SEARCH_KEYS: (keyof T | string)[] = []
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode
+    protected readonly SHOULD_REGISTER: boolean = true
 
-    constructor(
-        public target?: Target,
-        ...childs: T[]
-    ) {
+    constructor(public target?: Target, ...childs: T[]) {
         super(...childs)
 
-        this.register()
-        this.mergeParentsChilds()
+        if (this.SHOULD_REGISTER) this.register()
+        if (target) this.mergeParentsChilds()
     }
 
     // Static Getters =========================================================
@@ -131,8 +129,7 @@ export default abstract class MetadataArray<
             ?? (this as T & typeof MetadataArray).build(target, ...childs)
     }
 
-    // ------------------------------------------------------------------------
-
+    // Privates ---------------------------------------------------------------
     private static parentsChilds<T extends Constructor<MetadataArray>>(
         this: T,
         target: Target

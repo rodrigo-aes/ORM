@@ -1,3 +1,5 @@
+import MetadataMap from "../../MetadataMap"
+
 import ScopeMetadata from "./ScopeMetadata"
 import ScopeMetadataHandler from "./ScopeMetadataHandler"
 
@@ -10,10 +12,17 @@ import type {
 import type { FindQueryOptions } from "../../../SQLBuilders"
 import type { Scope, ScopeFunction, ScopesMetadataJSON } from "./types"
 
-export default class ScopesMetadata extends Map<
+// Exceptions
+import type { MetadataErrorCode } from "../../../Errors"
+
+export default class ScopesMetadata extends MetadataMap<
     string,
     ScopeMetadata | ScopeFunction
 > {
+    protected static override readonly KEY: string = 'scopes-metadata'
+    protected readonly KEY: string = ScopesMetadata.KEY
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = 'UNKNOWN_SCOPE'
+
     public default?: ScopeMetadata
 
     constructor(
@@ -63,31 +72,6 @@ export default class ScopesMetadata extends Map<
             default: this.default?.toJSON(),
             ...Object.fromEntries(this.entries())
         }
-    }
-
-    // Privates ---------------------------------------------------------------
-    private register() {
-        Reflect.defineMetadata('scopes', this, this.target)
-    }
-
-    // Static Methods =========================================================
-    // Publics ================================================================
-    public static find(target: EntityTarget | PolymorphicEntityTarget): (
-        ScopesMetadata | undefined
-    ) {
-        return Reflect.getOwnMetadata('scopes', target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static build(target: EntityTarget | PolymorphicEntityTarget) {
-        return new ScopesMetadata(target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static findOrBuild(target: EntityTarget | PolymorphicEntityTarget) {
-        return this.find(target) ?? this.build(target)
     }
 }
 

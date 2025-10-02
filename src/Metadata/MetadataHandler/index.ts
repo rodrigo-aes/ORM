@@ -14,6 +14,7 @@ import type { PolyORMConnection } from "../../Metadata"
 import type {
     EntityTarget,
     PolymorphicEntityTarget,
+    CollectionTarget,
     Target,
     TargetMetadata,
     TargetRepository,
@@ -139,7 +140,9 @@ export default class MetadataHandler {
 
     // ------------------------------------------------------------------------
 
-    public static parentTargets<T extends Target>(target: T): T[] {
+    public static parentTargets<T extends Target | CollectionTarget>(
+        target: T
+    ): T[] {
         const parents: T[] = []
         let parent = Object.getPrototypeOf(target)
 
@@ -157,7 +160,7 @@ export default class MetadataHandler {
     ) {
         switch (typeof connection) {
             case 'object': return connection
-            case 'string': return ConnectionsMetadata.findOrThrow(connection)
+            case 'string': return ConnectionsMetadata.getOrThrow(connection)
         }
     }
 
