@@ -5,8 +5,14 @@ import type {
 
     Entity,
     Target,
+    StaticTarget,
+
     EntityTarget,
+    StaticEntityTarget,
+
     PolymorphicEntityTarget,
+    StaticPolymorphicEntityTarget,
+
     TargetMetadata,
     TargetRepository,
     InternalPolymorphicEntityTarget,
@@ -35,8 +41,14 @@ export type {
 
     Entity,
     Target,
+    StaticTarget,
+
     EntityTarget,
+    StaticEntityTarget,
+
     PolymorphicEntityTarget,
+    StaticPolymorphicEntityTarget,
+
     TargetMetadata,
     TargetRepository,
     InternalPolymorphicEntityTarget,

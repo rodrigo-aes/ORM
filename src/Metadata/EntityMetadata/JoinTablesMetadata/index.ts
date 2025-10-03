@@ -12,9 +12,6 @@ import JoinTableMetadata, {
 import type { EntityTarget } from "../../../types"
 import type { JoinTablesMetadataJSON } from "./types"
 
-// Exceptions
-import { type MetadataErrorCode } from "../../../Errors"
-
 export default class JoinTablesMetadata extends MetadataArray<
     JoinTableMetadata
 > {
@@ -22,6 +19,7 @@ export default class JoinTablesMetadata extends MetadataArray<
 
     protected readonly KEY: string = JoinTablesMetadata.KEY
     protected readonly SEARCH_KEYS: (keyof JoinTableMetadata)[] = ['tableName']
+    protected readonly SHOULD_MERGE: boolean = false
 
     declare public target: EntityTarget
 

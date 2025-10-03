@@ -16,7 +16,7 @@ export type EntityMetadataJSON<T extends EntityTarget = any> = {
     columns: ColumnsMetadataJSON<T>
     relations?: RelationsMetadataJSON
     joinTables?: JoinTableMetadataJSON[]
-    repository: typeof Repository<T>
+    Repository: typeof Repository<T>
     hooks?: HooksMetadataJSON
     scopes?: ScopesMetadataJSON
     computedProperties?: ComputedPropertiesJSON

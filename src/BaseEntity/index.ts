@@ -10,7 +10,8 @@ import {
     PolymorphicHasManyMetadata,
     PolymorphicBelongsToMetadata,
 
-    type RelationMetadataType
+    type RelationMetadataType,
+    type HookType
 } from "../Metadata"
 
 // Handlers
@@ -83,6 +84,10 @@ import PolyORMException from "../Errors"
  * class User extends BaseEntity {}
  */
 export default abstract class BaseEntity {
+    public static readonly INHERIT_POLYMORPHIC_RELATIONS: boolean = true
+    public static readonly INHERIT_HOOKS: boolean = true
+    public static readonly INHERIT_ONLY_HOOKS?: HookType[]
+
     constructor(properties?: any) {
         if (properties) Object.assign(this, properties)
         this.getTrueMetadata().computedProperties?.assign(this)

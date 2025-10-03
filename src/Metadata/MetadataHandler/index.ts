@@ -86,7 +86,7 @@ export default class MetadataHandler {
     // ------------------------------------------------------------------------
 
     public static getConnection(target: Target): PolyORMConnection {
-        return Reflect.getOwnMetadata('temp-connection', target)
+        return TempMetadata.getConnection(target)
             ?? Reflect.getOwnMetadata('default-connection', target)!
             ?? PolyORMException.Metadata.throw(
                 'MISSING_ENTITY_CONNECTION', target.name
@@ -114,11 +114,7 @@ export default class MetadataHandler {
         connection: PolyORMConnection | string,
         target: Target
     ): void {
-        Reflect.defineMetadata(
-            'temp-connection',
-            this.resolveConnection(connection),
-            target
-        )
+        TempMetadata.setConnection(target, this.resolveConnection(connection))
     }
 
     // ------------------------------------------------------------------------
@@ -136,22 +132,6 @@ export default class MetadataHandler {
         target: T
     ): void {
         Reflect.defineMetadata('repository', repository, target)
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static parentTargets<T extends Target | CollectionTarget>(
-        target: T
-    ): T[] {
-        const parents: T[] = []
-        let parent = Object.getPrototypeOf(target)
-
-        while (parent && parent !== Function.prototype) {
-            parents.push(parent)
-            parent = Object.getPrototypeOf(parent)
-        }
-
-        return parents
     }
 
     // Privates ---------------------------------------------------------------

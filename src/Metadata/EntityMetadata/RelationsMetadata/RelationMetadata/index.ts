@@ -55,7 +55,7 @@ import {
 import type {
     RelatedEntitiesMap,
     RelationMetadataType,
-    RelationType,
+    PolymorphicRelation,
     OneRelationMetadataType,
     ManyRelationMetadatatype,
     RelationJSON
@@ -144,5 +144,7 @@ export {
     type PolymorphicChildOptions,
     type PolymorphicChildRelatedGetter,
 
-    type RelatedEntitiesMap
+    type RelatedEntitiesMap,
+    type PolymorphicRelation,
+
 }

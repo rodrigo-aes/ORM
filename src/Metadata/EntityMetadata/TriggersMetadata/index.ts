@@ -10,10 +10,11 @@ import { type MetadataErrorCode } from "../../../Errors"
 export default class TriggersMetadata extends MetadataArray<
     Constructor<Trigger>
 > {
-    protected static override readonly KEY: string = 'triggers-metadata'
+    protected static readonly KEY: string = 'triggers-metadata'
     protected readonly KEY: string = TriggersMetadata.KEY
 
     protected readonly SEARCH_KEYS: never[] = []
+    protected readonly UNIQUE_MERGE_KEYS: ('name')[] = ['name']
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = undefined
 
     constructor(

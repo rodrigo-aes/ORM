@@ -1,7 +1,7 @@
 import type { Target, Constructor } from "../types"
 
-// Handlers
-import MetadataHandler from "./MetadataHandler"
+// Helpers
+import { GeneralHelper } from "../Helpers"
 
 // Exceptions
 import PolyORMException, { type MetadataErrorCode } from "../Errors"
@@ -10,15 +10,19 @@ export default abstract class MetadataArray<
     T extends any = any
 > extends Array<T> {
     protected abstract readonly KEY: string
-    protected readonly SEARCH_KEYS: (keyof T | string)[] = []
-    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode
+
     protected readonly SHOULD_REGISTER: boolean = true
+    protected readonly SHOULD_MERGE: boolean = true
+    protected readonly SEARCH_KEYS: (keyof T | string)[] = []
+    protected readonly UNIQUE_MERGE_KEYS: (keyof T | string)[] = []
+    protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode
+
 
     constructor(public target?: Target, ...childs: T[]) {
         super(...childs)
 
         if (this.SHOULD_REGISTER) this.register()
-        if (target) this.mergeParentsChilds()
+        if (this.SHOULD_MERGE && this.target) this.mergeParentsChilds()
     }
 
     // Static Getters =========================================================
@@ -71,13 +75,22 @@ export default abstract class MetadataArray<
         Reflect.defineMetadata(this.KEY, this, this.target ?? this.constructor)
     }
 
+    // ------------------------------------------------------------------------
+
+    protected getParentChilds(): T[] {
+        type C = Constructor<MetadataArray> & typeof MetadataArray
+        return (this.constructor as C).parentsChilds<T>(
+            this.target!,
+            this.UNIQUE_MERGE_KEYS.map(key => [
+                key as string,
+                this.flatMap(child => child[key as keyof T] ?? [])
+            ])
+        )
+    }
+
     // Privates ---------------------------------------------------------------
     private mergeParentsChilds(): void {
-        if (this.target) this.push(...(this.constructor as (
-            Constructor<MetadataArray> & typeof MetadataArray
-        ))
-            .parentsChilds(this.target)
-        )
+        this.push(...this.getParentChilds())
     }
 
     // ------------------------------------------------------------------------
@@ -92,7 +105,9 @@ export default abstract class MetadataArray<
                 this.UNKNOWN_ERROR_CODE!, source, this.target!.name
             )
             : new Error(
-                `Unknown "${source}" metadata to ${this.target!.name} entity class`
+                `Unknown "${source}" metadata to ${(
+                    this.target!.name
+                )} entity class`
             )
     }
 
@@ -130,12 +145,23 @@ export default abstract class MetadataArray<
     }
 
     // Privates ---------------------------------------------------------------
-    private static parentsChilds<T extends Constructor<MetadataArray>>(
-        this: T,
-        target: Target
-    ): any[] {
-        return MetadataHandler.parentTargets(target).flatMap(
-            parent => (this as T & typeof MetadataArray).find(parent) ?? []
+    private static parentsChilds<
+        T extends any = any,
+        C extends Constructor<MetadataArray> = Constructor<MetadataArray>
+    >(
+        this: C,
+        target: Target,
+        uniqueIn?: [string, any[]][]
+    ): T[] {
+        return GeneralHelper.objectParents(target).flatMap(
+            parent => (this as C & typeof MetadataArray).find(parent)?.filter(
+                (child: any) => uniqueIn
+                    ? uniqueIn.every(
+                        ([key, values]) => !values.includes(child[key])
+                    )
+                    : true
+            )
+                ?? []
         )
     }
 }

@@ -27,33 +27,43 @@ export default class ColumnsMetadata extends MetadataArray<ColumnMetadata> {
 
     protected readonly KEY: string = ColumnsMetadata.KEY
     protected readonly SEARCH_KEYS: (keyof ColumnMetadata)[] = ['name']
+    protected readonly UNIQUE_MERGE_KEYS: (keyof ColumnMetadata)[] = (
+        this.SEARCH_KEYS
+    )
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
         'UNKNOWN_COLUMN'
     )
 
     declare public target: EntityTarget
 
+    private _primary?: ColumnMetadata
+    private _foreignKeys?: ColumnMetadata[]
+    private _constrainedForeignKeys?: ColumnMetadata[]
+
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get primary(): ColumnMetadata {
-        return this.find(({ primary }) => primary)! ?? PolyORMException
-            .Metadata
-            .throw('MISSING_PRIMARY_KEY', this.target.name)
-
+        return this._primary = this._primary
+            ?? this.find(({ primary }) => primary)!
+            ?? PolyORMException.Metadata.throw(
+                'MISSING_PRIMARY_KEY', this.target.name
+            )
     }
 
     // ------------------------------------------------------------------------
 
     public get foreignKeys(): ColumnMetadata[] {
-        return this.filter(({ isForeignKey }) => isForeignKey)
+        return this._foreignKeys = this._foreignKeys
+            ?? this.filter(({ isForeignKey }) => isForeignKey)
     }
 
     // ------------------------------------------------------------------------
 
     public get constrainedForeignKeys(): ColumnMetadata[] {
-        return this.foreignKeys.filter(({ references }) =>
-            references?.constrained
-        )
+        return this._constrainedForeignKeys = this._constrainedForeignKeys
+            ?? this.foreignKeys.filter(({ references }) =>
+                references?.constrained
+            )
     }
 
     // Instance Methods =======================================================
@@ -72,12 +82,12 @@ export default class ColumnsMetadata extends MetadataArray<ColumnMetadata> {
         pattern: ColumnPattern,
         ...rest: any[]
     ) {
-        this.push(ColumnMetadata.buildPattern(
-            this.target,
-            name,
-            pattern,
-            ...rest
-        ) as ColumnMetadata)
+        const column = ColumnMetadata.buildPattern(
+            this.target, name, pattern, ...rest
+        )
+        this.push(column)
+
+        return column
     }
 
     // ------------------------------------------------------------------------

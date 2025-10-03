@@ -1,11 +1,12 @@
-import type EntityMetadata from "../EntityMetadata"
+import type { TargetMetadata } from "../../types"
+import type { PolyORMConnection } from "../ConnectionsMetadata"
 import type { ScopeMetadata } from "../EntityMetadata"
-import type PolymorphicEntityMetadata from "../PolymorphicEntityMetadata"
 import type { Collection, Pagination } from "../../BaseEntity"
 
 export type TempMetadataValue = {
-    metadata?: EntityMetadata | PolymorphicEntityMetadata,
+    connection?: PolyORMConnection
+    metadata?: TargetMetadata<any>
     scope?: ScopeMetadata
-    collection?: typeof Collection,
+    collection?: typeof Collection
     pagination?: typeof Pagination
 }

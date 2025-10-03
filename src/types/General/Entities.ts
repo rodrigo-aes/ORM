@@ -7,19 +7,21 @@ import type { Constructor, InstancesOf } from "."
 
 export type Entity = BaseEntity | BasePolymorphicEntity<any>
 export type Target = EntityTarget | PolymorphicEntityTarget
+export type StaticTarget = StaticEntityTarget | StaticPolymorphicEntityTarget
 
 // ----------------------------------------------------------------------------
 
-
-(typeof BaseEntity)
-
 export type EntityTarget = Constructor<BaseEntity>
 export type AsEntityTarget<T> = Extract<T, EntityTarget>
+export type StaticEntityTarget = EntityTarget & typeof BaseEntity
 
 // ----------------------------------------------------------------------------
 
 export type PolymorphicEntityTarget = Constructor<BasePolymorphicEntity<any>>
 export type AsPolymorphicEntityTarget<T> = Extract<T, PolymorphicEntityTarget>
+export type StaticPolymorphicEntityTarget = (
+    PolymorphicEntityTarget & typeof BasePolymorphicEntity
+)
 
 export type TargetMetadata<T extends Target> = (
     T extends EntityTarget

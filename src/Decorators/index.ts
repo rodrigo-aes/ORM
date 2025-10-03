@@ -1,3 +1,5 @@
+import '../Metadata'
+
 import Entity from "./Entity"
 import PolymorphicEntity, {
     Column as PolymorphicColumn,

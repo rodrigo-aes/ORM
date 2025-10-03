@@ -1,3 +1,7 @@
+import './Metadata'
+import './MetadataArray'
+import './MetadataMap'
+
 import ConnectionsMetadata, {
     type PolyORMConnection
 } from "./ConnectionsMetadata"
@@ -29,6 +33,7 @@ import EntityMetadata, {
 
     // Hooks
     HooksMetadata,
+    type HookType,
 
     // Scopes
     ScopesMetadata,
@@ -238,6 +243,8 @@ export {
     type ForeignIdConfig,
     type PolymorphicForeignIdConfig,
     type PolymorphicTypeKeyRelateds,
+
+    type HookType,
 
     type Scope,
     type ScopeFunction,

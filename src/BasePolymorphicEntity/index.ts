@@ -14,7 +14,8 @@ import {
 
     type PolymorphicEntityMetadata,
     type EntityMetadata,
-    type RelationMetadataType
+    type RelationMetadataType,
+    type HookType
 } from "../Metadata"
 
 // Childs
@@ -58,6 +59,7 @@ import type {
     Constructor,
     EntityProperties
 } from "../types"
+
 import type BaseEntity from "../BaseEntity"
 import type { SourceEntity } from "./types"
 import type { UnionEntitiesMap } from "../Metadata"
@@ -85,6 +87,10 @@ import PolyORMException from "../Errors"
 */
 
 export default abstract class BasePolymorphicEntity<Targets extends object[]> {
+    public static readonly MERGE_POLYMORPHIC_RELATIONS: boolean = true
+    public static readonly INHERIT_HOOKS: boolean = true
+    public static readonly INHERIT_ONLY_HOOKS?: HookType[]
+
     /**
      * Entity primary key
      */

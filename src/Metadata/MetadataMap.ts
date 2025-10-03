@@ -1,5 +1,5 @@
-// Handlers
-import MetadataHandler from "./MetadataHandler"
+// Helpers
+import { GeneralHelper } from "../Helpers"
 
 // Types
 import type { Target, CollectionTarget, Constructor } from "../types"
@@ -8,7 +8,7 @@ import type { Target, CollectionTarget, Constructor } from "../types"
 import PolyORMException, { MetadataErrorCode } from "../Errors"
 
 export default abstract class MetadataMap<
-    K extends string | number | symbol = string,
+    K extends string | number | symbol = any,
     T extends any = any
 > extends Map<K, T> {
     protected abstract readonly KEY?: string
@@ -105,11 +105,14 @@ export default abstract class MetadataMap<
 
     // Privates ---------------------------------------------------------------
     private static parents<T extends Constructor<MetadataMap>>(
-        this: T & typeof MetadataMap,
+        this: T,
         target: Target | CollectionTarget
     ): InstanceType<T>[] {
-        return MetadataHandler.parentTargets(target).flatMap(
-            parent => (this as T & typeof MetadataMap).find(parent) ?? []
-        )
+        return GeneralHelper
+            .objectParents(target)
+            .flatMap(
+                parent => (this as T & typeof MetadataMap).find(parent) ?? []
+            )
+            .reverse()
     }
 }

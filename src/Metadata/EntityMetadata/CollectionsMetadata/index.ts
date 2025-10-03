@@ -20,6 +20,9 @@ export default class CollectionsMetadata<
     protected readonly SEARCH_KEYS: (keyof C | 'name')[] = [
         'name', 'alias'
     ]
+    protected readonly UNIQUE_MERGE_KEYS: (keyof C | 'name')[] = (
+        this.SEARCH_KEYS
+    )
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
         'UNKNOWN_COLLECTION'
     )

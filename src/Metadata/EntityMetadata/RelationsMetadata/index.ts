@@ -47,11 +47,12 @@ import RelationMetadata, {
     type PolymorphicChildOptions,
     type PolymorphicChildRelatedGetter,
 
-    type RelatedEntitiesMap
+    type RelatedEntitiesMap,
+    type PolymorphicRelation
 } from "./RelationMetadata"
 
 import type { RelationsMetadataJSON } from "./types"
-import type { EntityTarget } from "../../../types"
+import type { EntityTarget, StaticEntityTarget } from "../../../types"
 
 // Exceptions
 import type { MetadataErrorCode } from "../../../Errors"
@@ -61,7 +62,7 @@ export default class RelationsMetadata extends MetadataArray<
 > {
     protected static override readonly KEY: string = 'relations-metadata'
     protected readonly KEY: string = RelationsMetadata.KEY
-
+    protected readonly SHOULD_MERGE: boolean = false
     protected readonly SEARCH_KEYS: (keyof RelationMetadata)[] = [
         'name', 'relatedTarget'
     ]
@@ -69,7 +70,13 @@ export default class RelationsMetadata extends MetadataArray<
         'UNKNOWN_RELATION'
     )
 
-    declare public target: EntityTarget
+    constructor(public target: EntityTarget) {
+        super(target)
+
+        if ((this.target as StaticEntityTarget).INHERIT_POLYMORPHIC_RELATIONS) (
+            this.mergeParentPolymorphicRelations()
+        )
+    }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
@@ -132,6 +139,53 @@ export default class RelationsMetadata extends MetadataArray<
     public addPolymorphicBelongsTo(options: PolymorphicParentOptions) {
         this.push(
             new RelationMetadata.PolymorphicBelongsTo(this.target, options)
+        )
+    }
+
+    // Privates ---------------------------------------------------------------
+    private mergeParentPolymorphicRelations(): void {
+        for (const poly of this.getParentPolymorphicRelations()) (
+            this.addPolymorphicRelation(poly.type)(
+                this.extractPolymorphicRelationOptions(poly)
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private getParentPolymorphicRelations(): PolymorphicRelation[] {
+        const types = [
+            'PolymorphicHasOne',
+            'PolymorphicHasMany',
+            'PolymorphicBelongsTo'
+        ]
+
+        return this.getParentChilds()
+            .filter(({ type }) => types.includes(type)) as (
+                PolymorphicRelation[]
+            )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private addPolymorphicRelation(type: string) {
+        switch (type) {
+            case "PolymorphicHasOne": return this.addPolymorphicHasOne
+            case "PolymorphicHasMany": return this.addPolymorphicHasMany
+            case "PolymorphicBelongsTo": return this.addPolymorphicBelongsTo
+
+            default: throw new Error('Unreacheable Error')
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    private extractPolymorphicRelationOptions(relation: PolymorphicRelation): (
+        any
+    ) {
+        const keys = ['name', 'related', 'foreignKey', 'typeKey', 'scope']
+        return Object.fromEntries(Object.entries(relation).filter(
+            ([key]) => keys.includes(key))
         )
     }
 }

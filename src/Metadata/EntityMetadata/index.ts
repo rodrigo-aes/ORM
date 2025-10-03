@@ -119,7 +119,8 @@ import Repository from '../../Repository'
 // Hooks
 import HooksMetadata, {
     type HookMetadataJSON,
-    type HooksMetadataJSON
+    type HooksMetadataJSON,
+    type HookType
 } from './HooksMetadata'
 
 // Scopes
@@ -160,8 +161,9 @@ import MetadataHandler from '../MetadataHandler'
 
 // Types
 import type { EntityTarget } from '../../types'
-import type { EntityMetadataJSON } from './types'
 import type { PolyORMConnection } from '../ConnectionsMetadata'
+import type { EntityMetadataJSON } from './types'
+
 
 // Exceptions
 import { type MetadataErrorCode } from '../../Errors'
@@ -255,22 +257,20 @@ export default class EntityMetadata extends Metadata {
     // ------------------------------------------------------------------------
 
     public get foreignKeys(): ColumnMetadata[] {
-        return this.columns.filter(({ isForeignKey }) => isForeignKey)
+        return this.columns.foreignKeys
     }
 
     // ------------------------------------------------------------------------
 
     public get constrainedForeignKeys(): ColumnMetadata[] {
-        return this.foreignKeys.filter(
-            ({ references }) => references?.constrained
-        )
+        return this.columns.constrainedForeignKeys
     }
 
     // ------------------------------------------------------------------------
 
     public get dependencies(): EntityTarget[] {
-        return this.constrainedForeignKeys.flatMap(
-            ({ references }) => references!.referenced()
+        return this.constrainedForeignKeys.flatMap(({ references }) =>
+            references!.referenced()
         )
     }
 
@@ -300,9 +300,8 @@ export default class EntityMetadata extends Metadata {
 
     // ------------------------------------------------------------------------
 
-    public addJoinTable(
-        relateds: JoinTableRelatedsGetter,
-        name?: string
+    public addJoinTable(relateds: JoinTableRelatedsGetter, name?: string): (
+        JoinTableMetadata
     ) {
         const joinTable = new JoinTableMetadata(relateds, name)
         this.joinTables.push(joinTable)
@@ -314,8 +313,8 @@ export default class EntityMetadata extends Metadata {
 
     public toJSON<T extends EntityTarget = any>(): EntityMetadataJSON<T> {
         return EntityToJSONProcessMetadata.initialized
-            ? this.buildJSON()!
-            : EntityToJSONProcessMetadata.apply(() => this.buildJSON()!)
+            ? this.buildJSON()
+            : EntityToJSONProcessMetadata.apply(() => this.buildJSON())
     }
 
     // Privates ---------------------------------------------------------------
@@ -326,7 +325,7 @@ export default class EntityMetadata extends Metadata {
             target: this.target as T,
             name: this.name,
             tableName: this.tableName,
-            repository: this.Repository,
+            Repository: this.Repository,
             columns: this.columns.toJSON(),
             relations: this.relations?.toJSON(),
             joinTables: this.joinTables?.map(table => table.toJSON()),
@@ -368,6 +367,7 @@ export {
 
     // Hooks
     HooksMetadata,
+    type HookType,
 
     // Scopes
     ScopesMetadata,

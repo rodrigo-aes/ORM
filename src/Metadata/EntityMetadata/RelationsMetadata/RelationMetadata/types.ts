@@ -57,6 +57,12 @@ export type RelationMetadataType = (
     PolymorphicBelongsToMetadata
 )
 
+export type PolymorphicRelation = (
+    PolymorphicHasOneMetadata |
+    PolymorphicHasManyMetadata |
+    PolymorphicBelongsToMetadata
+)
+
 export type OneRelationMetadataType = Omit<RelationMetadataType, (
     'HasManyMetadata' |
     'HasManyThroughMetadata' |

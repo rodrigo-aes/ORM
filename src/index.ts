@@ -179,7 +179,6 @@ import {
     type PolymorphicForeignIdOptions,
     type PolymorphicTypeKeyRelateds,
 
-    type CombinedColumnOptions,
     type ComputedPropertyFunction,
 
     type HasOneOptions,
@@ -395,7 +394,6 @@ export {
     type PolymorphicForeignIdOptions,
     type PolymorphicTypeKeyRelateds,
 
-    type CombinedColumnOptions,
     type ComputedPropertyFunction,
 
     type HasOneHandler,

@@ -22,16 +22,18 @@ import HookMetadata, {
 
     UpdatedTimestampMetadata,
 
-    type HookMetadataJSON
+    type HookMetadataJSON,
+    type HookType
 } from "./HookMetadata"
+
+// Helpers
+import { GeneralHelper } from "../../../Helpers"
 
 // Types
 import type {
-    EntityTarget,
-    PolymorphicEntityTarget
+    Target,
+    StaticTarget,
 } from "../../../types"
-
-import type { HookType } from "./HookMetadata/types"
 
 import type BaseEntity from "../../../BaseEntity"
 import type BasePolymorphicEntity from "../../../BasePolymorphicEntity"
@@ -80,9 +82,13 @@ export default class HooksMetadata extends Metadata {
     public beforeBulkDelete: BeforeBulkDeleteMetadata[] = []
     public afterBulkDelete: AfterBulkDeleteMetadata[] = []
 
-    constructor(public target: EntityTarget | PolymorphicEntityTarget) {
+    constructor(public target: Target) {
         super()
         this.register()
+
+        if ((this.target as StaticTarget).INHERIT_HOOKS) (
+            this.mergeParentsHooks()
+        )
     }
 
     // Static Getters =========================================================
@@ -477,31 +483,26 @@ export default class HooksMetadata extends Metadata {
     // ------------------------------------------------------------------------
 
     public toJSON(): HooksMetadataJSON {
-        return Object.fromEntries(Object.entries(this).flatMap(
-            ([key, meta]) => [
-                'beforeSync',
-                'afterSync',
-                'beforeFind',
-                'afterFind',
-                'beforeBulkFind',
-                'afterBulkFind',
-                'beforeCreate',
-                'afterCreate',
-                'beforeBulkCreate',
-                'afterBulkCreate',
-                'beforeUpdate',
-                'afterUpdate',
-                'beforeBulkUpdate',
-                'afterBulkUpdate',
-                'beforeDelete',
-                'afterDelete',
-                'beforeBulkDelete',
-                'afterBulkDelete'
-            ]
-                .includes(key)
-                ? [[key, meta.toJSON()]]
-                : []
-        )) as HooksMetadataJSON
+        return {
+            beforeSync: this.beforeSync.map(hook => hook.toJSON()),
+            afterSync: this.afterSync.map(hook => hook.toJSON()),
+            beforeFind: this.beforeFind.map(hook => hook.toJSON()),
+            afterFind: this.afterFind.map(hook => hook.toJSON()),
+            beforeBulkFind: this.beforeBulkFind.map(hook => hook.toJSON()),
+            afterBulkFind: this.afterBulkFind.map(hook => hook.toJSON()),
+            beforeCreate: this.beforeCreate.map(hook => hook.toJSON()),
+            afterCreate: this.afterCreate.map(hook => hook.toJSON()),
+            beforeBulkCreate: this.beforeBulkCreate.map(hook => hook.toJSON()),
+            afterBulkCreate: this.afterBulkCreate.map(hook => hook.toJSON()),
+            beforeUpdate: this.beforeUpdate.map(hook => hook.toJSON()),
+            afterUpdate: this.afterUpdate.map(hook => hook.toJSON()),
+            beforeBulkUpdate: this.beforeBulkUpdate.map(hook => hook.toJSON()),
+            afterBulkUpdate: this.afterBulkUpdate.map(hook => hook.toJSON()),
+            beforeDelete: this.beforeDelete.map(hook => hook.toJSON()),
+            afterDelete: this.afterDelete.map(hook => hook.toJSON()),
+            beforeBulkDelete: this.beforeBulkDelete.map(hook => hook.toJSON()),
+            afterBulkDelete: this.afterBulkDelete.map(hook => hook.toJSON()),
+        }
     }
 
     // Privates ---------------------------------------------------------------
@@ -509,29 +510,160 @@ export default class HooksMetadata extends Metadata {
         Reflect.defineMetadata('hooks', this, this.target)
     }
 
-    // // Static Methods =========================================================
-    // // Publics ================================================================
-    // public static find(target: EntityTarget | PolymorphicEntityTarget): (
-    //     HooksMetadata | undefined
-    // ) {
-    //     return Reflect.getOwnMetadata('hooks', target)
-    // }
+    // ------------------------------------------------------------------------
 
-    // // ------------------------------------------------------------------------
+    private mergeParentsHooks(): void {
+        for (const parentHooks of GeneralHelper.objectParents(this.target)
+            .flatMap(parent => HooksMetadata.find(parent) ?? [])
+            .reverse()
+        ) {
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-sync') ?? true
+            ) (
+                this.beforeSync.push(...parentHooks.beforeSync)
+            )
 
-    // public static build(target: EntityTarget) {
-    //     return new HooksMetadata(target)
-    // }
+            // ----------------------------------------------------------------
 
-    // // ------------------------------------------------------------------------
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-sync') ?? true
+            ) (
+                this.afterSync.push(...parentHooks.afterSync)
+            )
 
-    // public static findOrBuild(target: EntityTarget) {
-    //     return this.find(target)
-    //         ?? this.build(target)
-    // }
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-find') ?? true
+            ) (
+                this.beforeFind.push(...parentHooks.beforeFind)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-find') ?? true
+            ) (
+                this.afterFind.push(...parentHooks.afterFind)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-bulk-find') ?? true
+            ) (
+                this.beforeBulkFind.push(...parentHooks.beforeBulkFind)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-bulk-find') ?? true
+            ) (
+                this.afterBulkFind.push(...parentHooks.afterBulkFind)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-create') ?? true
+            ) (
+                this.beforeCreate.push(...parentHooks.beforeCreate)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-create') ?? true
+            ) (
+                this.afterCreate.push(...parentHooks.afterCreate)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-bulk-create') ?? true
+            ) (
+                this.beforeBulkCreate.push(...parentHooks.beforeBulkCreate)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-bulk-create') ?? true
+            ) (
+                this.afterBulkCreate.push(...parentHooks.afterBulkCreate)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-update') ?? true
+            ) (
+                this.beforeUpdate.push(...parentHooks.beforeUpdate)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-update') ?? true
+            ) (
+                this.afterUpdate.push(...parentHooks.afterUpdate)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-bulk-update') ?? true
+            ) (
+                this.beforeBulkUpdate.push(...parentHooks.beforeBulkUpdate)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-bulk-update') ?? true
+            ) (
+                this.afterBulkUpdate.push(...parentHooks.afterBulkUpdate)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-delete') ?? true
+            ) (
+                this.beforeDelete.push(...parentHooks.beforeDelete)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-delete') ?? true
+            ) (
+                this.afterDelete.push(...parentHooks.afterDelete)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('before-bulk-delete') ?? true
+            ) (
+                this.beforeBulkDelete.push(...parentHooks.beforeBulkDelete)
+            )
+
+            // ----------------------------------------------------------------
+
+            if ((this.target as StaticTarget).INHERIT_ONLY_HOOKS
+                ?.includes('after-bulk-delete') ?? true
+            ) (
+                this.afterBulkDelete.push(...parentHooks.afterBulkDelete)
+            )
+        }
+    }
 }
 
 export {
     type HooksMetadataJSON,
-    type HookMetadataJSON
+    type HookMetadataJSON,
+    type HookType
 }

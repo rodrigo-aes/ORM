@@ -17,9 +17,6 @@ export default class PaginationsMetadata<
     protected static override readonly KEY: string = 'paginations-metadata'
 
     protected readonly KEY: string = CollectionsMetadata.KEY
-    protected readonly SEARCH_KEYS: (keyof P | 'name')[] = [
-        'name', 'alias'
-    ]
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
         'UNKNOWN_PAGINATION'
     )
