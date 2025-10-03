@@ -46,7 +46,11 @@ import {
 } from '../Relations'
 
 // Decorators
-import { PolymorphicColumn } from "../Decorators"
+import {
+    PolymorphicColumn,
+    CommonRelation,
+    PolymorphicRelation,
+} from "../Decorators"
 
 // Handlers
 import { PolymorphicEntityBuilder } from "../Handlers"
@@ -573,10 +577,28 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     // Static Getters =========================================================
     // Decorators -------------------------------------------------------------
     /**
-     * Define polymorphic column decorator
+     * Define polymorphic column to include decorator
      */
     public static get Column() {
         return PolymorphicColumn
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Define common relation to include decorator
+     */
+    public static get CommonRelation() {
+        return CommonRelation
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Define polymorphic relation to include decorator
+     */
+    public static get PolymorphicRelation() {
+        return PolymorphicRelation
     }
 
     // Static Methods =========================================================

@@ -30,24 +30,16 @@ import HookMetadata, {
 import { GeneralHelper } from "../../../Helpers"
 
 // Types
-import type {
-    Target,
-    StaticTarget,
-} from "../../../types"
-
-import type BaseEntity from "../../../BaseEntity"
-import type BasePolymorphicEntity from "../../../BasePolymorphicEntity"
-
-import type { FindQueryOptions } from "../../../SQLBuilders"
+import type { ResultSetHeader } from "mysql2"
+import type { Entity, Target, StaticTarget, } from "../../../types"
 
 import type {
     RawData,
     MySQL2RawData
 } from "../../../Handlers/MySQL2RawDataHandler"
 
-import type { ResultSetHeader } from "mysql2"
-
 import type {
+    FindQueryOptions,
     CreationAttributes,
     UpdateAttributes,
     ConditionalQueryOptions
@@ -56,7 +48,8 @@ import type {
 import type { DeleteResult } from "../../../Handlers"
 import type { HooksMetadataJSON } from "./types"
 
-import { type MetadataErrorCode } from "../../../Errors"
+// Exceptions
+import type { MetadataErrorCode } from "../../../Errors"
 
 export default class HooksMetadata extends Metadata {
     protected static override readonly KEY: string = 'entity-metadata'
@@ -122,11 +115,9 @@ export default class HooksMetadata extends Metadata {
 
     // ------------------------------------------------------------------------
 
-    public async callAfterFind<T extends (
-        (BaseEntity | BasePolymorphicEntity<any>) |
-        RawData<any> |
-        MySQL2RawData
-    )>(entity: T) {
+    public async callAfterFind<
+        T extends Entity | RawData<any> | MySQL2RawData
+    >(entity: T) {
         if (this.toCall.has('after-find'))
             for (const hook of this.afterFind) await hook.call(entity)
     }
@@ -144,7 +135,7 @@ export default class HooksMetadata extends Metadata {
 
     public async callAfterBulkFind<
         T extends (
-            (BaseEntity | BasePolymorphicEntity<any>) |
+            Entity |
             RawData<any> |
             MySQL2RawData
         )
@@ -166,9 +157,7 @@ export default class HooksMetadata extends Metadata {
 
     // ------------------------------------------------------------------------
 
-    public async callAfterCreate<T extends (
-        (BaseEntity | BasePolymorphicEntity<any>)
-    )>(entity: T) {
+    public async callAfterCreate<T extends Entity>(entity: T) {
         if (this.toCall.has('after-create'))
             for (const hook of this.afterCreate) await hook.call(entity)
     }
@@ -186,11 +175,9 @@ export default class HooksMetadata extends Metadata {
 
     // ------------------------------------------------------------------------
 
-    public async callAfterBulkCreate<T extends (
-        (BaseEntity | BasePolymorphicEntity<any>) |
-        RawData<any> |
-        MySQL2RawData
-    )>(result: T[]) {
+    public async callAfterBulkCreate<
+        T extends Entity | RawData<any> | MySQL2RawData
+    >(result: T[]) {
         if (this.toCall.has('after-bulk-create'))
             for (const hook of this.afterBulkCreate) await hook.call(result)
     }

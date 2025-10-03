@@ -1,5 +1,5 @@
 // Types
-import type { Target } from "../../../../types"
+import type { Target, Constructor } from "../../../../types"
 import type { RelationType } from "./types"
 
 export default abstract class RelationMetadata {
@@ -18,4 +18,19 @@ export default abstract class RelationMetadata {
     // instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public abstract toJSON(): any
+
+    // ------------------------------------------------------------------------
+
+    public reply<T extends RelationMetadata>(
+        this: T,
+        target: Target,
+        name: string
+    ): RelationMetadata {
+        const replic = new (this.constructor as Constructor<RelationMetadata>)(
+            target, {}
+        )
+
+        Object.assign(replic, { ...this, name })
+        return replic
+    }
 }

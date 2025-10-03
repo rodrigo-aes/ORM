@@ -8,6 +8,7 @@ import EntityMetadata, {
     PaginationsMetadata,
 } from "../EntityMetadata"
 
+// Columns
 import PolymorphicColumnsMetadata, {
     PolymorphicColumnMetadata,
 
@@ -17,7 +18,11 @@ import PolymorphicColumnsMetadata, {
     type IncludeColumnOptions
 } from "./PolymorphicColumnsMetadata"
 
-import PolymorphicRelationsMetadata from "./PolymorphicRelationsMetadata"
+// Relations
+import PolymorphicRelationsMetadata, {
+    type IncludedCommonRelationOptions,
+    type IncludePolymorphicRelationOptions
+} from "./PolymorphicRelationsMetadata"
 
 // Repository
 import PolymorphicRepository from "../../PolymorphicRepository"
@@ -53,11 +58,8 @@ export default class PolymorphicEntityMetadata extends Metadata {
     public target: PolymorphicEntityTarget
     public tableName: string
 
-    private _entities!: UnionEntitiesMap
-    private _sourcesMetadata!: SourcesMetadata
-
-    private _columns?: PolymorphicColumnsMetadata
-    private _relations?: PolymorphicRelationsMetadata
+    private _entities?: UnionEntitiesMap
+    private _sourcesMetadata?: SourcesMetadata
 
     public exclude?: string[] = []
 
@@ -125,7 +127,7 @@ export default class PolymorphicEntityMetadata extends Metadata {
     // ------------------------------------------------------------------------
 
     public get relations(): PolymorphicRelationsMetadata {
-        throw new Error
+        return PolymorphicRelationsMetadata.findOrBuild(this.target)
     }
 
     // ------------------------------------------------------------------------
@@ -224,56 +226,19 @@ export default class PolymorphicEntityMetadata extends Metadata {
             paginations: this.paginations?.toJSON(),
         }
     }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    // public static build(
-    //     target: PolymorphicEntityTarget | undefined,
-    //     tableName: string | undefined,
-    //     sources: EntityTarget[] | PolymorphicParentRelatedGetter
-    // ) {
-    //     return new PolymorphicEntityMetadata(target, tableName, sources)
-    // }
-
-    // // ------------------------------------------------------------------------
-
-    // public static find(target: PolymorphicEntityTarget | null): (
-    //     PolymorphicEntityMetadata | undefined
-    // ) {
-    //     if (target) return Reflect.getOwnMetadata('union-metadata', target)
-    // }
-
-    // // ------------------------------------------------------------------------
-
-    // public static findOrBuild(
-    //     target: PolymorphicEntityTarget | undefined,
-    //     tableName: string | undefined,
-    //     sources: EntityTarget[] | PolymorphicParentRelatedGetter
-    // ): PolymorphicEntityMetadata {
-    //     return target
-    //         ? this.find(target) ?? this.build(target, tableName, sources)
-    //         : this.build(target, tableName, sources)
-    // }
-
-    // // ------------------------------------------------------------------------
-
-    // public static findOrThrow(target: PolymorphicEntityTarget): (
-    //     PolymorphicEntityMetadata
-    // ) {
-    //     return this.find(target)! ?? PolyORMException.Metadata.throw(
-    //         "UNKNOWN_ENTITY", target.name
-    //     )
-    // }
 }
 
 export {
     PolymorphicColumnsMetadata,
     PolymorphicColumnMetadata,
+    PolymorphicRelationsMetadata,
 
     type PolymorphicEntityMetadataJSON,
     type PolymorphicColumnsMetadataJSON,
     type PolymorphicColumnMetadataJSON,
     type UnionEntitiesMap,
     type IncludedColumns,
-    type IncludeColumnOptions
+    type IncludeColumnOptions,
+    type IncludedCommonRelationOptions,
+    type IncludePolymorphicRelationOptions
 }

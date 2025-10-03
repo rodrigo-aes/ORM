@@ -153,9 +153,12 @@ import EntityMetadata, {
 import PolymorphicEntityMetadata, {
     PolymorphicColumnsMetadata,
     PolymorphicColumnMetadata,
+    PolymorphicRelationsMetadata,
 
     type UnionEntitiesMap,
-    type IncludeColumnOptions
+    type IncludeColumnOptions,
+    type IncludedCommonRelationOptions,
+    type IncludePolymorphicRelationOptions
 } from "./PolymorphicEntityMetadata"
 
 import MetadataHandler from "./MetadataHandler"
@@ -172,6 +175,7 @@ export {
     ColumnMetadata,
     PolymorphicColumnsMetadata,
     PolymorphicColumnMetadata,
+    PolymorphicRelationsMetadata,
     RelationMetadata,
     RelationsMetadata,
     JoinTableMetadata,
@@ -253,6 +257,8 @@ export {
 
     type UnionEntitiesMap,
     type IncludeColumnOptions,
+    type IncludedCommonRelationOptions,
+    type IncludePolymorphicRelationOptions,
 
     type TextLength,
     type IntegerLength,

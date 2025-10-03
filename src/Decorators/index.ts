@@ -3,7 +3,12 @@ import '../Metadata'
 import Entity from "./Entity"
 import PolymorphicEntity, {
     Column as PolymorphicColumn,
-    type IncludeColumnOptions
+    PolymorphicRelation,
+    CommonRelation,
+
+    type IncludeColumnOptions,
+    type IncludedCommonRelationOptions,
+    type IncludePolymorphicRelationOptions
 } from "./PolymorphicEntity"
 
 import Column from "./Column"
@@ -122,6 +127,8 @@ export {
 
     Column,
     PolymorphicColumn,
+    CommonRelation,
+    PolymorphicRelation,
     ComputedColumn,
     Primary,
     ForeignKey,
@@ -189,6 +196,8 @@ export {
     type PolymorphicTypeKeyRelateds,
 
     type IncludeColumnOptions,
+    type IncludedCommonRelationOptions,
+    type IncludePolymorphicRelationOptions,
     type ComputedPropertyFunction,
 
     type HasOneOptions,
