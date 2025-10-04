@@ -1,5 +1,5 @@
 import MetadataArray from '../../MetadataArray'
-import EntityMetadata, { DataType } from '../../EntityMetadata'
+import EntityMetadata, { ColumnMetadata, DataType } from '../../EntityMetadata'
 import PolymorphicColumnMetadata, {
     type PolymorphicColumnMetadataJSON
 } from './PolymorphicColumnMetadata'
@@ -34,6 +34,9 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
         'UNKNOWN_COLUMN'
     )
 
+    private _primary?: PolymorphicColumnMetadata
+    private _foreignKeys?: PolymorphicColumnMetadata[]
+
     constructor(
         public target: PolymorphicEntityTarget,
         private sources: EntityMetadata[]
@@ -48,15 +51,19 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get primary(): PolymorphicColumnMetadata {
-        return this.find(({ primary }) => primary)! ?? PolyORMException
-            .Metadata
-            .throw('MISSING_PRIMARY_KEY', this.target.name)
+        return this._primary = this._primary
+            ?? this.find(({ primary }) => primary)!
+            ?? PolyORMException.Metadata.throw(
+                'MISSING_PRIMARY_KEY', this.target.name
+            )
     }
 
     // ------------------------------------------------------------------------
 
-    public get foreignKeys(): (PolymorphicColumnMetadata)[] {
-        return this.filter(({ isForeignKey }) => isForeignKey)
+    public get foreignKeys(): PolymorphicColumnMetadata[] {
+        return this._foreignKeys = this._foreignKeys ?? this.filter(
+            ({ isForeignKey }) => isForeignKey
+        )
     }
 
     // Privates ---------------------------------------------------------------
@@ -76,14 +83,7 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
     // ------------------------------------------------------------------------
 
     private buildTypeColumn(): void {
-        this.push(new PolymorphicColumnMetadata(
-            this.target,
-            'entityType',
-            undefined,
-            DataType.ENUM(...Array.from(
-                new Set<string>(this.sources.map(({ target }) => target.name))
-            )))
-        )
+        this.push(new PolymorphicColumnMetadata(this.target, 'entityType'))
     }
 
     // ------------------------------------------------------------------------

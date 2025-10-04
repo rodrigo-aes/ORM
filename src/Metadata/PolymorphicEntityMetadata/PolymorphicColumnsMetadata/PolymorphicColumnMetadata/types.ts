@@ -3,8 +3,11 @@ import type {
     DataTypeMetadataJSON
 } from "../../../EntityMetadata"
 
-export interface PolymorphicColumnMetadataJSON extends Omit<
-    ColumnMetadataJSON, 'dataType'
-> {
-    dataTypes: DataTypeMetadataJSON[]
-}
+export type PolymorphicColumnMetadataJSON = Omit<ColumnMetadataJSON, (
+    'dataType' |
+    'nullable' |
+    'defaultValue' |
+    'unique' |
+    'autoIncrement' |
+    'unsigned'
+)> 
