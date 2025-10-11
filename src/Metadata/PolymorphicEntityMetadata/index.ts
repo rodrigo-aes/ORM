@@ -121,7 +121,12 @@ export default class PolymorphicEntityMetadata extends Metadata {
     // ------------------------------------------------------------------------
 
     public get columns(): PolymorphicColumnsMetadata {
-        return PolymorphicColumnsMetadata.findOrBuild(this.target)
+        return PolymorphicColumnsMetadata.find(this.target) ?? (
+            new PolymorphicColumnsMetadata(
+                this.target,
+                Object.values(this.sourcesMetadata)
+            )
+        )
     }
 
     // ------------------------------------------------------------------------

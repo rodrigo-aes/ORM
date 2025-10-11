@@ -93,8 +93,8 @@ export default class ExistsQueryBuilder<T extends Target> {
     // Privates ---------------------------------------------------------------
     private asTarget(target: Function): boolean {
         return (
-            BaseEntity.prototype.isPrototypeOf(target.prototype) ||
-            BasePolymorphicEntity.prototype.isPrototypeOf(target.prototype)
+            target.prototype instanceof BaseEntity ||
+            target.prototype instanceof BasePolymorphicEntity
         )
     }
 }

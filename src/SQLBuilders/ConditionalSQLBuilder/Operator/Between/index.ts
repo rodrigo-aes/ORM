@@ -3,12 +3,11 @@ import { Between } from "../Symbols"
 import { OperatorType } from "../types"
 
 export default class BetweenOperator extends Operator<typeof Between> {
-    public SQL(): string {
-        const [init, end] = (this.value as OperatorType[typeof Between])
+    protected readonly operatorSQL: string = 'BETWEEN'
 
-        return `
-            ${this.propertyKey} 
-                BETWEEN ${JSON.stringify(init)} AND ${JSON.stringify(end)}
-        `
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    protected override get valueSQL(): string {
+        return this.value.map(val => JSON.stringify(val)).join(' AND ')
     }
 }

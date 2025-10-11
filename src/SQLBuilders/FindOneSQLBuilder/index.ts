@@ -18,49 +18,35 @@ import { MetadataHandler, ScopeMetadataHandler } from "../../Metadata"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget, EntityRelationsKeys } from "../../types"
+import type { Target, TargetMetadata } from "../../types"
 import type { FindOneQueryOptions } from "./types"
-import type { RelationOptions, RelationsOptions } from "../JoinSQLBuilder/types"
+import type { RelationsOptions } from "../JoinSQLBuilder"
 
-export default class FindOneSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
-
-    public alias: string
+export default class FindOneSQLBuilder<T extends Target> {
+    protected metadata: TargetMetadata<T>
 
     public unions: UnionSQLBuilder[] = []
     public select: SelectSQLBuilder<T>
-    public joins: JoinSQLBuilder<any>[] = []
+    public joins: JoinSQLBuilder<any>[]
     public where?: WhereSQLBuilder<T>
     public group?: GroupSQLBuilder<T>
-
 
     constructor(
         public target: T,
         public options: FindOneQueryOptions<InstanceType<T>>,
-        alias?: string,
-        protected primary: boolean = true
+        public alias: string = target.name.toLowerCase(),
+        protected isMain: boolean = true,
+        scope: 'findOne' | 'find' = 'findOne'
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.targetMetadata(this.target)
-
         this.options = ScopeMetadataHandler.applyScope(
-            this.target,
-            'findOne',
-            this.options
+            this.target, scope, this.options
         )
 
         this.select = this.buildSelect()
-
-        if (this.options.relations) this.buildJoins(
-            this.options.relations
-        )
-
+        this.joins = this.buildJoins()
         this.where = this.buildWhere()
         this.group = this.buildGroup()
-
-        if (this.where) this.mergeUnions(this.where.unions())
     }
 
     // Instance Methods =======================================================
@@ -68,7 +54,7 @@ export default class FindOneSQLBuilder<
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(
             [
-                this.primary ? this.unionsSQL() : '',
+                this.isMain ? this.unionsSQL() : '',
                 this.selectSQL(),
                 this.joinsSQL(),
                 this.whereSQL(),
@@ -85,12 +71,9 @@ export default class FindOneSQLBuilder<
         const included = new Set<string>()
 
         return this.unions
-            .filter(({ name }) => {
-                if (included.has(name)) return false
-                included.add(name)
-
-                return true
-            })
+            .filter(
+                ({ name }) => included.has(name) ? false : included.add(name)
+            )
             .map(union => union.SQL())
             .join(' ')
     }
@@ -104,8 +87,7 @@ export default class FindOneSQLBuilder<
     // ------------------------------------------------------------------------
 
     public joinsSQL(): string {
-        return this.joins.map(join => join.SQL())
-            .join(' ')
+        return this.joins.map(join => join.SQL()).join(' ')
     }
 
     // ------------------------------------------------------------------------
@@ -128,7 +110,7 @@ export default class FindOneSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    public mergeUnions(unions: UnionSQLBuilder[]): void {
+    public addUnions(unions: UnionSQLBuilder[]): void {
         this.unions.push(...unions)
     }
 
@@ -143,52 +125,44 @@ export default class FindOneSQLBuilder<
     // ------------------------------------------------------------------------
 
     private buildJoins(
-        relations: RelationOptions<any>,
+        relations: RelationsOptions<any> | undefined = this.options.relations,
         alias: string = this.alias
-    ): void {
-        const entries = Object.entries(relations) as [
-            EntityRelationsKeys<any>,
-            RelationOptions<any>
-        ][]
+    ): JoinSQLBuilder<any>[] {
+        return relations
+            ? Object.entries(relations).flatMap(([name, options]) => {
+                options = typeof options === 'object' ? options : undefined
 
-        for (const [name, options] of entries) {
-            const relation = this.metadata.relations.findOrThrow(name)
+                const join = new JoinSQLBuilder(
+                    this.target,
+                    this.metadata.relations.findOrThrow(name),
+                    options,
+                    alias,
+                )
 
-            const join = new JoinSQLBuilder(
-                relation,
-                alias,
-                options
-            )
+                this.select.merge(join.selectSQLBuilder)
+                this.unions.push(...join.unionSQLBuilders)
 
-            const selectBuilder = join.selectQueryBuilder()
-            this.select.merge(selectBuilder)
-            this.joins.push(join)
-
-            if (this.group) if (
-                Object
-                    .keys(this.options.group ?? {})
-                    .length === 0
-            ) this.group.merge(selectBuilder.groupQueryBuilder())
-
-            if (join.hasTableUnion()) this.unions.push(
-                join.tableUnionQueryBuilder()!
-            )
-
-            if (relations.relations) this.buildJoins(
-                relations.relations,
-                join.relatedAlias
-            )
-        }
+                return [
+                    join,
+                    ...this.buildJoins(options?.relations, join.relatedAlias)
+                ]
+            })
+            : []
     }
 
     // ------------------------------------------------------------------------
 
     private buildWhere(): WhereSQLBuilder<T> | undefined {
-        if (this.options.where) return ConditionalSQLBuilder.where(
-            this.target,
-            this.options.where,
-            this.alias
-        )
+        if (this.options.where) {
+            const where = ConditionalSQLBuilder.where(
+                this.target,
+                this.options.where,
+                this.alias
+            )
+
+            this.unions.push(...where.unions ?? [])
+            return where
+        }
     }
 
     // ------------------------------------------------------------------------

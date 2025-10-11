@@ -1,78 +1,60 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
-
 import ConditionalSQLBuilder, { Case } from "../ConditionalSQLBuilder"
 import CountSQLBuilder from "../CountSQLBuilder"
-import GroupSQLBuilder, {
-    type GroupQueryOptions
-} from "../GroupSQLBuilder"
+import GroupSQLBuilder, { type GroupQueryOptions } from "../GroupSQLBuilder"
 
 // Handlers
 import { MetadataHandler } from "../../Metadata"
 
 // Helpers
-import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
+import { PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
+import type { Target, TargetMetadata } from "../../types"
 import type {
     SelectOptions,
-    SelectPropertyKey,
-    SelectCaseClause,
+    SelectColumnsOption,
+    SelectCaseOption,
     SelectPropertyOptions
 } from "./types"
 
-export default class SelectSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    private metadata: EntityMetadata | PolymorphicEntityMetadata
+export default class SelectSQLBuilder<T extends Target> {
+    private metadata: TargetMetadata<T>
+    private merged: string[] = []
 
-    private mergedProperties: string[] = []
+    private _properties?: string[]
 
     constructor(
         public target: T,
         public options?: SelectOptions<InstanceType<T>>,
-        public alias?: string,
+        public alias: string = target.name.toLowerCase(),
     ) {
         this.metadata = MetadataHandler.targetMetadata(this.target)
-        if (!this.alias) this.alias = this.target.name.toLowerCase()
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get targetName(): string {
-        return this.alias ?? this.target.name.toLowerCase()
-    }
-
-    // ------------------------------------------------------------------------
-
-    public get properties(): string {
-        if (this.options?.properties === '1') return this.options?.properties
-
-        return [
-            this.propertiesSQL(),
-            ...(
-                Object.keys(this.options?.count ?? {}).length > 0
-                    ? [this.countsSQL()]
-                    : []
-            ),
-            ...this.mergedProperties
-        ]
-            .join(', ')
+    public get properties(): string[] {
+        return this._properties = this._properties ?? (
+            this.propertiesSQL().concat(
+                this.countsSQL(),
+                this.merged
+            )
+        )
     }
 
     // Privates ---------------------------------------------------------------
-    private get stringProperties(): string[] {
-        return (this.options!.properties as string[]).filter(
-            option => typeof option === 'string'
-        )
+    private get columns(): string[] {
+        return this.options?.properties
+            ?.filter(option => typeof option === 'string')
+            ?? []
     }
 
     // ------------------------------------------------------------------------
 
-    private get objectProperties(): any[] {
-        return (this.options!.properties as string[]).filter(
-            option => typeof option === 'object'
-        )
+    private get cases(): SelectCaseOption<InstanceType<T>>[] {
+        return this.options?.properties
+            ?.filter(option => typeof option === 'object')
+            ?? []
     }
 
     // Instance Methods =======================================================
@@ -84,38 +66,35 @@ export default class SelectSQLBuilder<
     // ------------------------------------------------------------------------
 
     public SQL(): string {
-        return SQLStringHelper.normalizeSQL(`
-            SELECT ${this.properties} ${this.fromSQL()}
-        `)
+        return `SELECT ${this.properties.join(', ')} ${this.fromSQL()}`
     }
 
     // ------------------------------------------------------------------------
 
-    public propertiesSQL(): string {
-        if (this.options?.properties === null) return ''
-        if (this.options?.properties === '1') return '1'
-
-        return !this.options?.properties
-            ? this.allColumnsSQL()
-            : this.handlePropertiesSQL()
+    public propertiesSQL(): string[] {
+        return this.options?.properties
+            ? this.handlePropertiesSQL()
+            : this.allColumnsSQL()
     }
 
     // ------------------------------------------------------------------------
 
-    public countsSQL(): string {
+    public countsSQL(): string[] {
         return this.options?.count
-            ? CountSQLBuilder.inline(
-                this.target,
-                this.options.count,
-                this.alias
-            )
-            : ''
+            ? [
+                CountSQLBuilder.inline(
+                    this.target,
+                    this.options.count,
+                    this.alias
+                )
+            ]
+            : []
     }
 
     // ------------------------------------------------------------------------
 
-    public merge(selectQueryBuilder: SelectSQLBuilder<any>): void {
-        this.mergedProperties.push(selectQueryBuilder.propertiesSQL())
+    public merge(select: SelectSQLBuilder<any>): void {
+        this.merged.push(...select.properties)
     }
 
     // ------------------------------------------------------------------------
@@ -129,70 +108,48 @@ export default class SelectSQLBuilder<
     }
 
     // Privates ---------------------------------------------------------------
-    private handlePropertiesSQL(): string {
-        return [
-            this.selectedColumnsSQL(),
-            this.operatorsPropertiesSQL()
-        ]
-            .join(', ')
+    private handlePropertiesSQL(): string[] {
+        return this.selectedColumnsSQL().concat(this.casesSQLSelectSQL())
     }
 
     // ------------------------------------------------------------------------
 
-    private allColumnsSQL(): string {
-        return this.metadata.columns
-            .map(column => `${this.asColumn(column.name)}`)
-            .join(', ')
+    private allColumnsSQL(): string[] {
+        return this.metadata.columns.map(column => `${this.as(column.name)}`)
     }
 
     // ------------------------------------------------------------------------
 
-    private selectedColumnsSQL(): string {
-        return this.stringProperties.includes('*')
+    private selectedColumnsSQL(): string[] {
+        return this.columns.includes('*')
             ? this.allColumnsSQL()
-            : this.stringProperties
-                .map(prop => this.asColumn(prop))
-                .join(', ')
+            : this.columns.map(prop => this.as(prop))
     }
 
     // ------------------------------------------------------------------------
 
-    private operatorsPropertiesSQL(): string {
-        return this.objectProperties
-            .flatMap(
-                prop => Object.getOwnPropertySymbols(prop).map(
-                    symbol => {
-                        switch (symbol) {
-                            case Case: return ConditionalSQLBuilder
-                                .case(
-                                    this.target,
-                                    prop[symbol],
-                                    prop.as,
-                                    this.alias
-                                )
-                                .SQL()
-                        }
-
-                        throw new Error
-                    }
-                )
+    private casesSQLSelectSQL(): string[] {
+        return this.cases.map(
+            caseOpt => ConditionalSQLBuilder.case(
+                this.target,
+                caseOpt[Case],
+                caseOpt.as,
+                this.alias
             )
-            .join(', ')
+                .SQL()
+        )
     }
 
     // ------------------------------------------------------------------------
 
     private fromSQL(): string {
-        return `FROM ${this.metadata.tableName} ${this.targetName}`
+        return `FROM ${this.metadata.tableName} ${this.alias}`
     }
 
     // ------------------------------------------------------------------------
 
-    private asColumn(columnName: string): string {
-        return `
-            ${this.alias}.${columnName} 
-            AS ${this.alias}_${columnName}
-        `
+    private as(column: string): string {
+        return `${this.alias}.${column} AS ${this.alias}_${column}`
     }
 
     // ------------------------------------------------------------------------
@@ -207,35 +164,30 @@ export default class SelectSQLBuilder<
 
     private allGroupColumns(): GroupQueryOptions<InstanceType<T>> {
         return this.metadata.columns.map(
-            ({ name }) => PropertySQLHelper.pathToAlias(
-                name, this.alias
-            )
-        )
+            ({ name }) => this.groupColumn(name)
+        ) as GroupQueryOptions<InstanceType<T>>
     }
 
     // ------------------------------------------------------------------------
 
     private selectedGroupColumns(): GroupQueryOptions<InstanceType<T>> {
-        return this.stringProperties.includes('*')
-            ? this.allGroupColumns()
-            : this.stringProperties.map(prop => PropertySQLHelper.pathToAlias(
-                prop, this.alias
-            ))
+        return (
+            this.columns.includes('*')
+                ? this.allGroupColumns()
+                : this.columns.map(column => this.groupColumn(column))
+        ) as GroupQueryOptions<InstanceType<T>>
     }
 
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static select<T extends EntityTarget>(
-        target: T,
-        options: SelectOptions<InstanceType<T>>
-    ) {
-        return new SelectSQLBuilder(target, options)
+    // ------------------------------------------------------------------------
+
+    private groupColumn(column: string): string {
+        return PropertySQLHelper.pathToAlias(column, this.alias)
     }
 }
 
 export {
     type SelectOptions,
-    type SelectPropertyKey,
-    type SelectCaseClause,
+    type SelectColumnsOption as SelectPropertyKey,
+    type SelectCaseOption as SelectCaseClause,
     type SelectPropertyOptions,
 }

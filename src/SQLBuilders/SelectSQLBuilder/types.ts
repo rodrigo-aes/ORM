@@ -5,22 +5,22 @@ import type {
 } from "../ConditionalSQLBuilder"
 import type { CountQueryOptions } from "../CountSQLBuilder"
 
-export type SelectPropertyKey<Entity extends object> = (
+export type SelectColumnsOption<Entity extends object> = (
     '*' |
     EntityPropertiesKeys<Entity>
 )
 
-export type SelectCaseClause<Entity extends object> = {
+export type SelectCaseOption<Entity extends object> = {
     [Case]: CaseQueryOptions<Entity>,
     as: string
 }
 
 export type SelectPropertyOptions<Entity extends object> = (
-    SelectPropertyKey<Entity> |
-    SelectCaseClause<Entity>
+    SelectColumnsOption<Entity> |
+    SelectCaseOption<Entity>
 )
 
 export type SelectOptions<Entity extends object> = {
-    properties?: SelectPropertyOptions<Entity>[] | '1' | null,
+    properties?: SelectPropertyOptions<Entity>[],
     count?: CountQueryOptions<Entity>
 }

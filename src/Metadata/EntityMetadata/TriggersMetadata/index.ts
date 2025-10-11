@@ -22,5 +22,6 @@ export default class TriggersMetadata extends MetadataArray<
         ...triggers: Constructor<Trigger>[]
     ) {
         super(target, ...triggers)
+        this.init()
     }
 }

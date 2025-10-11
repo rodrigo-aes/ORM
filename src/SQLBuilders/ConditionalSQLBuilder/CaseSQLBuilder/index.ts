@@ -1,5 +1,3 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../../Metadata"
-
 // Query Builders
 import AndSQLBuilder from "../AndSQLBuilder"
 import OrSQLBuilder from "../OrSQLBuilder"
@@ -14,10 +12,7 @@ import { MetadataHandler } from "../../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../../types"
+import type { Target, TargetMetadata } from "../../../types"
 import type {
     CaseQueryOptions,
     CaseQueryTuple,
@@ -25,28 +20,24 @@ import type {
     ElseQueryOption,
 } from "./types"
 
-export default class CaseSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
-
-    public alias: string
+export default class CaseSQLBuilder<T extends Target> {
+    protected metadata: TargetMetadata<T>
 
     constructor(
         public target: T,
         public options: CaseQueryOptions<InstanceType<T>>,
         public as?: string,
-        alias?: string
+        public alias: string = target.name.toLowerCase()
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.targetMetadata(this.target)!
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get whenClauses(): CaseQueryTuple<InstanceType<T>>[] {
-        if (Array.isArray(this.lastOption)) return this.options
-        return this.options.slice(0, this.options.length - 1)
+        return Array.isArray(this.lastOption)
+            ? this.options
+            : this.options.slice(0, -1)
     }
 
     // ------------------------------------------------------------------------
@@ -67,8 +58,8 @@ export default class CaseSQLBuilder<
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
             CASE 
-                ${this.whenClausesSQL()}
-                ${this.elseClauseSQL()}
+            ${this.whenClausesSQL()} 
+            ${this.elseClauseSQL()}
             END ${this.asSQL()}
         `)
     }
@@ -96,27 +87,14 @@ export default class CaseSQLBuilder<
 
     private whenSQL(when: WhenQueryOption<InstanceType<T>>): string {
         return Array.isArray(when)
-            ? new OrSQLBuilder(
-                this.target,
-                when,
-                this.alias
-            )
-                .SQL()
-
-            : new AndSQLBuilder(
-                this.target,
-                when,
-                this.alias
-            )
-                .SQL()
+            ? new OrSQLBuilder(this.target, when, this.alias).SQL()
+            : new AndSQLBuilder(this.target, when, this.alias).SQL()
     }
 
     // ------------------------------------------------------------------------
 
     private asSQL(): string {
-        return this.as
-            ? `AS ${this.as}`
-            : ''
+        return this.as ? `AS ${this.as}` : ''
     }
 }
 

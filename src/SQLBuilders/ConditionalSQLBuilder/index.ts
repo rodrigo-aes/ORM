@@ -14,11 +14,10 @@ import {
     Cross,
 
     type ExistsQueryOptions,
-    type CrossExistsQueryOptions,
 } from "./ExistsSQLBuilder"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
+import type { Target } from "../../types"
 import type {
     ConditionalQueryOptions,
     AndQueryOptions,
@@ -39,7 +38,7 @@ export default class ConditionalSQLBuilder {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static where<T extends EntityTarget | PolymorphicEntityTarget>(
+    public static where<T extends Target>(
         target: T,
         options: ConditionalQueryOptions<InstanceType<T>>,
         alias?: string
@@ -49,25 +48,27 @@ export default class ConditionalSQLBuilder {
 
     // ------------------------------------------------------------------------
 
-    public static on<T extends EntityTarget | PolymorphicEntityTarget>(
-        relation: RelationMetadataType,
-        parentAlias: string,
-        alias: string,
+    public static on<P extends Target, T extends Target>(
+        parent: P,
         target: T,
+        relation: RelationMetadataType,
         options?: ConditionalQueryOptions<InstanceType<T>>,
-    ): OnSQLBuilder<T> {
+        parentAlias?: string,
+        alias?: string,
+    ): OnSQLBuilder<P, T> {
         return new OnSQLBuilder(
+            parent,
+            target,
             relation,
+            options,
             parentAlias,
             alias,
-            target,
-            options
         )
     }
 
     // ------------------------------------------------------------------------
 
-    public static case<T extends EntityTarget | PolymorphicEntityTarget>(
+    public static case<T extends Target>(
         target: T,
         options: CaseQueryOptions<InstanceType<T>>,
         as?: string,
@@ -85,6 +86,7 @@ export default class ConditionalSQLBuilder {
 export {
     WhereSQLBuilder,
     OnSQLBuilder,
+    CaseSQLBuilder,
     type ConditionalQueryOptions,
     type AndQueryOptions,
     type OrQueryOptions,
@@ -102,7 +104,6 @@ export {
     Exists,
     Cross,
     type ExistsQueryOptions,
-    type CrossExistsQueryOptions,
 
 
 

@@ -27,8 +27,7 @@ export default class ComputedPropertiesMetadata<
 
     constructor(public target: Target) {
         super(target)
-
-        this.register()
+        this.init()
     }
 
     // Instance Methods =======================================================

@@ -57,6 +57,12 @@ export default class OnSQLBuilder<
         )
     }
 
+    // ------------------------------------------------------------------------
+
+    private get isPolymorphicParent(): boolean {
+        return this.parentTarget.prototype instanceof BasePolymorphicEntity
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
@@ -239,7 +245,7 @@ export default class OnSQLBuilder<
     // ------------------------------------------------------------------------
 
     private resolvePolymorphicParentType(fixedType: string): string {
-        return this.parentTarget.isPrototypeOf(BasePolymorphicEntity)
+        return this.isPolymorphicParent
             ? `${this.parentAlias}.entityType`
             : `"${fixedType}"`
     }
@@ -247,8 +253,6 @@ export default class OnSQLBuilder<
     // ------------------------------------------------------------------------
 
     private resolvePolymorphicReletedAlias(fixedTableName: string): string {
-        return this.parentTarget.isPrototypeOf(BasePolymorphicEntity)
-            ? this.parentAlias
-            : fixedTableName
+        return this.isPolymorphicParent ? this.parentAlias : fixedTableName
     }
 }

@@ -21,7 +21,13 @@ export default class JoinTablesMetadata extends MetadataArray<
     protected readonly SEARCH_KEYS: (keyof JoinTableMetadata)[] = ['tableName']
     protected readonly SHOULD_MERGE: boolean = false
 
-    declare public target: EntityTarget
+    constructor(
+        public target?: EntityTarget,
+        ...joinTables: JoinTableMetadata[]
+    ) {
+        super(target, ...joinTables)
+        this.init()
+    }
 
     // Instance Methods =======================================================
     // Protecteds -------------------------------------------------------------

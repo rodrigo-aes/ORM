@@ -47,7 +47,6 @@ export default class PolymorphicEntityBuilder {
                 extends BasePolymorphicEntity {
                     constructor () {
                         super()
-                        ${this.polymorphicColumns(metadata)}
                     }
                 }
             `
@@ -55,13 +54,5 @@ export default class PolymorphicEntityBuilder {
 
         InternalPolymorphicEntities.set(entity.name, entity)
         return entity
-    }
-
-    // Privates ---------------------------------------------------------------
-    private static polymorphicColumns(metadata: PolymorphicEntityMetadata): (
-        string
-    ) {
-        return metadata.columns.map(col => `this['${col.name}'] = null`)
-            .join('\n')
     }
 }

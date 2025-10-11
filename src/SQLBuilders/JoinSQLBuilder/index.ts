@@ -1,13 +1,8 @@
-import {
-    EntityMetadata,
-    PolymorphicEntityMetadata,
-    PolymorphicBelongsToMetadata,
 
-    type RelationMetadataType
-} from "../../Metadata"
+
+import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 
 import { MetadataHandler } from "../../Metadata"
-import { InternalPolymorphicEntities } from "../../BasePolymorphicEntity"
 
 // Query Builders
 import SelectSQLBuilder, { type SelectOptions } from "../SelectSQLBuilder"
@@ -19,29 +14,33 @@ import ConditionalSQLBuilder, {
 import UnionSQLBuilder from "../UnionSQLBuilder"
 
 // Types
-import type { Target, TargetMetadata } from "../../types"
+import type {
+    Target,
+    PolymorphicEntityTarget,
+    TargetMetadata
+} from "../../types"
+import type { RelationMetadataType } from "../../Metadata"
 import type { RelationOptions, RelationsOptions } from "./types"
 
 export default class JoinSQLBuilder<T extends Target> {
-    private metadata: TargetMetadata<T>
     private relatedMetadata: TargetMetadata<any>
 
     public required?: boolean
     public select?: SelectOptions<any>
     public on?: ConditionalQueryOptions<any>
 
+    private _selectSQLBuilder?: SelectSQLBuilder<any>
+    private _unionSQLBuilders?: UnionSQLBuilder[]
+
     constructor(
         public target: T,
         public relation: RelationMetadataType,
-        options: Omit<RelationOptions<any>, 'relations'>,
+        options?: Omit<RelationOptions<any>, 'relations'>,
         public alias: string = target.name.toLowerCase(),
-        public relatedAlias: string = (
-            relation.relatedTarget.name.toLowerCase()
-        ),
+        public relatedAlias: string = `${this.alias}_${this.relation.name}`,
     ) {
         Object.assign(this, options)
 
-        this.metadata = MetadataHandler.targetMetadata(this.target)
         this.relatedMetadata = MetadataHandler.targetMetadata(
             this.relatedTarget
         )
@@ -51,6 +50,26 @@ export default class JoinSQLBuilder<T extends Target> {
     // Publics ----------------------------------------------------------------
     public get relatedTarget(): Target {
         return this.relation.relatedTarget
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get selectSQLBuilder(): SelectSQLBuilder<any> {
+        return this._selectSQLBuilder = this._selectSQLBuilder ?? (
+            new SelectSQLBuilder(
+                this.relatedTarget,
+                this.select,
+                this.relatedAlias
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get unionSQLBuilders(): UnionSQLBuilder[] {
+        return this._unionSQLBuilders = this._unionSQLBuilders ?? (
+            this.handleUnionSQLBuilders()
+        )
     }
 
     // Instance Methods =======================================================
@@ -78,49 +97,30 @@ export default class JoinSQLBuilder<T extends Target> {
         return `${this.relatedMetadata.tableName} ${this.relatedAlias}`
     }
 
-    // ------------------------------------------------------------------------
-
-    public selectQueryBuilder(): SelectSQLBuilder<any> {
-        return new SelectSQLBuilder(
-            this.relatedTarget,
-            this.select,
-            this.relatedAlias
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    public tableUnionQueryBuilder(): UnionSQLBuilder | undefined {
-        if (this.relation instanceof PolymorphicBelongsToMetadata) {
-            return new UnionSQLBuilder(
-                this.relation.relatedTable,
-                InternalPolymorphicEntities.get(this.relation.relatedTargetName)!
-            )
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    public hasTableUnion(): boolean {
-        return this.relation instanceof PolymorphicBelongsToMetadata
-    }
-
     // Privates ---------------------------------------------------------------
-    private handleAlias(): string {
-        return `${this.relatedAlias}_${this.relation.name}`
-    }
-
-    // ------------------------------------------------------------------------
-
     private onSQL(): string {
         return ConditionalSQLBuilder.on(
-            this.relation,
-            this.relatedAlias,
-            this.relatedAlias,
             this.target,
-            this.on
+            this.relation.relatedTarget,
+            this.relation,
+            this.on,
+            this.alias,
+            this.relatedAlias,
         )
             .SQL()
+    }
+
+    // ------------------------------------------------------------------------
+
+    private handleUnionSQLBuilders(): UnionSQLBuilder[] {
+        return this.relatedTarget.prototype instanceof BasePolymorphicEntity
+            ? [
+                new UnionSQLBuilder(
+                    this.relatedMetadata.tableName,
+                    this.relatedTarget as PolymorphicEntityTarget
+                )
+            ]
+            : []
     }
 }
 

@@ -30,7 +30,8 @@ export default class ScopesMetadata extends MetadataMap<
         scopes?: { [K: string]: Scope }
     ) {
         super()
-        this.register()
+        this.init()
+
         if (scopes) this.registerScopes(scopes)
     }
 

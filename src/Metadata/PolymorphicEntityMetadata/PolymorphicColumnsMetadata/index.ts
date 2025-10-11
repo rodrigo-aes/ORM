@@ -1,12 +1,12 @@
 import MetadataArray from '../../MetadataArray'
-import EntityMetadata, { ColumnMetadata, DataType } from '../../EntityMetadata'
+import PolymorphicEntityMetadata from '..'
+import EntityMetadata from '../../EntityMetadata'
 import PolymorphicColumnMetadata, {
     type PolymorphicColumnMetadataJSON
 } from './PolymorphicColumnMetadata'
 
 // Types
 import type { PolymorphicEntityTarget } from '../../../types'
-
 import type {
     PolymorphicColumnsMetadataJSON,
     IncludedColumns,
@@ -39,9 +39,9 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
 
     constructor(
         public target: PolymorphicEntityTarget,
-        private sources: EntityMetadata[]
+        private _sources?: EntityMetadata[]
     ) {
-        super()
+        super(target)
 
         this.mergePrimaryKeys()
         this.buildTypeColumn()
@@ -67,10 +67,27 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
     }
 
     // Privates ---------------------------------------------------------------
+    private get targetMetadata(): PolymorphicEntityMetadata {
+        return PolymorphicEntityMetadata.findOrBuild(this.target)
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get sources(): EntityMetadata[] {
+        return this._sources = this._sources ?? (
+            this.targetMetadata.sources.map(
+                source => EntityMetadata.findOrThrow(source)
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
     private get included(): IncludedColumns {
         return PolymorphicColumnsMetadata.included(this.target)
     }
 
+    // Instance Methods =======================================================
     // Privates ---------------------------------------------------------------
     private mergePrimaryKeys(): void {
         this.push(new PolymorphicColumnMetadata(
@@ -105,6 +122,7 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static included(target: PolymorphicEntityTarget): IncludedColumns {
+        console.log(target)
         return Reflect.getOwnMetadata(this.UNCLUDED_KEY, target) ?? {}
     }
 

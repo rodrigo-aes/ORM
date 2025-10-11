@@ -1,12 +1,19 @@
 import Operator from "../Operator"
 import { In } from "../Symbols"
 
-export default class InOperator extends Operator<typeof In> {
-    public get values(): string {
-        return this.value.map(v => this.handlePrimitive(v)).join(', ')
-    }
+// Hepers
+import { PropertySQLHelper } from "../../../../Helpers"
 
-    public SQL(): string {
-        return `${this.propertyKey} IN (${this.values})`
+export default class InOperator extends Operator<typeof In> {
+    protected readonly operatorSQL: string = 'IN'
+
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    public get valueSQL(): string {
+        return `(${(
+            this.value
+                .map(val => PropertySQLHelper.valueSQL(val))
+                .join(', ')
+        )})`
     }
 }

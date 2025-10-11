@@ -1,300 +1,113 @@
 // SQL Builders
-import ConditionalSQLBuilder from ".."
+import ConditionalSQLBuilder, { ConditionalQueryOptions } from ".."
 import UnionSQLBuilder from "../../UnionSQLBuilder"
 
 // Symbols
 import { Exists, Cross } from "./Symbol"
 
 // Handlers
-import {
-    MetadataHandler,
-    PolymorphicEntityMetadata,
-
-    type RelationMetadataType
-} from "../../../Metadata"
-
-import { InternalPolymorphicEntities } from "../../../BasePolymorphicEntity"
+import { MetadataHandler, type RelationMetadataType } from "../../../Metadata"
 
 // Helpers
 import { SQLStringHelper } from "../../../Helpers"
 
 // Types
-import type {
-    Target,
-    TargetMetadata
-} from "../../../types"
-import type { ConditionalQueryOptions } from "../types"
+import type { Target, TargetMetadata } from "../../../types"
 import type {
     ExistsQueryOptions,
-    CrossExistsQueryOptions,
-    CrossExistsOption
+    EntityExistsQueryOptions,
+    EntityExistsQueryOption
 } from "./types"
 
 export default class ExistsSQLBuilder<T extends Target> {
     protected metadata: TargetMetadata<T>
-    public alias: string
-
-    private unions: string[] = []
-    private joins: string[] = []
-    private wheres: string[] = []
-    private onWheres: string[] = []
+    public unions: UnionSQLBuilder[] = []
 
     constructor(
         public target: T,
-        public options: (
-            string |
-            ConditionalQueryOptions<InstanceType<T>> & CrossExistsQueryOptions
-        ),
-        alias?: string
+        public options: string | ExistsQueryOptions<InstanceType<T>>[
+            typeof Exists
+        ],
+        public alias: string = target.name.toLowerCase()
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = MetadataHandler.targetMetadata(this.target!)
+        this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
-        return SQLStringHelper.normalizeSQL(`
-            EXISTS (${this.handleExistQuery()})
-        `)
+        return SQLStringHelper.normalizeSQL(this.handleSQL())
     }
 
     // Privates ---------------------------------------------------------------
-    private handleExistQuery(): string {
-        switch (typeof this.options) {
-            case "string": return this.options
-            case "object":
-                this.handleRelationsOptions()
-                this.handleCrossOptions()
-
-                return this.selectSQL()
-
-            default: throw new Error('Unreacheable Error')
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private selectSQL(): string {
-        return `
-            ${this.unions.join(' ')}
-            SELECT 1 FROM ${this.metadata.tableName}
-            ${this.joins.join(' ')}
-            WHERE ${this.wheres.join(' AND ')} AND
-            ${this.onWheres.join(' AND ')}
-        `
-    }
-
-    // ------------------------------------------------------------------------
-
-    private handleRelationsOptions(
+    private handleSQL(
         metadata: TargetMetadata<any> = this.metadata,
-        options: any = this.options
-    ) {
-        const included = new Set<string>()
+        options: string | EntityExistsQueryOptions<any> = this.options,
+        parentAlias: string = this.alias,
+        alias?: string
+    ): string {
+        return typeof options === 'object'
+            ? Object
+                .entries(options)
+                .map(([relation, options]) => this.existsSQL(
+                    metadata,
+                    metadata.relations.findOrThrow(relation),
+                    typeof options === 'object' ? options : undefined,
+                    parentAlias,
+                    alias
+                ))
+                .join(' AND ')
 
-        for (const key of Object.keys(options)) {
-            if (!key.includes('.')) throw new Error
-
-            const relName = key.split('.').shift()!
-            if (included.has(relName)) continue
-
-            const options = {
-                [relName]: this.formatRelationsOptions(relName)
-            }
-
-            this.handleQueryParts(options, metadata)
-
-            included.add(relName)
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private handleCrossOptions() {
-        if (!Object.getOwnPropertySymbols(this.options).includes(Cross)) return
-
-        for (const { target, where } of (
-            (this.options as CrossExistsQueryOptions)[Cross] as (
-                CrossExistsOption[]
-            ))
-        ) {
-            const meta = MetadataHandler.targetMetadata(target)
-            if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)
-
-            if (where) {
-                const whereOptions = Object.fromEntries(
-                    Object.entries(where).filter(([key]) => !key.includes('.'))
-                )
-                const relationsOptions = Object.fromEntries(
-                    Object.entries(where).filter(([key]) => key.includes('.'))
-                )
-
-                this.addJoin(meta)
-                this.handleRelationsOptions(meta, relationsOptions)
-                this.addWhere(
-                    target,
-                    whereOptions,
-                    meta.tableName
-                )
-            }
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private handleQueryParts(
-        options: any,
-        metadata: TargetMetadata<any> = this.metadata
-    ) {
-        for (const [name, opts] of Object.entries(options)) {
-            const relation = metadata.relations.findOrThrow(name)
-
-            const meta = MetadataHandler.targetMetadata(relation.relatedTarget)
-            if (meta instanceof PolymorphicEntityMetadata) this.addUnion(meta)
-
-            const whereOptions = this.extractWhereOptions(opts)
-            const nested = this.extractNestedRelationOptions(opts)
-
-            this.addJoin(meta)
-            this.addWhere(
-                relation.relatedTarget,
-                whereOptions,
-                meta.tableName
-            )
-            this.addOnWhere(
-                relation,
-                metadata.tableName,
-                meta.tableName,
-                metadata.target!
-            )
-
-            if (Object.keys(nested).length > 0) this.handleQueryParts(
-                nested,
-                meta,
-            )
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    private addUnion(metadata: PolymorphicEntityMetadata): void {
-        this.unions.push(
-            new UnionSQLBuilder(
-                metadata.tableName,
-                metadata.target ?? InternalPolymorphicEntities.get(
-                    metadata.name
-                )!
-            )
-                .SQL()
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private addJoin(metadata: TargetMetadata<any>): void {
-        this.joins.push(`CROSS JOIN ${metadata.tableName}`)
+            : options
 
     }
 
     // ------------------------------------------------------------------------
 
-    private addWhere(
-        target: Target,
-        options: ConditionalQueryOptions<any>,
-        alias: string
-    ): void {
-        this.wheres.push(
-            ConditionalSQLBuilder.where(
-                target,
-                options,
-                alias
-            )
-                .conditionalSQL()
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private addOnWhere(
+    private existsSQL(
+        parentMeta: TargetMetadata<any>,
         relation: RelationMetadataType,
-        parentAlias: string,
-        alias: string,
-        target: Target
-    ): void {
-        this.onWheres.push(
-            ConditionalSQLBuilder.on(
-                relation,
-                parentAlias,
-                alias,
-                target
+        options?: EntityExistsQueryOption<any>,
+        parentAlias: string = parentMeta.name,
+        alias: string = `${parentAlias}_${relation.name}Ex`
+    ): string {
+        const metadata = MetadataHandler.targetMetadata(relation.relatedTarget)
+
+        return `EXISTS (SELECT 1 FROM ${metadata.tableName} ${alias} ${(
+            this.whereSQL(
+                parentMeta, metadata, relation, options, parentAlias, alias
             )
-                .fixedSQL()
-        )
+        )})`
     }
 
     // ------------------------------------------------------------------------
 
-    private extractWhereOptions(options: any): any {
-        return Object.fromEntries(Object.entries(options).filter(
-            ([_, value]) => typeof value !== 'object'
-        ))
-    }
-
-    // ------------------------------------------------------------------------
-
-    private extractNestedRelationOptions(options: any): any {
-        return Object.fromEntries(Object.entries(options).filter(
-            ([_, value]) => typeof value === 'object'
-        ))
-    }
-
-    // ------------------------------------------------------------------------
-
-    private formatRelationsOptions(
-        key: string,
-        options: ConditionalQueryOptions<any> = this.options as (
-            ConditionalQueryOptions<InstanceType<T>>
+    private whereSQL(
+        parentMeta: TargetMetadata<any>,
+        metadata: TargetMetadata<any>,
+        relation: RelationMetadataType,
+        options?: EntityExistsQueryOption<any>,
+        parentAlias?: string,
+        alias?: string
+    ): string {
+        const on = ConditionalSQLBuilder.on(
+            parentMeta.target,
+            metadata.target,
+            relation,
+            options?.where as ConditionalQueryOptions<any> | undefined,
+            parentAlias,
+            alias
         )
-    ): any {
-        return Object.fromEntries(
-            Object.entries(options).flatMap(
-                ([k, v]) => {
-                    if (k.startsWith(key)) {
-                        const [_, ...rest] = k.split('.')
-                        const column = rest.pop()
 
-                        if (rest.length === 0) return [[column, v]]
+        this.unions.push(...on.unions)
 
-                        const relName = rest.shift()!
-                        return [[
-                            relName,
-                            this.formatRelationsOptions(
-                                relName,
-                                this.removeKeyPrefix(key, options)
-                            )
-                        ]]
-                    }
-
-                    return []
-                }
-            )
-        )
-    }
-
-    // ------------------------------------------------------------------------
-
-    private removeKeyPrefix(
-        key: string,
-        options: ConditionalQueryOptions<any>
-    ): ConditionalQueryOptions<any> {
-        return Object.fromEntries(
-            Object.entries(options).flatMap(
-                ([k, v]) => k.startsWith(key)
-                    ? [[k.replace(`${key}.`, ''), v]]
-                    : []
-            )
-        )
+        return `WHERE ${on.fixedConditionalSQL()}${on.conditionalSQL(true)}${(
+            options?.relations
+                ? ` AND ${(this.handleSQL(
+                    metadata, options.relations, on.alias
+                ))}`
+                : ''
+        )}`
     }
 }
 
@@ -302,6 +115,5 @@ export {
     Exists,
     Cross,
 
-    type ExistsQueryOptions,
-    type CrossExistsQueryOptions
+    type ExistsQueryOptions
 }

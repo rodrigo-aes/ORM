@@ -16,14 +16,10 @@ import { ConditionalQueryJoinsHandler } from "../../Handlers"
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
+import type { Target, TargetMetadata } from "../../types"
 
-export default class DeleteSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
-
-    public alias: string
+export default class DeleteSQLBuilder<T extends Target> {
+    protected metadata: TargetMetadata<T>
 
     constructor(
         public target: T,
@@ -32,11 +28,9 @@ export default class DeleteSQLBuilder<
             BaseEntity |
             BasePolymorphicEntity<any>
         ),
-        alias?: string
+        public alias: string = target.name.toLowerCase()
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.targetMetadata(this.target)
-
         this.applyWhereScope()
 
         if (this.where instanceof BasePolymorphicEntity) this.where = (
@@ -48,9 +42,9 @@ export default class DeleteSQLBuilder<
     // Protecteds -------------------------------------------------------------
     protected get targetMetadata(): EntityMetadata {
         return this.metadata instanceof PolymorphicEntityMetadata
-            ? this.metadata.sourcesMetadata[
-            (this.where as BasePolymorphicEntity<any>).entityType
-            ]
+            ? this.metadata.sourcesMetadata[(
+                (this.where as BasePolymorphicEntity<any>).entityType
+            )]
             : this.metadata
     }
 
@@ -62,8 +56,10 @@ export default class DeleteSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    protected get primary(): string {
-        return this.targetMetadata.columns.primary.name
+    protected get primary(): keyof BasePolymorphicEntity<any> {
+        return this.targetMetadata.columns.primary.name as (
+            keyof BasePolymorphicEntity<any>
+        )
     }
 
     // Instance Methods =======================================================
@@ -79,8 +75,8 @@ export default class DeleteSQLBuilder<
     // ------------------------------------------------------------------------
 
     public joinsSQL(): string {
-        return (this.isConditional()) ?
-            new ConditionalQueryJoinsHandler(
+        return (!this.isEntity())
+            ? new ConditionalQueryJoinsHandler(
                 this.target,
                 this.where as ConditionalQueryOptions<InstanceType<T>>,
                 this.alias
@@ -88,6 +84,7 @@ export default class DeleteSQLBuilder<
                 .joins()
                 .map(join => join.SQL())
                 .join(', ')
+
             : ''
     }
 
@@ -104,45 +101,35 @@ export default class DeleteSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private applyWhereScope(): void {
-        if (
-            this.where instanceof BaseEntity ||
-            this.where instanceof BasePolymorphicEntity
-        ) return
-
-        this.where = ScopeMetadataHandler.applyScope(
-            this.target,
-            'conditional',
-            this.where
+        if (!this.isEntity()) this.where = (
+            ScopeMetadataHandler.applyScope(
+                this.target,
+                'conditional',
+                this.where as ConditionalQueryOptions<InstanceType<T>>
+            )
         )
     }
 
     // ------------------------------------------------------------------------
 
-    private isConditional(): boolean {
+    private isEntity(): boolean {
         return (
-            !(this.where instanceof BaseEntity) &&
-            !(this.where instanceof BasePolymorphicEntity)
+            this.where instanceof BaseEntity ||
+            this.where instanceof BasePolymorphicEntity
         )
     }
 
     // ------------------------------------------------------------------------
 
     private whereOptions(): ConditionalQueryOptions<InstanceType<T>> {
-        if (this.isConditional()) return this.where as (
-            ConditionalQueryOptions<InstanceType<T>>
-        )
-
-        else {
-            const primaryName = this.metadata.columns.primary.name as (
-                keyof ConditionalQueryOptions<InstanceType<T>>
-            )
-
-            return {
-                [primaryName]: (this.where as BasePolymorphicEntity<any>)[
-                    this.primary as keyof BasePolymorphicEntity<any>
-                ]
-            } as ConditionalQueryOptions<InstanceType<T>>
-
-        }
+        return (
+            this.isEntity()
+                ? {
+                    [this.primary]: (this.where as BasePolymorphicEntity<any>)[
+                        this.primary
+                    ]
+                }
+                : this.where
+        ) as ConditionalQueryOptions<InstanceType<T>>
     }
 }

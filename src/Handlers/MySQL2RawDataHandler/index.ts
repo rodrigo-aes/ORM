@@ -153,21 +153,19 @@ export default class MySQL2RawDataHandler<T extends Target> {
 
     private mapToEntity(target: Target, data: any, toSource: boolean): Entity {
         switch (true) {
-            case BaseEntity
-                .prototype
-                .isPrototypeOf(target.prototype): return new target(data)
+            case target.prototype instanceof BaseEntity: return (
+                new target(data)
+            )
 
             // ----------------------------------------------------------------
 
-            case BasePolymorphicEntity
-                .prototype
-                .isPrototypeOf(target.prototype): return (
-                    this.mapToPolymorphicEntity(
-                        target as PolymorphicEntityTarget,
-                        data,
-                        toSource
-                    )
+            case target.prototype instanceof BasePolymorphicEntity: return (
+                this.mapToPolymorphicEntity(
+                    target as PolymorphicEntityTarget,
+                    data,
+                    toSource
                 )
+            )
 
             // ----------------------------------------------------------------
 

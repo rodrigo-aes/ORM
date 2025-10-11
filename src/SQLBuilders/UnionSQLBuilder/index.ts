@@ -18,20 +18,20 @@ export default class UnionSQLBuilder {
         public name: string,
         public target: PolymorphicEntityTarget
     ) {
-        this.metadata = this.loadMetadata()
+        this.metadata = PolymorphicEntityMetadata.findOrThrow(this.target)
     }
 
     // Getters ================================================================
     // Privates ---------------------------------------------------------------
-    private get entities(): EntityMetadata[] {
+    private get sources(): EntityMetadata[] {
         return Object.values(this.metadata.sourcesMetadata)
     }
 
     // ------------------------------------------------------------------------
 
     private get restColumns(): PolymorphicColumnMetadata[] {
-        return [...this.metadata.columns].filter(
-            ({ primary, name }) => !primary && name !== 'entityType'
+        return this.metadata.columns.filter(
+            ({ name }) => !['primaryKey', 'entityType'].includes(name)
         )
     }
 
@@ -39,62 +39,51 @@ export default class UnionSQLBuilder {
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(
-            `WITH ${this.name} AS (${this.tablesSQL()})`
+            `WITH ${this.name} AS (${this.vitualTablesSQL()})`
         )
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): PolymorphicEntityMetadata {
-        return PolymorphicEntityMetadata.find(this.target)!
-    }
-
-    // ------------------------------------------------------------------------
-
-    private tablesSQL(): string {
-        return this.entities.map(entity => this.targetTableSQL(entity))
+    private vitualTablesSQL(): string {
+        return this.sources
+            .map(source => this.tableSQL(source))
             .join(' UNION ALL ')
     }
 
     // ------------------------------------------------------------------------
 
-    private targetTableSQL(entity: EntityMetadata): string {
-        return `
-            SELECT ${this.propertiesSQL(entity)} FROM ${entity.tableName}
-        `
+    private tableSQL(source: EntityMetadata): string {
+        return `SELECT ${this.columnsSQL(source)} FROM ${source.tableName}`
     }
 
     // ------------------------------------------------------------------------
 
-    private propertiesSQL(entity: EntityMetadata): string {
+    private columnsSQL(source: EntityMetadata): string {
         return [
-            this.primaryKeySQL(entity),
-            this.targetTypeSQL(entity),
-            ...this.restPropertiesSQL(entity)
+            this.primaryKeySQL(source),
+            this.entityTypeSQL(source),
+            ...this.restColumnsSQL(source)
         ]
             .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
-    private primaryKeySQL(entity: EntityMetadata): string {
-        return `${entity.columns.primary.name} AS primaryKey`
+    private primaryKeySQL(source: EntityMetadata): string {
+        return `${source.columns.primary.name} AS primaryKey`
     }
 
     // ------------------------------------------------------------------------
 
-    private targetTypeSQL(entity: EntityMetadata): string {
-        return `"${entity.target.name}" AS entityType`
+    private entityTypeSQL(source: EntityMetadata): string {
+        return `"${source.target.name}" AS entityType`
     }
 
     // ------------------------------------------------------------------------
 
-    private restPropertiesSQL(entity: EntityMetadata): string[] {
-        return this.restColumns.map(column => {
-            const sourceColumn = column.targetSource(entity.target)?.name
-
-            return sourceColumn
-                ? `${sourceColumn} AS ${column.name}`
-                : `NULL AS ${column.name}`
-        })
+    private restColumnsSQL(source: EntityMetadata): string[] {
+        return this.restColumns.map(column => `${(
+            column.targetSource(source.target)?.name ?? 'NULL'
+        )} AS ${column.name}`)
     }
 }

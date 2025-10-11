@@ -21,7 +21,7 @@ export type RelationsOptions<Entity extends object> = Partial<{
 
 export type EntityRelationMap = {
     select: SelectSQLBuilder<any>,
-    on: OnSQLBuilder<any>,
+    on: OnSQLBuilder<any, any>,
     relations?: EntityRelationMap
 }
 

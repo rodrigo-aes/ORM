@@ -20,9 +20,6 @@ export default abstract class MetadataArray<
 
     constructor(public target?: Target, ...childs: T[]) {
         super(...childs)
-
-        if (this.SHOULD_REGISTER) this.register()
-        if (this.SHOULD_MERGE && this.target) this.mergeParentsChilds()
     }
 
     // Static Getters =========================================================
@@ -71,6 +68,13 @@ export default abstract class MetadataArray<
     }
 
     // Protecteds -------------------------------------------------------------
+    protected init(): void {
+        if (this.SHOULD_REGISTER) this.register()
+        if (this.SHOULD_MERGE && this.target) this.mergeParentsChilds()
+    }
+
+    // ------------------------------------------------------------------------
+
     protected register() {
         Reflect.defineMetadata(this.KEY, this, this.target ?? this.constructor)
     }

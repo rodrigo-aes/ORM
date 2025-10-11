@@ -7,6 +7,6 @@ export type EntityGroupQueryOptions<Entity extends object> = (
 export type RelationsGroupQueryOptions = string[]
 
 export type GroupQueryOptions<Entity extends object> = (
-    EntityGroupQueryOptions<Entity> |
+    EntityGroupQueryOptions<Entity> &
     RelationsGroupQueryOptions
 )

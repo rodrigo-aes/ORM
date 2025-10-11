@@ -1,7 +1,7 @@
 import { EntityMetadata } from "../../Metadata"
 
 // Procedures
-import { UpdateOrCreate, type UpdateOrCreateArgs } from "../Procedures"
+import { UpdateOrCreate } from "../Procedures"
 
 // SQL Builder
 import FindOneSQLBuilder from "../FindOneSQLBuilder"
@@ -13,50 +13,49 @@ import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 import type { EntityTarget } from "../../types"
 import type { UpdateOrCreateAttibutes } from "./types"
 import type { EntityPropertiesKeys } from "../../types"
-import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
 
 export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     protected metadata: EntityMetadata
 
-    private _properties: EntityPropertiesKeys<InstanceType<T>>[] = []
+    private _columns: EntityPropertiesKeys<InstanceType<T>>[] = []
     private _values: any[] = []
-
-    public alias: string
 
     constructor(
         public target: T,
         public attributes: UpdateOrCreateAttibutes<InstanceType<T>>,
-        alias?: string
+        public alias: string = target.name.toLowerCase()
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
-        this.metadata = this.loadMetadata()
-
+        this.metadata = EntityMetadata.findOrThrow(this.target)
         this.mergeAttributes()
     }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get columnsNames(): EntityPropertiesKeys<InstanceType<T>>[] {
-        return this._properties ?? this.getPropetiesNames()
+    public get columns(): EntityPropertiesKeys<InstanceType<T>>[] {
+        return this._columns = this._columns ?? Object.keys(
+            this.mergeAttributes()
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    public get columnsValues(): any[] {
-        return this._values ?? this.getValues()
+    public get columnValues(): any[] {
+        return this._values = this._values ?? Object.values(
+            this.mergeAttributes()
+        )
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public fields(...names: EntityPropertiesKeys<InstanceType<T>>[]): this {
-        this._properties = [...this._properties, ...names]
+        this._columns.push(...names)
         return this
     }
 
     // ------------------------------------------------------------------------
 
     public values(...values: any[]): this {
-        this._values = [...this._values, ...values]
+        this._values.push(...values)
         return this
     }
 
@@ -74,16 +73,7 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public SQL(): string {
-        return UpdateOrCreate.SQL(...this.arguments())
-    }
-
-    // ------------------------------------------------------------------------
-
-    public arguments(): UpdateOrCreateArgs {
-        return [
-            this.insertOrUpdateSQL(),
-            this.selectSQL()
-        ]
+        return UpdateOrCreate.SQL(this.insertOrUpdateSQL(), this.selectSQL())
     }
 
     // ------------------------------------------------------------------------
@@ -101,29 +91,21 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     public selectSQL(): string {
         return new FindOneSQLBuilder(
             this.target,
-            {
-                where: this.mergeAttributes() as any
-            },
+            { where: this.mergeAttributes() as any },
             this.alias
         )
             .SQL()
     }
 
     // Privates ---------------------------------------------------------------
-    private loadMetadata(): EntityMetadata {
-        return EntityMetadata.findOrBuild(this.target)
-    }
-
-    // ------------------------------------------------------------------------
-
     private propertiesSQL(): string {
-        return this.columnsNames.join(', ')
+        return this.columns.join(', ')
     }
 
     // ------------------------------------------------------------------------
 
     private valuesSQL(): string {
-        return this.columnsValues
+        return this.columnValues
             .map(value => PropertySQLHelper.valueSQL(value))
             .join(', ')
     }
@@ -131,43 +113,22 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     private updateSQL(): string {
-        return this.columnsNames
-            .map((prop) => `${prop as string} = VALUES(${prop as string})`)
+        return this.columns
+            .map((prop) => `${prop} = VALUES(${prop})`)
             .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
-    private getPropetiesNames(): EntityPropertiesKeys<InstanceType<T>>[] {
-        this._properties = Object.keys(this.mergeAttributes()) as (
-            EntityPropertiesKeys<InstanceType<T>>[]
-        )
-
-        return this._properties
-    }
-
-    // ------------------------------------------------------------------------
-
-    private getValues(): any[] {
-        this._values = Object.values(this.mergeAttributes())
-        return this._values
-    }
-
-    // ------------------------------------------------------------------------
-
     private mergeAttributes(): UpdateOrCreateAttibutes<InstanceType<T>> {
-        const setted = Object.fromEntries(
-            this._properties
-                .filter(key => this.metadata.columns.search(key))
-                .map((key, index) => [key, this._values[index]])
-        )
-
         this.attributes = {
             ...this.attributes,
-            ...setted
+            ...Object.fromEntries(
+                this._columns.map((key, index) => [key, this._values[index]])
+            )
         }
 
-        this._properties = Object.keys(this.attributes) as (
+        this._columns = Object.keys(this.attributes) as (
             EntityPropertiesKeys<InstanceType<T>>[]
         )
         this._values = Object.values(this.attributes)

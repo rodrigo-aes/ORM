@@ -1,54 +1,40 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../../Metadata"
-
 // QueryBuilders
-import AndSQLBuilder from "../AndSQLBuilder"
-
-// Handlers
-import { MetadataHandler } from "../../../Metadata"
+import AndSQLBuilder, { type AndQueryOptions } from "../AndSQLBuilder"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../../types"
+import type { Target } from "../../../types"
 import type { OrQueryOptions } from "./types"
 import type UnionSQLBuilder from "../../UnionSQLBuilder"
 
-export default class OrSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
-
-    public alias: string
-
-    private andSQLBuilders: AndSQLBuilder<T>[]
+export default class OrSQLBuilder<T extends Target> {
+    private unionSQLBuilders: UnionSQLBuilder[] = []
 
     constructor(
         public target: T,
         public options: OrQueryOptions<InstanceType<T>>,
-        alias?: string
-    ) {
-        this.metadata = MetadataHandler.targetMetadata(this.target)!
-        this.alias = alias ?? this.target.name.toLowerCase()
-
-        this.andSQLBuilders = this.buildAndSQLBulders()
-    }
+        public alias: string = target.name.toLowerCase()
+    ) { }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
-        return this.andSQLBuilders.map(and => and.SQL())
+        return this.options
+            .map(option => `(${this.andSQL(option)})`)
             .join(' OR ')
     }
 
     // ------------------------------------------------------------------------
 
     public unions(): UnionSQLBuilder[] {
-        return this.andSQLBuilders.flatMap(and => and.unions())
+        return this.unionSQLBuilders
     }
 
     // Privates ---------------------------------------------------------------
-    private buildAndSQLBulders(): AndSQLBuilder<T>[] {
-        return this.options.map(
-            and => new AndSQLBuilder(this.target, and, this.alias)
-        )
+    private andSQL(option: AndQueryOptions<InstanceType<T>>): string {
+        const and = new AndSQLBuilder(this.target, option, this.alias)
+        this.unionSQLBuilders.push(...and.unions())
+
+        return and.SQL()
     }
 }
 

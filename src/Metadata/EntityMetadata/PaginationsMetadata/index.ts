@@ -22,6 +22,11 @@ export default class PaginationsMetadata<
     )
 
     public override default: typeof Pagination = Pagination
+
+    constructor(public target: Target, ...collections: P[]) {
+        super(target, ...collections)
+        this.init()
+    }
 }
 
 export {

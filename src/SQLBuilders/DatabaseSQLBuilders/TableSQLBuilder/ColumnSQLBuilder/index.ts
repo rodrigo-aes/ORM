@@ -213,10 +213,8 @@ export default class ColumnSQLBuilder extends ColumnSchema {
             this.typeSQL(),
             this.unsignedSQL(),
             this.nullSQL(),
-            this.primarySQL(),
             this.autoIncrementSQL(),
             this.defaultSQL(),
-            this.uniqueSQL(),
         ].join(' ')
     }
 

@@ -1,4 +1,4 @@
-import { type EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
+import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 
 // SQL Builders
 import CountSQL from "./CountSQL"
@@ -16,38 +16,50 @@ import { SQLStringHelper } from "../../Helpers"
 
 // Types
 import type {
-    EntityTarget,
+    Target,
+    TargetMetadata,
     PolymorphicEntityTarget
 } from "../../types"
+import type { AndQueryOptions } from "../ConditionalSQLBuilder"
 import type { CountQueryOptions } from "./types"
 import type { CountQueryOption, CountCaseOptions } from "./CountSQL"
 import JoinSQLBuilder from "../JoinSQLBuilder"
 
 
-export default class CountSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
+export default class CountSQLBuilder<T extends Target> {
+    protected metadata: TargetMetadata<T>
 
-    public alias: string
-
-    private unions?: UnionSQLBuilder[]
-    private joins?: JoinSQLBuilder<any>[]
-
+    private _unionSQLBuilders?: UnionSQLBuilder[]
+    private _joinSQLBuilders?: JoinSQLBuilder<any>[]
 
     constructor(
         public target: T,
         public options: CountQueryOptions<InstanceType<T>>,
-        alias?: string,
+        public alias: string = target.name.toLowerCase(),
         public type: 'isolated' | 'inline' = 'isolated',
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.targetMetadata(this.target)
-
-        this.unionSQLBuilders()
     }
 
     // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public get joinSQLBuilders(): JoinSQLBuilder<any>[] {
+        return this._joinSQLBuilders = this._joinSQLBuilders ?? (
+            new ConditionalQueryJoinsHandler(this.target).joinsByKeys(
+                this.extractOptionsRelationsKeys()
+            )
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public get unionsSQLBuilders(): UnionSQLBuilder[] {
+        return this._unionSQLBuilders = this._unionSQLBuilders ?? [
+            ...this.targetUnion(),
+            ...this.joinSQLBuilders.flatMap(join => join.unionSQLBuilders)
+        ]
+    }
+
     // Protecteds -------------------------------------------------------------
     protected get tableName(): string {
         return `${this.metadata.tableName} ${this.alias}`
@@ -65,41 +77,6 @@ export default class CountSQLBuilder<
             )
         }
     }
-
-    // ------------------------------------------------------------------------
-
-    public joinSQLBuilders(): JoinSQLBuilder<any>[] {
-        if (this.joins) return this.joins
-
-        this.joins = new ConditionalQueryJoinsHandler(this.target)
-            .joinsByKeys(this.extractOptionsRelationsKeys())
-
-        return this.joins
-    }
-
-    // ------------------------------------------------------------------------
-
-    public unionSQLBuilders(): UnionSQLBuilder[] {
-        this.unions = [
-            ...(
-                this.metadata instanceof PolymorphicEntityMetadata
-                    ? [
-                        new UnionSQLBuilder(
-                            this.metadata.tableName,
-                            this.target as PolymorphicEntityTarget
-                        )
-                    ]
-
-                    : []
-            ),
-            ...this.joinSQLBuilders().flatMap(join =>
-                join.tableUnionQueryBuilder() ?? []
-            )
-        ]
-
-        return this.unions
-    }
-
     // Privates ---------------------------------------------------------------
     private isolatedCountQuery(): string {
         return SQLStringHelper.normalizeSQL(`
@@ -129,7 +106,7 @@ export default class CountSQLBuilder<
     // ------------------------------------------------------------------------
 
     private joinsSQL(): string {
-        return this.joinSQLBuilders()
+        return this.joinSQLBuilders
             .map(joinSQLBuilder => joinSQLBuilder.SQL())
             .join(' ')
     }
@@ -137,50 +114,53 @@ export default class CountSQLBuilder<
     // ------------------------------------------------------------------------
 
     private unionsSQL(): string {
-        return this.unions?.map(union => union.SQL())
-            .join(' ')
-            ?? ''
+        return this.unionsSQLBuilders.map(union => union.SQL()).join(' ')
+    }
+
+    // ------------------------------------------------------------------------
+
+    private targetUnion(): UnionSQLBuilder[] {
+        return this.target.prototype instanceof BasePolymorphicEntity
+            ? [
+                new UnionSQLBuilder(
+                    this.metadata.tableName,
+                    this.target as PolymorphicEntityTarget
+                )
+            ]
+            : []
     }
 
     // ------------------------------------------------------------------------
 
     private extractOptionsRelationsKeys(): string[] {
-        return this.extractOptionsKeys().filter(key =>
-            this.metadata.relations?.some(({ name }) => name === key) ||
-            key.includes('.')
-        )
+        return Object.values(this.options).flatMap(option => {
+            if (typeof option === 'string') return (
+                this.metadata.relations.search(option) ? option : []
+            )
+
+            if ((option as CountCaseOptions<InstanceType<T>>)[Case]) return (
+                (option as CountCaseOptions<InstanceType<T>>)[Case]
+                    .flatMap(option => Array.isArray(option)
+                        ? this.extractAndRelationKeys(option[0])
+                        : []
+                    )
+            )
+
+            return Array.isArray(option)
+                ? option.flatMap(and => this.extractAndRelationKeys(and))
+                : this.extractAndRelationKeys(option)
+        })
     }
 
     // ------------------------------------------------------------------------
 
-    private extractOptionsKeys(): string[] {
-        return Object.entries(this.options).flatMap(
-            ([_, opt]) => {
-                switch (typeof opt) {
-                    case "string": return opt
-
-                    case "object": return Array.isArray(opt)
-                        ? opt.flatMap(and => Object.entries(and)
-                            .flatMap(([key]) => key))
-
-                        : Object.getOwnPropertySymbols(opt).includes(Case)
-                            ? (opt as CountCaseOptions<InstanceType<T>>)[Case]
-                                .flatMap(caseOpt =>
-                                    Array.isArray(caseOpt)
-                                        ? Object.entries(caseOpt[0])
-                                            .flatMap(([key]) => key)
-                                        : []
-                                )
-
-                            : Object.entries(opt).flatMap(([key]) => key)
-                }
-            }
-        )
+    public extractAndRelationKeys(and: AndQueryOptions<any>): string[] {
+        return Object.keys(and).filter(key => key.includes('.'))
     }
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static inline<T extends EntityTarget | PolymorphicEntityTarget>(
+    public static inline<T extends Target>(
         target: T,
         options: CountQueryOptions<InstanceType<T>>,
         alias?: string,
@@ -195,9 +175,7 @@ export default class CountSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    public static countBuilder<
-        T extends EntityTarget | PolymorphicEntityTarget
-    >(
+    public static countBuilder<T extends Target>(
         target: T,
         options: CountQueryOption<InstanceType<T>>,
         alias?: string,
@@ -211,9 +189,7 @@ export default class CountSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    public static countManyBuilder<
-        T extends EntityTarget | PolymorphicEntityTarget
-    >(
+    public static countManyBuilder<T extends Target>(
         target: T,
         options: CountQueryOptions<InstanceType<T>>,
         alias?: string,

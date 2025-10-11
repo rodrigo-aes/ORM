@@ -1,56 +1,60 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
+import { PolymorphicEntityMetadata } from "../../Metadata"
 
 // SQL Builders
 import SelectSQLBuilder from "../SelectSQLBuilder"
+import UnionSQLBuilder from "../UnionSQLBuilder"
 
 // Handlers
 import { MetadataHandler } from "../../Metadata"
 
 // Helpers
-import { SQLStringHelper } from "../../Helpers"
+import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
+import type { Target, TargetMetadata } from "../../types"
 
-export default class FindByPkSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
-
-    public alias: string
-    public select: SelectSQLBuilder<T>
+export default class FindByPkSQLBuilder<T extends Target> {
+    protected metadata: TargetMetadata<T>
 
     constructor(
         public target: T,
         public pk: any,
-        alias?: string
+        public alias: string = target.name.toLowerCase()
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.targetMetadata(this.target)
-
-        this.select = this.buildSelect()
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
-        return [
-            this.select.SQL(),
-            this.whereSQL()
-        ]
-            .join(' ')
+        return SQLStringHelper.normalizeSQL(
+            `${this.unionSQL()} ${this.selectSQL()} ${this.whereSQL()}`
+        )
+    }
+
+    // ------------------------------------------------------------------------
+
+    public unionSQL(): string {
+        return this.metadata instanceof PolymorphicEntityMetadata
+            ? new UnionSQLBuilder(
+                this.metadata.tableName,
+                this.metadata.target
+            )
+                .SQL()
+            : ''
+    }
+
+    // ------------------------------------------------------------------------
+
+    public selectSQL(): string {
+        return new SelectSQLBuilder(this.target, undefined, this.alias).SQL()
     }
 
     // ------------------------------------------------------------------------
 
     public whereSQL(): string {
-        return SQLStringHelper.normalizeSQL(`WHERE 
-            ${this.alias}.${this.metadata.columns.primary.name} = ${this.pk}
-        `)
-    }
-
-    // Privates ---------------------------------------------------------------
-    private buildSelect(): SelectSQLBuilder<T> {
-        return new SelectSQLBuilder(this.target, undefined, this.alias)
+        return `WHERE ${this.alias}.${(
+            this.metadata.columns.primary.name
+        )} = ${PropertySQLHelper.valueSQL(this.pk)}`
     }
 }

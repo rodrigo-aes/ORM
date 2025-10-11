@@ -3,18 +3,15 @@ import FindOneSQLBuilder from "../FindOneSQLBuilder"
 // SQL Builders
 import OrderSQLBuilder from "../OrderSQLBuilder"
 
-// Handlers
-import { ScopeMetadataHandler } from "../../Metadata"
-
 // Helpers
 import { SQLStringHelper } from "../../Helpers"
 
 // Types
-import type { EntityTarget, PolymorphicEntityTarget } from "../../types"
+import type { Target } from "../../types"
 import type { FindQueryOptions } from "./types"
 
 export default class FindSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
+    T extends Target
 > extends FindOneSQLBuilder<T> {
     public order?: OrderSQLBuilder<T>
     public limit?: number
@@ -24,18 +21,13 @@ export default class FindSQLBuilder<
         public target: T,
         public options: FindQueryOptions<InstanceType<T>>,
         alias?: string,
-        protected primary: boolean = true
+        isMain?: boolean
     ) {
-        super(target, options, alias)
-
-        this.options = ScopeMetadataHandler.applyScope(
-            this.target,
-            'find',
-            this.options
-        )
+        super(target, options, alias, isMain, 'find')
 
         this.order = this.buildOrder()
-        this.assingRestQueryOptions()
+        this.limit = options.limit
+        this.offset = options.offset
     }
 
     // Instance Methods =======================================================
@@ -43,7 +35,7 @@ export default class FindSQLBuilder<
     public override SQL(): string {
         return SQLStringHelper.normalizeSQL(
             [
-                this.primary ? this.unionsSQL() : '',
+                this.isMain ? this.unionsSQL() : '',
                 this.selectSQL(),
                 this.joinsSQL(),
                 this.whereSQL(),
@@ -65,17 +57,13 @@ export default class FindSQLBuilder<
     // ------------------------------------------------------------------------
 
     public override limitSQL(): string {
-        return this.limit
-            ? `LIMIT ${this.limit}`
-            : ''
+        return this.limit ? `LIMIT ${this.limit}` : ''
     }
 
     // ------------------------------------------------------------------------
 
     public offsetSQL(): string {
-        return this.offset
-            ? `OFFSET ${this.offset}`
-            : ''
+        return this.offset ? `OFFSET ${this.offset}` : ''
     }
 
     // Privates ---------------------------------------------------------------
@@ -86,17 +74,6 @@ export default class FindSQLBuilder<
             this.alias
         )
 
-    }
-
-    // ------------------------------------------------------------------------
-
-    private assingRestQueryOptions(): void {
-        const { limit, offset } = this.options
-
-        Object.assign(this, {
-            limit,
-            offset
-        })
     }
 }
 

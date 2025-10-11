@@ -18,27 +18,14 @@ import { ScopeMetadataHandler } from "../../Metadata"
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../types"
-
+import type { Target, TargetMetadata } from "../../types"
 import type { ConditionalQueryOptions } from "../ConditionalSQLBuilder"
+import type { UpdateAttributes, UpdateAttributesKeys } from "./types"
 
-import type {
-    UpdateAttributes,
-    UpdateAtt5ributesKey,
-    AttributesNames
-} from "./types"
+export default class UpdateSQLBuilder<T extends Target> {
+    protected metadata: TargetMetadata<T>
 
-export default class UpdateSQLBuilder<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
-
-    public alias: string
-
-    private _propertiesNames?: AttributesNames<InstanceType<T>>
+    private _propertiesNames?: UpdateAttributesKeys<InstanceType<T>>
     private _values?: any[]
 
     constructor(
@@ -49,11 +36,9 @@ export default class UpdateSQLBuilder<
             BasePolymorphicEntity<any>
         ),
         public conditional?: ConditionalQueryOptions<InstanceType<T>>,
-        alias?: string
+        public alias: string = target.name.toLowerCase()
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.targetMetadata(this.target)
-
         this.applyConditionalScope()
 
         if (this.attributes instanceof BasePolymorphicEntity) (
@@ -63,13 +48,15 @@ export default class UpdateSQLBuilder<
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
-    public get columnsNames(): UpdateAtt5ributesKey<InstanceType<T>>[] {
-        return Array.from(this._propertiesNames ?? this.getFields())
+    public get columns(): UpdateAttributesKeys<InstanceType<T>> {
+        return this._propertiesNames = this._propertiesNames ?? Array.from(
+            new Set(this.propertyNames())
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    public get columnsValues(): any[] {
+    public get values(): any[] {
         return this._values ?? this.getValues()
     }
 
@@ -82,17 +69,11 @@ export default class UpdateSQLBuilder<
             : this.metadata
     }
 
-    // ------------------------------------------------------------------------
-
-    protected get tableName(): string {
-        return this.targetMetadata.tableName
-    }
-
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            UPDATE ${this.tableName} ${this.alias}
+            UPDATE ${this.targetMetadata.tableName} ${this.alias}
             ${this.joinsSQL()}
             ${this.setSQL()}
             ${this.whereSQL()}
@@ -143,72 +124,50 @@ export default class UpdateSQLBuilder<
             )
         )
     }
-
-    private getFields(): AttributesNames<InstanceType<T>> {
-        this._propertiesNames = new Set([...this.propertyNames()]) as (
-            AttributesNames<InstanceType<T>>
-        )
-
-        return this._propertiesNames
-    }
-
     // ------------------------------------------------------------------------
 
-    private propertyNames(attributes?: UpdateAtt5ributesKey<InstanceType<T>>): (
-        UpdateAtt5ributesKey<InstanceType<T>>[]
+    private propertyNames(attributes?: UpdateAttributesKeys<InstanceType<T>>): (
+        UpdateAttributesKeys<InstanceType<T>>
     ) {
-        return Object.keys(attributes ?? this.attributes ?? {})
+        return Object
+            .keys(attributes ?? this.attributes!)
             .filter(key => this.metadata.columns.search(key)) as (
-                UpdateAtt5ributesKey<InstanceType<T>>[]
+                UpdateAttributesKeys<InstanceType<T>>
             )
     }
 
     // ------------------------------------------------------------------------
 
     private getValues(): any[] {
-        return this.columnsNames.map(
-            column => (
-                this.attributes as UpdateAttributes<InstanceType<T>>
-            )[column]
-                ?? null
+        return this.columns.map(column =>
+            (this.attributes as UpdateAttributes<InstanceType<T>>)[column]
+            ?? null
         )
     }
 
     // ------------------------------------------------------------------------
 
     private setValuesSQL(): string {
-        return Object.entries(this.onlyChangedAttributes())
-            .map(([col, val]) =>
-                `${this.alias}.${col} = ${PropertySQLHelper.valueSQL(val)}`
-            )
-            .join(' ')
+        return Object.entries(this.updatedAttributes())
+            .map(([col, val]) => `${this.alias}.${col} = ${(
+                PropertySQLHelper.valueSQL(val)
+            )}`)
+            .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
-    private onlyChangedAttributes(): any {
+    private updatedAttributes(): any {
         return (
             this.attributes instanceof BaseEntity ||
             this.attributes instanceof BasePolymorphicEntity
         )
             ? ColumnsSnapshots.changed(this.attributes)
-            : this.validAttributes()
-    }
-
-    // ------------------------------------------------------------------------
-
-    private validAttributes(): UpdateAttributes<InstanceType<T>> {
-        return Object.fromEntries(Object.entries(this.attributes).flatMap(
-            ([key, value]) => this.columnsNames.includes(
-                key as UpdateAtt5ributesKey<InstanceType<T>>
-            )
-                ? [[key, value]]
-                : []
-        )) as UpdateAttributes<InstanceType<T>>
+            : this.attributes
     }
 }
 
 export {
     type UpdateAttributes,
-    type UpdateAtt5ributesKey as UpdateAttibutesKey
+    type UpdateAttributesKeys as UpdateAttibutesKey
 }

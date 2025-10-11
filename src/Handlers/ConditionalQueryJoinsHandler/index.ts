@@ -1,5 +1,3 @@
-import { EntityMetadata, PolymorphicEntityMetadata } from "../../Metadata"
-
 // SQL Builders
 import { JoinSQLBuilder } from "../../SQLBuilders"
 
@@ -8,98 +6,97 @@ import { MetadataHandler } from "../../Metadata"
 
 // Types
 import type {
-    EntityTarget,
-    PolymorphicEntityTarget
+    Target,
+    TargetMetadata,
 } from "../../types"
 
-import type { ConditionalQueryOptions } from "../../SQLBuilders"
+import type {
+    ConditionalQueryOptions,
+    AndQueryOptions
+} from "../../SQLBuilders"
 
-export default class ConditionalQueryJoinsHandler<
-    T extends EntityTarget | PolymorphicEntityTarget
-> {
-    protected metadata: EntityMetadata | PolymorphicEntityMetadata
-
-    public alias: string
+export default class ConditionalQueryJoinsHandler<T extends Target> {
+    protected metadata: TargetMetadata<T>
+    private readonly handled = new Set<string>()
 
     constructor(
         public target: T,
         public conditional?: ConditionalQueryOptions<InstanceType<T>>,
-        alias?: string
+        public alias: string = target.name.toLowerCase()
     ) {
-        this.alias = alias ?? this.target.name.toLowerCase()
         this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
     // Instance Methods =======================================================
     public joins(): JoinSQLBuilder<any>[] {
-        return Object.entries(this.extractConditionalRelations()).flatMap(
-            ([key]) => this.handleJoin(key)
-        )
+        return Object
+            .entries(this.extractConditionalRelations())
+            .flatMap(([key]) => this.handleJoins(key))
     }
 
     // ------------------------------------------------------------------------
 
     public joinsByKeys(keys: string[]): JoinSQLBuilder<any>[] {
-        return keys.flatMap(key => this.handleJoin(key))
+        return keys.flatMap(key => this.handleJoins(key))
     }
 
     // ------------------------------------------------------------------------
 
-    public joinByKey(key: string): (
-        JoinSQLBuilder<any> | JoinSQLBuilder<any>[]
-    ) {
-        return this.handleJoin(key)
+    public joinByKey(key: string): JoinSQLBuilder<any>[] {
+        return this.handleJoins(key)
     }
 
     // Privates ---------------------------------------------------------------
-    private extractConditionalRelations(): (
-        ConditionalQueryOptions<InstanceType<T>>
-    ) {
-        return this.conditional
-            ? Object.fromEntries(Object.entries(this.conditional).flatMap(
-                ([key, value]) => key.includes('.')
-                    ? [[key, value]]
-                    : []
-            )) as (
-                ConditionalQueryOptions<InstanceType<T>>
-            )
+    private handleJoins(
+        key: string,
+        current: string = '',
+        metadata: TargetMetadata<any> = this.metadata,
+        alias: string = this.alias
+    ): JoinSQLBuilder<any>[] {
+        const [first, ...rest] = key.split('.')
+        current += first
 
-            : {}
+        const relation = metadata.relations.findOrThrow(first)
+        const nextMeta = MetadataHandler.targetMetadata(relation.relatedTarget)
+        const nextAlias = `${this.alias}_${relation.name}`
+        const nextJoins = rest.length > 0
+            ? this.handleJoins(rest.join('.'), current, nextMeta, nextAlias)
+            : []
+
+        return this.handled.has(current)
+            ? nextJoins
+            : this.handled.add(current) && [
+                new JoinSQLBuilder(this.target, relation, undefined, alias),
+                ...nextJoins
+            ]
     }
 
     // ------------------------------------------------------------------------
 
-    private handleJoin(
-        key: string,
-        metadata: EntityMetadata | PolymorphicEntityMetadata = this.metadata,
-        parentAlias: string = this.alias
-    ): JoinSQLBuilder<any> | JoinSQLBuilder<any>[] {
-        const [first, second, ...rest] = key.split('.')
-        const relation = metadata.relations!.find(
-            ({ name }) => name === first
-        )!
+    private extractConditionalRelations(): string[] {
+        return Array.from(new Set(
+            Array.isArray(this.conditional)
+                ? this.conditional.flatMap(and => this.extractAndRelations(
+                    and
+                ))
+                : this.extractAndRelations(this.conditional as (
+                    AndQueryOptions<InstanceType<T>>
+                ))
+        ))
+    }
 
-        const join = new JoinSQLBuilder(
-            relation,
-            parentAlias,
-            {}
-        )
+    // ------------------------------------------------------------------------
 
-        if (rest.length === 0) return join
-
-        metadata = MetadataHandler.targetMetadata(relation.relatedTarget)
-
-        const next = this.handleJoin(
-            `${second}.${rest.join('.')}`,
-            metadata,
-            join.relatedAlias
-        )
-
-        return [
-            join,
-            ...Array.isArray(next)
-                ? next
-                : [next]
-        ]
+    private extractAndRelations(and: AndQueryOptions<InstanceType<T>>): (
+        string[]
+    ) {
+        return Object
+            .keys(and)
+            .flatMap(key => key.includes('.')
+                ? key.split('.').slice(0, -1).join('.')
+                : this.metadata.relations.search(key)
+                    ? key
+                    : []
+            )
     }
 }

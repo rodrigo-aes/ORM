@@ -16,7 +16,7 @@ import type UnionSQLBuilder from "../UnionSQLBuilder"
 
 export default abstract class ConditionalSQLBuilder<T extends Target> {
     protected metadata: TargetMetadata<T>
-    protected unions?: UnionSQLBuilder[]
+    public unions: UnionSQLBuilder[] = []
 
     constructor(
         public target: T,
@@ -33,9 +33,12 @@ export default abstract class ConditionalSQLBuilder<T extends Target> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public conditionalSQL(and: boolean = false): string {
-        return this.options
-            ? (and ? ' AND ' : '') + this.SQLBuilder().SQL()
-            : ''
+        if (this.options) {
+            const sql = this.SQLBuilder().SQL()
+            return sql ? (and ? ' AND ' : '') + sql : ''
+        }
+
+        return ''
     }
 
     // Privates ---------------------------------------------------------------

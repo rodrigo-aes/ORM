@@ -22,6 +22,7 @@ import type { ColumnsMetadataJSON } from './types'
 
 // Exceptions
 import PolyORMException, { type MetadataErrorCode } from '../../../Errors'
+
 export default class ColumnsMetadata extends MetadataArray<ColumnMetadata> {
     protected static override readonly KEY: string = 'columns-metadata'
 
@@ -34,11 +35,14 @@ export default class ColumnsMetadata extends MetadataArray<ColumnMetadata> {
         'UNKNOWN_COLUMN'
     )
 
-    declare public target: EntityTarget
-
     private _primary?: ColumnMetadata
     private _foreignKeys?: ColumnMetadata[]
     private _constrainedForeignKeys?: ColumnMetadata[]
+
+    constructor(public target: EntityTarget, ...columns: ColumnMetadata[]) {
+        super(target, ...columns)
+        this.init()
+    }
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
@@ -61,8 +65,8 @@ export default class ColumnsMetadata extends MetadataArray<ColumnMetadata> {
 
     public get constrainedForeignKeys(): ColumnMetadata[] {
         return this._constrainedForeignKeys = this._constrainedForeignKeys
-            ?? this.foreignKeys.filter(({ references }) =>
-                references?.constrained
+            ?? this.foreignKeys.filter(
+                ({ references }) => references?.constrained
             )
     }
 

@@ -29,6 +29,11 @@ export default class CollectionsMetadata<
 
     public default: typeof Collection = Collection
 
+    constructor(public target: Target, ...collections: C[]) {
+        super(target, ...collections)
+        this.init()
+    }
+
     // Static Getters =========================================================
     // Publics ----------------------------------------------------------------
     public get [Symbol.species](): typeof Array {

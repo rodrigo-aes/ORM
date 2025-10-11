@@ -72,10 +72,12 @@ export default class RelationsMetadata extends MetadataArray<
 
     constructor(public target: EntityTarget) {
         super(target)
+        this.init()
 
-        if ((this.target as StaticEntityTarget).INHERIT_POLYMORPHIC_RELATIONS) (
-            this.mergeParentPolymorphicRelations()
-        )
+        if ((this.target as StaticEntityTarget)
+            .INHERIT_POLYMORPHIC_RELATIONS) (
+                this.mergeParentPolymorphicRelations()
+            )
     }
 
     // Instance Methods =======================================================

@@ -3,10 +3,11 @@ import { NotBetween } from "../Symbols"
 import { OperatorType } from "../types"
 
 export default class NotBetweenOperator extends Operator<typeof NotBetween> {
-    public SQL(): string {
-        const [init, end] = (this.value as OperatorType[typeof NotBetween])
-        return `${this.propertyKey} 
-            NOT BETWEEN ${JSON.stringify(init)} AND ${JSON.stringify(end)}
-        `
+    protected readonly operatorSQL: string = 'NOT BETWEEN'
+
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    protected override get valueSQL(): string {
+        return this.value.map(val => JSON.stringify(val)).join(' AND ')
     }
 }

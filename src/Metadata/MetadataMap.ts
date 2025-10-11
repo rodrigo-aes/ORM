@@ -17,9 +17,6 @@ export default abstract class MetadataMap<
 
     constructor(public target?: Target | CollectionTarget) {
         super()
-
-        if (this.SHOULD_REGISTER) this.register()
-        if (this.target) this.mergeParents()
     }
 
     // Static Getters =========================================================
@@ -47,6 +44,13 @@ export default abstract class MetadataMap<
     }
 
     // Protecteds -------------------------------------------------------------
+    protected init(): void {
+        if (this.SHOULD_REGISTER) this.register()
+        if (this.target) this.mergeParents()
+    }
+
+    // ------------------------------------------------------------------------
+
     protected register() {
         Reflect.defineMetadata(this.KEY, this, this.target ?? this.constructor)
     }
