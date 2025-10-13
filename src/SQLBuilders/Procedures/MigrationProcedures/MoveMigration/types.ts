@@ -1,6 +1,6 @@
 import type { ProcedureArgs } from "../../types"
 
 export type In = ProcedureArgs<
-    ['new_name', 'new_order', 'new_created_at'],
-    [string, number?, string?]
+    ['from_order', 'to_order'],
+    [number, number]
 >

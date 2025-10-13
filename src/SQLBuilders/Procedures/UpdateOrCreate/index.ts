@@ -1,22 +1,25 @@
 import Procedure from "../Procedure"
+import { DataType } from "../../../Metadata"
 
 // Types
-import type { PolyORMConnection } from "../../../Metadata"
-import type { UpdateOrCreateArgs } from "./types"
+import type { ProcedureArgsSchema } from "../types"
+import type { In } from "./types"
 
-export default class UpdateOrCreate extends Procedure {
-    // Instance Methods =======================================================
-    // Publics ----------------------------------------------------------------
-    public argsSQL(): string {
-        return `
-            IN insertSQL TEXT,
-            IN selectSQL TEXT
-        `
+class UpdateOrCreate<T extends any[] = any[]> extends Procedure<
+    T, In, never
+> {
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    protected override get in(): ProcedureArgsSchema<In> {
+        return {
+            insertSQL: DataType.TEXT(),
+            selectSQL: DataType.TEXT()
+        }
     }
 
-    // ------------------------------------------------------------------------
-
-    public proccessSQL(): string {
+    // Instance Methods =======================================================
+    // Protecteds -------------------------------------------------------------
+    protected proccessSQL(): string {
         return `
             SET @query = insertSQL;
             PREPARE stmt FROM @query;
@@ -29,23 +32,6 @@ export default class UpdateOrCreate extends Procedure {
             DEALLOCATE PREPARE stmt;
         `
     }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static call(
-        connection: PolyORMConnection,
-        ...args: UpdateOrCreateArgs
-    ): Promise<any[]> {
-        return connection.query(this.SQL(...args))
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static SQL(...args: UpdateOrCreateArgs): string {
-        return `CALL ${this.name} (${args.map(arg => `"${arg}"`).join(', ')})`
-    }
 }
 
-export {
-    type UpdateOrCreateArgs
-}
+export default new UpdateOrCreate

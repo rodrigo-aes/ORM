@@ -26,8 +26,8 @@ import type {
 import type { EntityTarget } from '../types'
 
 export default class MySQLConnection implements MySQLConnectionInstance {
-    public readonly type = 'MySQL'
     public static readonly type = 'MySQL'
+    public readonly type = MySQLConnection.type
 
     /** @internal */
     private static readonly DEFAULT_CONF: Partial<MySQLConnectionConfig> = {
@@ -110,7 +110,7 @@ export default class MySQLConnection implements MySQLConnectionInstance {
         }
     }
 
-    // Privates ---------------------------------------------------------------
+    // Protecteds -------------------------------------------------------------
     /** @internal */
     private async init(): Promise<this> {
         await Config.load()
@@ -149,8 +149,7 @@ export default class MySQLConnection implements MySQLConnectionInstance {
         if (this.config.sync) await this.sync('alter')
     }
 
-    // ------------------------------------------------------------------------
-
+    // Privates ---------------------------------------------------------------
     /** @internal */
     private sqlLogging(
         sql: string,

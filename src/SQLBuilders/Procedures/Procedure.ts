@@ -1,11 +1,25 @@
+import { ConnectionsMetadata, type PolyORMConnection } from "../../Metadata"
+
 // Helpers
-import { SQLStringHelper } from "../../Helpers"
+import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { PolyORMConnection } from "../../Metadata"
+import type {
+    ProcedureArgsSchema,
+    ProcedureArgs,
+    ProcedureOutResult,
+    OptionalizeTuple
+} from "./types"
 
-export default abstract class Procedure {
-    protected connection!: PolyORMConnection
+// Exeptions
+import PolyORMException from "../../Errors"
+
+export default abstract class Procedure<
+    Result extends any[] = any[],
+    In extends ProcedureArgs = ProcedureArgs,
+    Out extends ProcedureArgs = ProcedureArgs
+> {
+    private _conn!: PolyORMConnection
 
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
@@ -13,34 +27,124 @@ export default abstract class Procedure {
         return this.constructor.name
     }
 
+    // Protecteds -------------------------------------------------------------
+    protected get in(): ProcedureArgsSchema<In> | undefined {
+        return undefined
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected get out(): ProcedureArgsSchema<Out> | undefined {
+        return undefined
+    }
+
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public SQL(): string {
+    public connection(connection: string | PolyORMConnection): this {
+        this._conn = typeof connection === 'object'
+            ? connection
+            : ConnectionsMetadata.get(connection)
+
+        return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async call(...args: OptionalizeTuple<In[1]>): (
+        Promise<[Result, ProcedureOutResult<Out>]>
+    ) {
+        const [result, [out]] = await this._conn.query(
+            this.callSQL(...args)
+        )
+
+        return [result, out]
+    }
+
+    // ------------------------------------------------------------------------
+
+    public async register(): Promise<void> {
+        await this._conn.query(this.dropIfExistsSQL())
+        await this._conn.query(this.registerSQL())
+    }
+
+    // ------------------------------------------------------------------------
+
+    public registerSQL(): string {
         return SQLStringHelper.normalizeSQL(`
-            CREATE PROCEDURE ${this.name} (${this.argsSQL()})
+            CREATE PROCEDURE ${this.name} (${this.defineArgsSQL()})
             BEGIN ${this.proccessSQL()} END;
         `)
     }
 
     // ------------------------------------------------------------------------
 
-    public async register(connection: PolyORMConnection): Promise<void> {
-        this.connection = connection
-
-        await this.connection.query(this.dropIfExistsSQL())
-        await this.connection.query(this.SQL())
+    public callSQL(...args: In[1]): string {
+        return SQLStringHelper.normalizeSQL(`
+            CALL ${this.name} (${this.callArgsSQL(...args)});
+            ${this.out ? `SELECT ${this.callOutArgsSQL().join(', ')}` : ''}    
+        `)
     }
 
-    // ------------------------------------------------------------------------
-
-    public abstract argsSQL(): string
-
-    // ------------------------------------------------------------------------
-
-    public abstract proccessSQL(): string
+    // Protecteds -------------------------------------------------------------
+    protected abstract proccessSQL(): string
 
     // Privates ---------------------------------------------------------------
     private dropIfExistsSQL(): string {
         return `DROP PROCEDURE IF EXISTS ${this.name}`
+    }
+
+    // ------------------------------------------------------------------------
+
+    private defineArgsSQL(): string {
+        return this.defineInArgsSQL()
+            .concat(
+                this.defineOutArgsSQL()
+            )
+            .join(', ')
+    }
+
+    // ------------------------------------------------------------------------
+
+    private defineInArgsSQL(): string[] {
+        return this.in
+            ? Object.entries(this.in).map(
+                ([name, dataType]) => `IN ${name} ${dataType.buildSQL()}`
+            )
+            : []
+
+    }
+
+    // ------------------------------------------------------------------------
+
+    private defineOutArgsSQL(): string[] {
+        return this.out
+            ? Object.entries(this.out).map(
+                ([name, dataType]) => `OUT ${name} ${dataType.buildSQL()}`
+            )
+            : []
+    }
+
+    // ------------------------------------------------------------------------
+
+    private callArgsSQL(...args: In[1]): string {
+        return this.callInArgsSQL(...args)
+            .concat(
+                this.callOutArgsSQL()
+            )
+            .join(', ')
+    }
+
+    // ------------------------------------------------------------------------
+
+    private callInArgsSQL(...args: In[1]): string[] {
+        return args.map(arg => PropertySQLHelper.valueSQL(arg))
+    }
+
+    // ------------------------------------------------------------------------
+
+    private callOutArgsSQL(): string[] {
+        return this.out
+            ? Object.keys(this.out).map(name => `@${name}`)
+            : []
     }
 }

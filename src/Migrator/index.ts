@@ -15,7 +15,9 @@ import Migration from "./Migration"
 
 // Handlers
 import MigrationFileHandler from "./MigrationFileHandler"
-import MigrationsTableHandler from "./MigrationsTableHandler"
+import MigrationsTableHandler, {
+    type MigrationData
+} from "./MigrationsTableHandler"
 
 // Decorators
 import { Logs } from "./Decorators"
@@ -515,5 +517,6 @@ export default class Migrator extends Array<Constructor<Migration>> {
 }
 
 export {
-    Migration
+    Migration,
+    type MigrationData
 }

@@ -1,21 +1,24 @@
 import Procedure from "../../Procedure"
-
-// Helpers
-import { PropertySQLHelper } from "../../../../Helpers"
+import { DataType } from "../../../../Metadata"
 
 // Types
-import type { PolyORMConnection } from "../../../../Metadata"
+import type { ProcedureArgsSchema } from "../../types"
+import type { In } from "./types"
 
-export default class MoveMigration extends Procedure {
-    public argsSQL(): string {
-        return `
-            IN from_order INT,
-            IN to_order INT
-        `
+class MoveMigration extends Procedure<never, In, never> {
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    public override get in(): ProcedureArgsSchema<In> | undefined {
+        return {
+            from_order: DataType.INT(),
+            to_order: DataType.INT()
+        }
     }
 
+    // Instance Methods =======================================================
+    // Protecteds ------------------------------------------------------------- 
     public proccessSQL(): string {
-        return `
+        return /*sql*/`
             UPDATE __migrations SET \`order\` = 0 WHERE \`order\` = from_order;
 
             IF from_order > to_order THEN
@@ -32,20 +35,6 @@ export default class MoveMigration extends Procedure {
             UPDATE __migrations SET \`order\` = to_order WHERE \`order\` = 0;
         `
     }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static call(
-        connection: PolyORMConnection,
-        from: number,
-        to: number
-    ): Promise<any[]> {
-        return connection.query(this.SQL(from, to))
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static SQL(from: number, to: number): string {
-        return `CALL ${this.name} (${from}, ${to})`
-    }
 }
+
+export default new MoveMigration

@@ -60,7 +60,7 @@ export default class MigrationsTableHandler {
 
     @Logs.EraseMigration
     public async delete(id: string | number): Promise<number> {
-        const [_, [{ ['@deleted']: deleted }]] = (
+        const [_, { "@deleted_order": deleted }] = (
             await DeleteMigration.call(this.connection, id)
         )
 

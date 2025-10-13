@@ -1,3 +1,4 @@
+import type Procedure from "../Procedure"
 import UpdateOrCreate from "../UpdateOrCreate"
 import SyncManyToMany from "../SyncManyToMany"
 import {
@@ -19,7 +20,7 @@ export default class ProceduresHandler {
         )
     }
 
-    public static readonly procedures = [
+    public static readonly procedures: Procedure[] = [
         UpdateOrCreate,
         SyncManyToMany,
 
@@ -30,9 +31,11 @@ export default class ProceduresHandler {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static async register(connection: PolyORMConnection): Promise<void> {
+    public static async register(connection: string | PolyORMConnection): (
+        Promise<void>
+    ) {
         for (const procedure of this.procedures) (
-            await new procedure().register(connection)
+            await procedure.connection(connection).register()
         )
     }
 }

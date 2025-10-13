@@ -1,23 +1,26 @@
 import Procedure from "../../Procedure"
-
-// Helpers
-import { SQLStringHelper } from "../../../../Helpers"
+import { DataType } from "../../../../Metadata"
 
 // Types
-import type { PolyORMConnection } from "../../../../Metadata"
-import type { InsertMigrationArgs } from "./types"
+import type { ProcedureArgsSchema } from "../../types"
+import type { MigrationData } from "../../../../Migrator"
+import type { In } from "./types"
 
-export default class InsertMigration extends Procedure {
-    public argsSQL(): string {
-        return `
-            IN new_name VARCHAR(255),
-            IN new_order INT,
-            IN new_created_at DATE
-        `
+class InsertMigration extends Procedure<MigrationData[], In, never> {
+    // Getters ================================================================
+    // Protecteds -------------------------------------------------------------
+    protected override get in(): ProcedureArgsSchema<In> {
+        return {
+            new_name: DataType.VARCHAR(),
+            new_order: DataType.INT(),
+            new_created_at: DataType.TIMESTAMP()
+        }
     }
 
-    public proccessSQL(): string {
-        return `
+    // Instance Methods =======================================================
+    // Protecteds ------------------------------------------------------------- 
+    protected proccessSQL(): string {
+        return /* sql */`
             DECLARE last_order INT;
 
             IF new_order IS NOT NULL THEN
@@ -68,29 +71,6 @@ export default class InsertMigration extends Procedure {
             END IF;
         `
     }
-
-    // Static Methods =========================================================
-    // Publics ----------------------------------------------------------------
-    public static call(
-        connection: PolyORMConnection,
-        name: string,
-        position?: number,
-        createdAt?: string
-    ): Promise<any[]> {
-        return connection.query(this.SQL(name, position, createdAt))
-    }
-
-    // ------------------------------------------------------------------------
-
-    public static SQL(
-        name: string,
-        position?: number,
-        createdAt?: string
-    ): string {
-        return SQLStringHelper.normalizeSQL(`CALL ${this.name} (
-            "${name}",
-            ${position ?? 'NULL'},
-            ${createdAt ? `"${createdAt}"` : 'NULL'}
-        )`)
-    }
 }
+
+export default new InsertMigration

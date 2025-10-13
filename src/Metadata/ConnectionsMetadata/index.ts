@@ -4,7 +4,7 @@ import MetadataMap from "../MetadataMap"
 import type { PolyORMConnection, MySQLConnection } from "./contracts"
 
 // Exceptions
-import { type MetadataErrorCode } from "../../Errors"
+import PolyORMException, { type MetadataErrorCode } from "../../Errors"
 
 class ConnectionsMetadata extends MetadataMap<string, PolyORMConnection> {
     protected static override readonly KEY: string = 'connections-metadata'
@@ -12,6 +12,14 @@ class ConnectionsMetadata extends MetadataMap<string, PolyORMConnection> {
     protected readonly UNKNOWN_ERROR_CODE?: MetadataErrorCode = (
         'UNKNOWN_CONNECTION'
     )
+
+    // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public override get(name: string): PolyORMConnection {
+        return super.get(name)! ?? PolyORMException.Metadata.throw(
+            'UNKNOWN_CONNECTION', name
+        )
+    }
 }
 
 export default new ConnectionsMetadata

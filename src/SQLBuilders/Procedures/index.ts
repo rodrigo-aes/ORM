@@ -1,13 +1,9 @@
 import Procedure from "./Procedure"
 import ProceduresHandler from "./ProceduresHandler"
 
-import UpdateOrCreate, {
-    type UpdateOrCreateArgs
-} from "./UpdateOrCreate"
+import UpdateOrCreate from "./UpdateOrCreate"
 
-import SyncManyToMany, {
-    type SyncManyToManyArgs
-} from "./SyncManyToMany"
+import SyncManyToMany from "./SyncManyToMany"
 
 import {
     InsertMigration,
@@ -24,7 +20,4 @@ export {
     InsertMigration,
     DeleteMigration,
     MoveMigration,
-
-    type UpdateOrCreateArgs,
-    type SyncManyToManyArgs
 }
