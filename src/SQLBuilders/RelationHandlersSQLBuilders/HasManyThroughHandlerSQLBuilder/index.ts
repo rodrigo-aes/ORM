@@ -36,8 +36,8 @@ export default class HasManyThroughHandlerSQLBuilder<
     }
 
     // Privates ---------------------------------------------------------------
-    private get throughTableAlias(): string {
-        return `${this.metadata.throughMetadata.tableName} ${this.throughAlias}`
+    private get throughTable(): string {
+        return this.metadata.throughTable
     }
 
     // ------------------------------------------------------------------------
@@ -49,19 +49,19 @@ export default class HasManyThroughHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get foreignKey(): string {
-        return this.metadata.relatedForeignKey.name
+        return `${this.relatedAlias}.${this.metadata.relatedFKName}`
     }
 
     // ------------------------------------------------------------------------
 
     private get throughForeignKey(): string {
-        return this.metadata.throughForeignKey.name
+        return this.metadata.throughFKName
     }
 
     // ------------------------------------------------------------------------
 
     private get throughPrimary(): string {
-        return this.metadata.throughMetadata.columns.primary.name
+        return this.metadata.throughPrimary
     }
 
     // Instance Methods =======================================================
@@ -86,17 +86,11 @@ export default class HasManyThroughHandlerSQLBuilder<
 
     // Protecteds -------------------------------------------------------------
     protected fixedWhereSQL(): string {
-        return `
-            WHERE EXISTS (
-                SELECT 1 FROM ${this.relatedTableAlias}
-                    WHERE EXISTS (
-                        SELECT 1 FROM ${this.throughTableAlias}
-                            WHERE ${this.throughAlias}.${this.throughForeignKey}
-                            = ${this.targetPrimaryValue}
-                            AND ${this.relatedAlias}.${this.foreignKey} = 
-                            ${this.throughAlias}.${this.throughPrimary}
-                    )
+        return `WHERE EXISTS (SELECT 1 FROM ${this.relatedTableAlias}
+            WHERE EXISTS (SELECT 1 FROM ${this.throughTable}
+                WHERE ${this.throughForeignKey} = ${this.targetPrimaryValue}
+                AND ${this.foreignKey} = ${this.throughPrimary}
             )
-        `
+        )`
     }
 }

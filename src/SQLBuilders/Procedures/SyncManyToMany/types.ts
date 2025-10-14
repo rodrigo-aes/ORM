@@ -4,5 +4,5 @@ import { ProcedureArgs } from "../types"
 
 export type In = ProcedureArgs<
     ['insertSQL', 'deleteSQL'],
-    [string, string]
+    [string, string?]
 >

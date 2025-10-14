@@ -31,9 +31,9 @@ export default abstract class OneRelationHandlerSQLBuilder<
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public loadSQL(): string {
-        return SQLStringHelper.normalizeSQL(`
-            ${this.selectSQL()} ${this.fixedWhereSQL()} LIMIT 1
-        `)
+        return SQLStringHelper.normalizeSQL(
+            `${this.selectSQL()} ${this.fixedWhereSQL()} LIMIT 1`
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -41,15 +41,14 @@ export default abstract class OneRelationHandlerSQLBuilder<
     public createSQL(attributes: CreationAttributes<InstanceType<Related>>): (
         [string, any[]]
     ) {
-        const sql = SQLStringHelper.normalizeSQL(`
-            INSERT INTO ${this.relatedTable}
-            (${this.insertColumnsSQL(attributes)})
-            VALUES (${this.placeholderSetSQL(attributes)})
-        `)
-
-        const values = this.createValues(attributes)
-
-        return [sql, values]
+        return [
+            SQLStringHelper.normalizeSQL(`
+                INSERT INTO ${this.relatedTable}
+                (${this.insertColumnsSQL(attributes)})
+                VALUES (${this.placeholderSetSQL(attributes)})
+            `),
+            this.createValues(attributes)
+        ]
     }
 
     // ------------------------------------------------------------------------
@@ -94,9 +93,8 @@ export default abstract class OneRelationHandlerSQLBuilder<
     protected insertValuesSQL(
         attributes: CreationAttributes<InstanceType<Related>>
     ): string {
-        return this.attributesValues(attributes).map(
-            value => PropertySQLHelper.valueSQL(value)
-        )
+        return this.attributesValues(attributes)
+            .map(value => PropertySQLHelper.valueSQL(value))
             .join(', ')
     }
 

@@ -8,17 +8,8 @@ import { MetadataHandler } from "../../../Metadata"
 import { PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type {
-    RelationMetadataType,
-    EntityMetadata,
-    PolymorphicEntityMetadata
-} from "../../../Metadata"
-
-import type {
-    EntityTarget,
-    PolymorphicEntityTarget
-} from "../../../types"
-
+import type { RelationMetadataType, } from "../../../Metadata"
+import type { Target as TargetType, TargetMetadata } from "../../../types"
 import type { CreationAttributes } from "../../CreateSQLBuilder"
 import type { UpdateOrCreateAttibutes } from "../../UpdateOrCreateSQLBuilder"
 import type { UpdateAttributes } from "../../UpdateSQLBuilder"
@@ -26,71 +17,73 @@ import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 export default abstract class RelationHandlerSQLBuilder<
     RelationMetadata extends RelationMetadataType,
     Target extends object,
-    Related extends EntityTarget | PolymorphicEntityTarget
+    Related extends TargetType
 > {
-    protected targetMetadata: EntityMetadata | PolymorphicEntityMetadata = (
-        MetadataHandler.targetMetadata(
-            this.target.constructor as EntityTarget | PolymorphicEntityTarget
-        )
-    )
-
-    protected relatedMetadata: EntityMetadata | PolymorphicEntityMetadata = (
-        MetadataHandler.targetMetadata(this.related)
-    )
+    protected targetMetadata: TargetMetadata<any>
+    protected relatedMetadata: TargetMetadata<Related>
 
     constructor(
         protected metadata: RelationMetadata,
         protected target: Target,
         protected related: Related
-    ) { }
+    ) {
+        this.targetMetadata = MetadataHandler.targetMetadata(
+            this.target.constructor as TargetType
+        )
+        this.relatedMetadata = MetadataHandler.targetMetadata(this.related)
+    }
 
     // Getters ================================================================
     // Protecteds -------------------------------------------------------------
-    public get targetAlias(): string {
-        return this.target.constructor.name.toLowerCase()
+    protected get targetAlias(): string {
+        return this.targetMetadata.name
     }
 
     // ------------------------------------------------------------------------
 
-    public get targetTable(): string {
+    protected get targetTable(): string {
         return this.targetMetadata.tableName
     }
 
     // ------------------------------------------------------------------------
 
-    public get targetPrimary(): keyof Target {
-        return this.targetMetadata.columns.primary.name as keyof Target
+    protected get targetPrimary(): Extract<keyof Target, string> {
+        return this.targetMetadata.columns.primary.name as (
+            Extract<keyof Target, string>
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    public get targetPrimaryValue(): any {
+    protected get targetPrimaryValue(): any {
         return PropertySQLHelper.valueSQL(this.target[this.targetPrimary])
     }
 
     // ------------------------------------------------------------------------
 
-    public get relatedAlias(): string {
-        return this.related.name.toLowerCase()
+    protected get relatedAlias(): string {
+        return this.relatedMetadata.name
     }
 
     // ------------------------------------------------------------------------
 
-    public get relatedTable(): string {
+    protected get relatedTable(): string {
         return this.relatedMetadata.tableName
     }
 
     // ------------------------------------------------------------------------
 
-    public get relatedTableAlias(): string {
+    protected get relatedTableAlias(): string {
         return `${this.relatedTable} ${this.relatedAlias}`
     }
 
     // ------------------------------------------------------------------------
 
-    public get relatedPrimary(): keyof InstanceType<Related> {
+    protected get relatedPrimary(): (
+        Extract<keyof InstanceType<Related>, string>
+    ) {
         return this.relatedMetadata.columns.primary.name as (
-            keyof InstanceType<Related>
+            Extract<keyof InstanceType<Related>, string>
         )
     }
 
@@ -104,10 +97,9 @@ export default abstract class RelationHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     protected selectSQL(): string {
-        return `
-            SELECT ${this.relatedColumnsSQL()} 
-            FROM ${this.relatedTableAlias}
-        `
+        return `SELECT ${this.relatedColumnsSQL()} FROM ${(
+            this.relatedTableAlias
+        )}`
     }
 
     // ------------------------------------------------------------------------
@@ -118,13 +110,33 @@ export default abstract class RelationHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
+    protected relatedColumnsSQL(): string {
+        return this.relatedMetadata.columns
+            .map(({ name }) => this.relatedColumnAsSQL(name))
+            .join(', ')
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected mergeAttributes<
+        Att extends (
+            CreationAttributes<InstanceType<Related>> |
+            UpdateAttributes<InstanceType<Related>> |
+            UpdateOrCreateAttibutes<InstanceType<Related>>
+        )
+    >(attributes: Att): Att {
+        return { ...attributes, ...this.includedAtrributes }
+    }
+
+    // ------------------------------------------------------------------------
+
     protected attributesKeys(
         attributes: (
             CreationAttributes<InstanceType<Related>> |
             UpdateAttributes<InstanceType<Related>>
         )
     ): (keyof Related)[] {
-        return Object.keys({ ...attributes, ...this.includedAtrributes }) as (
+        return Object.keys(this.mergeAttributes(attributes)) as (
             (keyof Related)[]
         )
     }
@@ -137,44 +149,27 @@ export default abstract class RelationHandlerSQLBuilder<
             UpdateAttributes<InstanceType<Related>>
         )
     ): any[] {
-        return Object.values({ ...attributes, ...this.includedAtrributes })
+        return Object.values(this.mergeAttributes(attributes))
     }
 
     // ------------------------------------------------------------------------
 
-    protected attributesKeysAndValues(
+    protected attributesEntries(
         attributes: (
             CreationAttributes<InstanceType<Related>> |
             UpdateAttributes<InstanceType<Related>>
         )
-    ): ([(keyof Related), any])[] {
-        return Object.entries({
-            ...attributes,
-            ...this.includedAtrributes
-        }) as (
-                ([(keyof Related), any])[]
-            )
+    ): [(keyof Related), any][] {
+        return Object.entries(this.mergeAttributes(attributes)) as (
+            [(keyof Related), any][]
+        )
     }
 
     // ------------------------------------------------------------------------
 
-    protected mergeAttributes<Att extends (
-        CreationAttributes<InstanceType<Related>> |
-        UpdateAttributes<InstanceType<Related>> |
-        UpdateOrCreateAttibutes<InstanceType<Related>>
-    )>(
-        attributes: Att
-    ): Att {
-        return {
-            ...attributes,
-            ...this.includedAtrributes
-        }
-    }
-
-    // Privates ---------------------------------------------------------------
-    protected setSQL(
-        attributes: UpdateAttributes<InstanceType<Related>>
-    ): string {
+    protected setSQL(attributes: UpdateAttributes<InstanceType<Related>>): (
+        string
+    ) {
         return `SET ${this.setValuesSQL(attributes)}`
     }
 
@@ -183,13 +178,12 @@ export default abstract class RelationHandlerSQLBuilder<
     protected setValuesSQL(
         attributes: UpdateAttributes<InstanceType<Related>>
     ): string {
-        return Object.entries(this.onlyChangedAttributes(attributes)).map(
-            ([column, value]) => `
-                ${this.relatedAlias}.${column} = 
-                ${PropertySQLHelper.valueSQL(value)}
-            `
-        )
-            .join(' ')
+        return Object
+            .entries(this.onlyChangedAttributes(attributes))
+            .map(([column, value]) => `${this.relatedAlias}.${column} = ${(
+                PropertySQLHelper.valueSQL(value)
+            )}`)
+            .join(', ')
     }
 
     // ------------------------------------------------------------------------
@@ -213,14 +207,14 @@ export default abstract class RelationHandlerSQLBuilder<
             UpdateAttributes<InstanceType<Related>>
         ) | number
     ): string {
-        return `(${Array(
-            typeof attributes === 'number'
+        return `(${(
+            Array(typeof attributes === 'number'
                 ? attributes
                 : this.attributesKeys(attributes).length
-        )
-            .fill('?')
-            .join(', ')})
-        `
+            )
+                .fill('?')
+                .join(', ')
+        )})`
     }
 
     // ------------------------------------------------------------------------
@@ -247,22 +241,14 @@ export default abstract class RelationHandlerSQLBuilder<
             CreationAttributes<InstanceType<Related>> |
             UpdateAttributes<InstanceType<Related>>
         )
-    >(
-        attributes: Att | Att[]
-    ): any[] | any[][] {
+    >(attributes: Att | Att[]): any[] | any[][] {
         if (Array.isArray(attributes)) {
-            const columns = this.bulkCreateColumns(attributes) as (
-                (keyof Att)[]
-            )
-
-            return attributes.map(att =>
-                columns.map(col => att[col] ?? null)
-            )
+            const columns = this.bulkCreateColumns(attributes) as (keyof Att)[]
+            return attributes.map(att => columns.map(col => att[col] ?? null))
         }
 
         return Object.values(attributes)
     }
-
 
     // ------------------------------------------------------------------------
 
@@ -275,19 +261,5 @@ export default abstract class RelationHandlerSQLBuilder<
         return Array.from(new Set<string>(
             attributes.flatMap(att => Object.keys(att))
         ))
-    }
-
-    // Privates ---------------------------------------------------------------
-    private relatedColumnsNames(): string[] {
-        return [...this.relatedMetadata.columns].map(({ name }) => name)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private relatedColumnsSQL(): string {
-        return this.relatedColumnsNames().map(
-            column => this.relatedColumnAsSQL(column)
-        )
-            .join(', ')
     }
 }

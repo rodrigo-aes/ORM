@@ -13,6 +13,7 @@ import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 import type { ManyRelationMetadatatype } from "../../../Metadata"
 
 import type {
+    Target as TargetType,
     EntityTarget,
     PolymorphicEntityTarget
 } from "../../../types"
@@ -24,7 +25,7 @@ import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 export default abstract class ManyRelationHandlerSQLBuilder<
     RelationMetadata extends ManyRelationMetadatatype,
     Target extends object,
-    Related extends EntityTarget | PolymorphicEntityTarget
+    Related extends TargetType
 > extends RelationHandlerSQLBuilder<
     RelationMetadata,
     Target,
@@ -35,9 +36,9 @@ export default abstract class ManyRelationHandlerSQLBuilder<
     public loadSQL(where?: ConditionalQueryOptions<InstanceType<Related>>): (
         string
     ) {
-        return SQLStringHelper.normalizeSQL(`
-            ${this.selectSQL()} ${this.whereSQL(where)}
-        `)
+        return SQLStringHelper.normalizeSQL(
+            `${this.selectSQL()} ${this.whereSQL(where)}`
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -45,27 +46,22 @@ export default abstract class ManyRelationHandlerSQLBuilder<
     public loadOneSQL(
         where?: ConditionalQueryOptions<InstanceType<Related>>
     ): string {
-        return SQLStringHelper.normalizeSQL(`${this.loadSQL(where)} LIMIT 1`)
+        return `${this.loadSQL(where)} LIMIT 1`
     }
-
-    // ------------------------------------------------------------------------
-
-
 
     // ------------------------------------------------------------------------
 
     public createSQL(attributes: CreationAttributes<InstanceType<Related>>): (
         [string, any[]]
     ) {
-        const sql = SQLStringHelper.normalizeSQL(`
-            INSERT INTO ${this.relatedMetadata.tableName}
-            (${this.insertColumnsSQL(attributes)})
-            VALUES (${this.placeholderSetSQL(attributes)})   
-        `)
-
-        const values = this.createValues(attributes)
-
-        return [sql, values]
+        return [
+            SQLStringHelper.normalizeSQL(`
+                INSERT INTO ${this.relatedTable}
+                (${this.insertColumnsSQL(attributes)})
+                VALUES (${this.placeholderSetSQL(attributes)})   
+            `),
+            this.createValues(attributes)
+        ]
     }
 
     // ------------------------------------------------------------------------
@@ -73,15 +69,14 @@ export default abstract class ManyRelationHandlerSQLBuilder<
     public createManySQL(
         attributes: CreationAttributes<InstanceType<Related>>[]
     ): [string, any[][]] {
-        const sql = SQLStringHelper.normalizeSQL(`
-            INSERT INTO ${this.relatedMetadata.tableName}
-            (${this.bulkCreateColumns(attributes).join(', ')})
-            VALUES (${this.bulkPlaceholderSQL(attributes)})   
-        `)
-
-        const values = this.createValues(attributes)
-
-        return [sql, values]
+        return [
+            SQLStringHelper.normalizeSQL(`
+                INSERT INTO ${this.relatedTable}
+                (${this.bulkCreateColumns(attributes).join(', ')})
+                VALUES (${this.bulkPlaceholderSQL(attributes)})   
+            `),
+            this.createValues(attributes)
+        ]
     }
 
     // ------------------------------------------------------------------------
@@ -101,11 +96,9 @@ export default abstract class ManyRelationHandlerSQLBuilder<
     public updateSQL(
         attributes: UpdateAttributes<InstanceType<Related>>,
         where?: ConditionalQueryOptions<InstanceType<Related>>
-    ): (
-            string
-        ) {
-        return SQLStringHelper.normalizeSQL(`
-            UPDATE ${this.relatedTableAlias}
+    ): string {
+        return SQLStringHelper.normalizeSQL(
+            `UPDATE ${this.relatedTable}
             ${this.setSQL(attributes)}
             ${this.whereSQL(where)}
         `)
@@ -116,29 +109,30 @@ export default abstract class ManyRelationHandlerSQLBuilder<
     public deleteSQL(
         where?: ConditionalQueryOptions<InstanceType<Related>>
     ): string {
-        return `DELETE FROM ${this.relatedAlias} ${this.whereSQL(where)}`
+        return `DELETE FROM ${this.relatedTable} ${this.whereSQL(where)}`
     }
 
     // Protecteds -------------------------------------------------------------
     protected whereSQL(
         where?: ConditionalQueryOptions<InstanceType<Related>>
     ): string {
-        return `
-            ${this.fixedWhereSQL()}
-            ${where ? `AND ${this.andSQL(where)}` : ''}
-        `
+        return this.fixedWhereSQL() + this.andSQL(where)
     }
 
     // ------------------------------------------------------------------------
 
-    protected andSQL(where: ConditionalQueryOptions<InstanceType<Related>>): (
+    protected andSQL(where?: ConditionalQueryOptions<InstanceType<Related>>): (
         string
     ) {
-        return new WhereSQLBuilder(
-            this.related,
-            where
-        )
-            .conditionalSQL()
+        return where
+            ? ` AND ${(
+                new WhereSQLBuilder(
+                    this.related,
+                    where
+                )
+                    .conditionalSQL()
+            )}`
+            : ''
     }
 
     // ------------------------------------------------------------------------
@@ -154,9 +148,8 @@ export default abstract class ManyRelationHandlerSQLBuilder<
     protected insertValuesSQL(
         attributes: CreationAttributes<InstanceType<Related>>
     ): string {
-        return this.attributesValues(attributes).map(
-            value => PropertySQLHelper.valueSQL(value)
-        )
+        return this.attributesValues(attributes)
+            .map(value => PropertySQLHelper.valueSQL(value))
             .join(', ')
     }
 }

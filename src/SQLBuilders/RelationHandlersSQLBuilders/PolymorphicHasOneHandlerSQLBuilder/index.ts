@@ -1,17 +1,13 @@
 import OneRelationHandlerSQLBuilder from "../OneRelationHandlerSQLBuilder"
+import BasePolymorphicEntity from "../../../BasePolymorphicEntity"
 
 // Types
-import type {
-    PolymorphicHasOneMetadata,
-} from "../../../Metadata"
-
-import type {
-    EntityTarget
-} from "../../../types"
+import type { PolymorphicHasOneMetadata } from "../../../Metadata"
+import type { Target as TargetType } from "../../../types"
 
 export default class PolymorphicHasOneHandlerSQLBuilder<
     Target extends object,
-    Related extends EntityTarget
+    Related extends TargetType
 > extends OneRelationHandlerSQLBuilder<
     PolymorphicHasOneMetadata,
     Target,
@@ -30,13 +26,19 @@ export default class PolymorphicHasOneHandlerSQLBuilder<
     protected get includedAtrributes(): any {
         return {
             [this.foreignKey]: this.targetPrimaryValue,
-            ...this.includeTypeKey
+            ...(this.typeKey ? { [this.typeKey]: this.targetType } : undefined)
         }
     }
 
     // Privates ---------------------------------------------------------------
     private get foreignKey(): string {
-        return this.metadata.foreignKey.name
+        return this.metadata.FKName
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get aliasedForeignKey(): string {
+        return `${this.relatedAlias}.${this.foreignKey}`
     }
 
     // ------------------------------------------------------------------------
@@ -48,34 +50,28 @@ export default class PolymorphicHasOneHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get targetType(): string {
-        return this.metadata.parentType
+        return this.target instanceof BasePolymorphicEntity
+            ? this.target.entityType
+            : this.metadata.parentType
     }
 
     // ------------------------------------------------------------------------
 
-    private get includeTypeKey(): any {
-        return this.typeKey ? { [this.typeKey]: this.targetType } : {}
-    }
-
-    // ------------------------------------------------------------------------
-
-    private get whereForeignKeySQL(): string {
-        return `
-        ${this.relatedAlias}.${this.foreignKey} = ${this.targetPrimaryValue}
-        `
-    }
-
-    // ------------------------------------------------------------------------
-
-    private get whereTypeKeySQL(): string {
+    private get andTypeKeySQL(): string {
         return this.typeKey
-            ? `AND ${this.relatedAlias}.${this.typeKey} = "${this.targetType}"`
+            ? ` AND ${this.relatedAlias}.${this.typeKey} = "${(
+                this.targetType
+            )}"`
             : ''
     }
 
     // Instance Methods =======================================================
     // Protecteds -------------------------------------------------------------
     protected fixedWhereSQL(): string {
-        return `WHERE ${this.whereForeignKeySQL} ${this.whereTypeKeySQL}`
+        return (
+            `WHERE ${this.aliasedForeignKey} = ${this.targetPrimaryValue}` + (
+                this.andTypeKeySQL
+            )
+        )
     }
 }

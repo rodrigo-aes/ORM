@@ -2,17 +2,12 @@ import ManyRelationHandlerSQLBuilder from "../ManyRelationHandlerSQLBuilder"
 import BasePolymorphicEntity from "../../../BasePolymorphicEntity"
 
 // Types
-import type {
-    PolymorphicHasManyMetadata,
-} from "../../../Metadata"
-
-import type {
-    EntityTarget
-} from "../../../types"
+import type { PolymorphicHasManyMetadata } from "../../../Metadata"
+import type { Target as TargetType } from "../../../types"
 
 export default class PolymorphicHasManyHandlerSQLBuilder<
     Target extends object,
-    Related extends EntityTarget
+    Related extends TargetType
 > extends ManyRelationHandlerSQLBuilder<
     PolymorphicHasManyMetadata,
     Target,
@@ -37,14 +32,20 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
     // Protecteds -------------------------------------------------------------
     protected get includedAtrributes(): any {
         return {
-            [this.foreignKey]: this._targetPrimaryValue,
-            ...this.includeTypeKey
+            [this.foreignKey]: this.targetPrimaryValue,
+            ...(this.typeKey ? { [this.typeKey]: this.targetType } : undefined)
         }
     }
 
     // Privates ---------------------------------------------------------------
     private get foreignKey(): string {
-        return this.metadata.foreignKey.name
+        return this.metadata.FKName
+    }
+
+    // ------------------------------------------------------------------------
+
+    private get aliasedForeignKey(): string {
+        return `${this.relatedAlias}.${this.foreignKey}`
     }
 
     // ------------------------------------------------------------------------
@@ -63,29 +64,21 @@ export default class PolymorphicHasManyHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private get includeTypeKey(): any {
-        return this.typeKey ? { [this.typeKey]: this.targetType } : {}
-    }
-
-    // ------------------------------------------------------------------------
-
-    private get whereForeignKeySQL(): string {
-        return `
-        ${this.relatedAlias}.${this.foreignKey} = ${this._targetPrimaryValue}
-        `
-    }
-
-    // ------------------------------------------------------------------------
-
-    private get whereTypeKeySQL(): string {
+    private get andTypeKeySQL(): string {
         return this.typeKey
-            ? `AND ${this.relatedAlias}.${this.typeKey} = "${this.targetType}"`
+            ? ` AND ${this.relatedAlias}.${this.typeKey} = "${(
+                this.targetType
+            )}"`
             : ''
     }
 
     // Instance Methods =======================================================
     // Protecteds -------------------------------------------------------------
     protected fixedWhereSQL(): string {
-        return `WHERE ${this.whereForeignKeySQL} ${this.whereTypeKeySQL}`
+        return (
+            `WHERE ${this.aliasedForeignKey} = ${this.targetPrimaryValue}` + (
+                this.andTypeKeySQL
+            )
+        )
     }
 }

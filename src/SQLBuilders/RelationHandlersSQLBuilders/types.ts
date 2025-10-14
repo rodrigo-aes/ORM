@@ -6,7 +6,7 @@ import type HasManyThroughHandlerSQLBuilder from "./HasManyThroughHandlerSQLBuil
 import type BelongsToThroughHandlerSQLBuilder from "./BelongsToThroughHandlerSQLBuilder"
 import type BelongsToManyHandlerSQLBuilder from "./BelongsToManyHandlerSQLBuilder"
 import type PolymorphicHasOneHandlerSQLBuilder from "./PolymorphicHasOneHandlerSQLBuilder"
-import type PolymorphicHasManyHandlerSQLBuilder from "./PolymorphicHasManyHJandlerSQLBuilder"
+import type PolymorphicHasManyHandlerSQLBuilder from "./PolymorphicHasManyHandlerSQLBuilder"
 import type PolymorphicBelongsToHandlerSQLBuilder from "./PolymorphicBelongsToHandlerSQLBuilder"
 
 export type OneRelationHandlerSQLBuilder = (

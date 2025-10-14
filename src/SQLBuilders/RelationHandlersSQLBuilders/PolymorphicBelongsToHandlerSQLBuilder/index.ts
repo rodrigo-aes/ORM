@@ -1,4 +1,9 @@
 import OneRelationHandlerSQLBuilder from "../OneRelationHandlerSQLBuilder"
+import {
+    PolymorphicEntityMetadata,
+    type EntityMetadata
+} from "../../../Metadata"
+
 
 // SQL Builders
 import UnionSQLBuilder from "../../UnionSQLBuilder"
@@ -8,7 +13,6 @@ import { InternalPolymorphicEntities } from "../../../BasePolymorphicEntity"
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type { EntityMetadata } from "../../../Metadata"
 import type {
     PolymorphicBelongsToMetadata,
 } from "../../../Metadata"
@@ -45,17 +49,6 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     }
 
     // Getters ================================================================
-    // Publics ----------------------------------------------------------------
-    public override get relatedTable(): string {
-        return this.union
-    }
-
-    // ------------------------------------------------------------------------
-
-    public override get relatedTableAlias(): string {
-        return this.union
-    }
-
     // Protecteds -------------------------------------------------------------
     protected get includedAtrributes(): any {
         return {}
@@ -69,7 +62,7 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get foreignKey(): keyof Target {
-        return this.metadata.foreignKey.name as keyof Target
+        return this.metadata.FKName as keyof Target
     }
 
     // ------------------------------------------------------------------------
@@ -95,7 +88,13 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get sourceMetadata(): EntityMetadata {
-        return this._sourceMetadata ?? this.loadSourceMetadata()
+        return this._sourceMetadata = this._sourceMetadata ?? (
+            this.metadata.relatedMetadata instanceof PolymorphicEntityMetadata
+                ? this.metadata.relatedMetadata.sourcesMetadata[(
+                    this.sourceType
+                )]
+                : this.metadata.relatedMetadata[this.sourceType]
+        ) as EntityMetadata
     }
 
     // ------------------------------------------------------------------------
@@ -107,34 +106,20 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get sourceAlias(): string {
-        return this.sourceMetadata.target.name.toLowerCase()
+        return this.sourceMetadata.name.toLowerCase()
     }
 
     // ------------------------------------------------------------------------
 
     private get sourcePrimary(): string {
-        return this.sourceMetadata.columns.primary.name
+        return `${this.sourceAlias}.${(
+            this.sourceMetadata.columns.primary.name
+        )}`
     }
-
-    // ------------------------------------------------------------------------
-
-    private get whereForeignKeySQL(): string {
-        return `${this.union}.primaryKey = ${this.targetPrimaryValue}`
-    }
-
-    // ------------------------------------------------------------------------
-
-    private get whereEntityTypeSQL(): string {
-        return `AND ${this.union}.entityType = "${this.sourceType as string}"`
-    }
-
     // ------------------------------------------------------------------------
 
     private get sourceWhereSQL(): string {
-        return `
-            WHERE ${this.sourceAlias}.${this.sourcePrimary} = 
-            ${this.foreignKeyValue}
-        `
+        return `WHERE ${this.sourcePrimary} = ${this.foreignKeyValue}`
     }
 
     // Instance Methods =======================================================
@@ -172,7 +157,7 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     public override deleteSQL(): string {
-        return `DELETE FROM ${this.sourceAlias} ${this.sourceWhereSQL}`
+        return `DELETE FROM ${this.sourceTable} ${this.sourceWhereSQL}`
     }
 
     // Protecteds -------------------------------------------------------------
@@ -185,29 +170,23 @@ export default class PolymorphicBelongsToHandlerSQLBuilder<
     protected override setValuesSQL(
         attributes: UpdateAttributes<InstanceType<Related>>
     ): string {
-        return Object.entries(this.onlyChangedAttributes(attributes)).map(
-            ([column, value]) => `
-                ${this.sourceAlias}.${column} = 
-                ${PropertySQLHelper.valueSQL(value)}
-            `
-        )
-            .join(' ')
+        return Object
+            .entries(this.onlyChangedAttributes(attributes))
+            .map(([column, value]) => `${this.sourceAlias}.${column} = ${(
+                PropertySQLHelper.valueSQL(value)
+            )}`)
+            .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
     protected fixedWhereSQL(): string {
-        return `WHERE ${this.whereForeignKeySQL} ${this.whereEntityTypeSQL}`
+        return `WHERE ${this.union}.primaryKey = ${(
+            this.foreignKeyValue
+        )} AND ${this.union}.entityType = "${this.sourceType}"`
     }
 
     // Privates ---------------------------------------------------------------
-    private loadSourceMetadata(): EntityMetadata {
-        this._sourceMetadata = this.metadata.relatedMetadata[this.sourceType]
-        return this._sourceMetadata
-    }
-
-    // ------------------------------------------------------------------------
-
     private unionSQL(): string {
         return new UnionSQLBuilder(
             this.metadata.relatedTable,

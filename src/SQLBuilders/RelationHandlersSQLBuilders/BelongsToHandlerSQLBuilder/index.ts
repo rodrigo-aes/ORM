@@ -1,13 +1,10 @@
 import OneRelationHandlerSQLBuilder from "../OneRelationHandlerSQLBuilder"
 
 // Types
-import type {
-    BelongsToMetadata,
-} from "../../../Metadata"
+import type { BelongsToMetadata } from "../../../Metadata"
 
 import type {
-    EntityTarget,
-    PolymorphicEntityTarget,
+    Target as TargetType,
     EntityProperties,
     OptionalNullable
 } from "../../../types"
@@ -19,7 +16,7 @@ import PolyORMException from "../../../Errors"
 
 export default class BelongsToHandlerSQLBuilder<
     Target extends object,
-    Related extends EntityTarget | PolymorphicEntityTarget
+    Related extends TargetType
 > extends OneRelationHandlerSQLBuilder<
     BelongsToMetadata,
     Target,
@@ -34,6 +31,15 @@ export default class BelongsToHandlerSQLBuilder<
     }
 
     // Getters ================================================================
+    // Publics ----------------------------------------------------------------
+    public override get relatedPrimary(): (
+        Extract<keyof InstanceType<Related>, string>
+    ) {
+        return `${this.relatedAlias}.${super.relatedPrimary}` as (
+            Extract<keyof InstanceType<Related>, string>
+        )
+    }
+
     // Protecteds -------------------------------------------------------------
     protected get includedAtrributes(): any {
         return {}
@@ -68,9 +74,6 @@ export default class BelongsToHandlerSQLBuilder<
 
     // Protecteds -------------------------------------------------------------
     protected fixedWhereSQL(): string {
-        return `
-            WHERE ${this.relatedAlias}.${this.relatedPrimary as string} = 
-            ${this.foreignKeyValue}
-        `
+        return `WHERE ${this.relatedPrimary} = ${this.foreignKeyValue}`
     }
 }

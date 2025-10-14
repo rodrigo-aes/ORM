@@ -5,9 +5,7 @@ import type {
     HasOneMetadata,
 } from "../../../Metadata"
 
-import type {
-    EntityTarget
-} from "../../../types"
+import type { EntityTarget } from "../../../types"
 
 export default class HasOneHandlerSQLBuilder<
     Target extends object,
@@ -32,22 +30,15 @@ export default class HasOneHandlerSQLBuilder<
     }
 
     // Privates ---------------------------------------------------------------
-    private get relatedForeignKeySQL(): string {
-        return `${this.relatedAlias}.${this.foreignKeyAsSQL}`
+    private get foreignKey(): string {
+        return `${this.relatedAlias}.${(
+            this.relatedColumnAsSQL(this.metadata.foreignKey.name)
+        )}`
     }
-
-    // ------------------------------------------------------------------------
-
-    private get foreignKeyAsSQL(): string {
-        return this.relatedColumnAsSQL(this.metadata.foreignKey.name)
-    }
-
 
     // Instance Methods =======================================================
     // Protecteds -------------------------------------------------------------
     protected fixedWhereSQL(): string {
-        return `
-            WHERE ${this.relatedForeignKeySQL} = ${this.targetPrimaryValue}
-        `
+        return `WHERE ${this.foreignKey} = ${this.targetPrimaryValue}`
     }
 }

@@ -9,13 +9,8 @@ import { SyncManyToMany } from "../../Procedures"
 import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 
 // Types
-import type {
-    BelongsToManyMetadata,
-} from "../../../Metadata"
-
-import type {
-    EntityTarget
-} from "../../../types"
+import type { BelongsToManyMetadata } from "../../../Metadata"
+import type { EntityTarget } from "../../../types"
 
 export default class BelongsToManyHandlerSQLBuilder<
     Target extends object,
@@ -31,33 +26,41 @@ export default class BelongsToManyHandlerSQLBuilder<
         return {}
     }
 
+    // ------------------------------------------------------------------------
+
+    protected override get relatedTable(): string {
+        return `${this.metadata.relatedTable} ${this.relatedAlias}`
+    }
+
     // Privates ---------------------------------------------------------------
-    private get joinTable(): string {
-        return this.metadata.joinTableMetadata.tableName
+    private get JT(): string {
+        return this.metadata.JT
     }
 
     // ------------------------------------------------------------------------
 
-    private get joinTableAlias(): string {
-        return `${this.joinTable}_jt`
+    private get JTAlias(): string {
+        return this.metadata.JTAlias
     }
 
     // ------------------------------------------------------------------------
 
     private get targetForeignKey(): string {
-        return this.metadata.parentForeignKey.name
+        return this.metadata.parentFKname
     }
 
     // ------------------------------------------------------------------------
 
     private get relatedForeignKey(): string {
-        return this.metadata.relatedForeignKey.name
+        return this.metadata.relatedFKName
     }
 
     // ------------------------------------------------------------------------
 
     private get joinColumns(): string {
-        return `${this.targetForeignKey}, ${this.relatedForeignKey}`
+        return `${this.metadata.parentForeignKey.name}, ${(
+            this.metadata.relatedForeignKey.name
+        )}`
     }
 
     // Instance Methods =======================================================
@@ -73,15 +76,13 @@ export default class BelongsToManyHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     public attachSQL(...relateds: (InstanceType<Related> | any)[]) {
-        const primaryKeys: any[] = this.extractSyncPrimaryKeys(relateds)
-        return this.syncInsertSQL(primaryKeys)
+        return this.syncInsertSQL(this.extractSyncPrimaryKeys(relateds))
     }
 
     // ------------------------------------------------------------------------
 
     public detachSQL(...relateds: (InstanceType<Related> | any)[]) {
-        const primaryKeys: any[] = this.extractSyncPrimaryKeys(relateds)
-        return this.syncDeleteSQL(primaryKeys)
+        return this.syncDeleteSQL(this.extractSyncPrimaryKeys(relateds))
     }
 
     // ------------------------------------------------------------------------
@@ -89,7 +90,7 @@ export default class BelongsToManyHandlerSQLBuilder<
     public syncSQL(...relateds: (InstanceType<Related> | any)[]) {
         const primaryKeys: any[] = this.extractSyncPrimaryKeys(relateds)
 
-        return SyncManyToMany.SQL(
+        return SyncManyToMany.callSQL(
             this.syncInsertSQL(primaryKeys),
             this.syncDeleteSQL(primaryKeys)
         )
@@ -98,38 +99,36 @@ export default class BelongsToManyHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     public syncWithoutDeleteSQL(...relateds: (InstanceType<Related> | any)[]) {
-        return SyncManyToMany.SQL(this.syncInsertSQL(
-            this.extractSyncPrimaryKeys(relateds)
-        ))
+        return SyncManyToMany.callSQL(
+            this.syncInsertSQL(this.extractSyncPrimaryKeys(relateds))
+        )
     }
 
     // Protecteds -------------------------------------------------------------
     protected fixedWhereSQL(): string {
-        return `EXISTS (
-            SELECT 1 FROM ${this.relatedTable} ${this.relatedAlias}
-                WHERE EXISTS (
-                    SELECT 1 FROM ${this.joinTable} ${this.joinTableAlias}
-                        WHERE ${this.joinTableAlias}.${this.relatedForeignKey} 
-                        = ${this.relatedAlias}.${this.relatedPrimary as string}
-                        AND ${this.joinTableAlias}.${this.targetForeignKey} = 
-                        ${this.targetAlias}.${this.targetPrimary as string}
-                )
-        )`
+        return `EXISTS (SELECT 1 FROM ${this.relatedTable} WHERE EXISTS (
+            SELECT 1 FROM ${this.JT}
+            WHERE ${this.relatedForeignKey} = ${this.relatedAlias}.${(
+                this.relatedPrimary
+            )}
+            AND ${this.JTAlias}.${this.targetForeignKey} = ${(
+                this.targetAlias
+            )}.${this.targetPrimary}
+        ))`
     }
 
     // Privates ---------------------------------------------------------------
     private createForeignKeySQL(related: InstanceType<Related>): (
         [string, any[]]
     ) {
-        const sql = SQLStringHelper.normalizeSQL(`
-            INSERT INTO ${this.joinTable} 
-            (${this.joinColumns})
-            VALUES (?, ?)
-        `)
-
-        const values = this.foreignKeysValues(related)
-
-        return [sql, values]
+        return [
+            SQLStringHelper.normalizeSQL(`
+                INSERT INTO ${this.JT} 
+                (${this.joinColumns})
+                VALUES (?, ?)
+            `),
+            this.foreignKeysValues(related)
+        ]
     }
 
     // ------------------------------------------------------------------------
@@ -137,47 +136,38 @@ export default class BelongsToManyHandlerSQLBuilder<
     private bulkCreateForeignKeySQL(relateds: InstanceType<Related>[]): (
         [string, any[][]]
     ) {
-        const sql = SQLStringHelper.normalizeSQL(`
-            INSERT INTO ${this.joinTable}
-            (${this.joinColumns})
-            VALUES ${'(?, ?), '.repeat(relateds.length)}
-        `)
-
-        const values = relateds.map(
-            related => this.foreignKeysValues(related)
-        )
-
-        return [sql, values]
+        return [
+            SQLStringHelper.normalizeSQL(`
+                INSERT INTO ${this.JT}
+                (${this.joinColumns})
+                VALUES ${'(?, ?), '.repeat(relateds.length)}
+            `),
+            relateds.map(related => this.foreignKeysValues(related))
+        ]
     }
 
     // ------------------------------------------------------------------------
 
     private syncInsertSQL(primaryKeys: any[]): string {
-        return `
-            INSERT IGNORE INTO ${this.joinTable} (${this.joinColumns})
-            VALUES (${this.syncInsertValuesSQL(primaryKeys)})
-        `
+        return `INSERT IGNORE INTO ${this.JT} (${this.joinColumns}) VALUES (${(
+            this.syncInsertValuesSQL(primaryKeys)
+        )})`
     }
 
     // ------------------------------------------------------------------------
 
     private syncDeleteSQL(primaryKeys: any[]): string {
-        return `
-            DELETE FROM ${this.joinTable}
-            WHERE ${this.targetForeignKey} = ${this.targetPrimaryValue}
-            AND ${this.relatedForeignKey} NOT IN (
-                ${this.primaryKeysInSQL(primaryKeys)}
-            )
-        `
+        return `DELETE FROM ${this.JT} WHERE ${this.targetForeignKey} = ${(
+            this.targetPrimaryValue
+        )} AND ${this.relatedForeignKey} NOT IN (${(
+            this.primaryKeysInSQL(primaryKeys)
+        )})`
     }
 
     // ------------------------------------------------------------------------
 
     private foreignKeysValues(related: InstanceType<Related>): any[] {
-        return [
-            this.targetPrimaryValue,
-            related[this.relatedPrimary]
-        ]
+        return [this.targetPrimaryValue, related[this.relatedPrimary]]
     }
 
     // ------------------------------------------------------------------------
@@ -185,37 +175,28 @@ export default class BelongsToManyHandlerSQLBuilder<
     private extractSyncPrimaryKeys(
         relateds: (InstanceType<Related> | any)[]
     ): any[] {
-        return relateds.map(
-            related => related instanceof BaseEntity
-                ? this.extractRelatedPrimaryKey(related as (
-                    InstanceType<Related>
-                ))
+        return relateds.map(related =>
+            related instanceof BaseEntity
+                ? (related as InstanceType<Related>)[this.relatedPrimary]
                 : related
         )
     }
 
     // ------------------------------------------------------------------------
 
-    private extractRelatedPrimaryKey(related: InstanceType<Related>): any {
-        return related[this.relatedPrimary]
-    }
-
-    // ------------------------------------------------------------------------
-
     private syncInsertValuesSQL(primaryKeys: any[]): string {
-        return primaryKeys.map(
-            key => `(
-                ${this.targetPrimaryValue},
-                ${PropertySQLHelper.valueSQL(key)}
-            )`
-        )
+        return primaryKeys
+            .map(key => `(${this.targetPrimaryValue}, ${(
+                PropertySQLHelper.valueSQL(key)
+            )})`)
             .join(', ')
     }
 
     // ------------------------------------------------------------------------
 
     private primaryKeysInSQL(primaryKeys: any[]): string {
-        return primaryKeys.map(key => PropertySQLHelper.valueSQL(key))
+        return primaryKeys
+            .map(key => PropertySQLHelper.valueSQL(key))
             .join(', ')
     }
 }

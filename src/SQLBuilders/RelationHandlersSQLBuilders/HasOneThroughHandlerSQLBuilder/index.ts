@@ -1,18 +1,10 @@
 import OneRelationHandlerSQLBuilder from "../OneRelationHandlerSQLBuilder"
 
 // Types
-import type {
-    HasOneThroughMetadata,
-} from "../../../Metadata"
-
-import type {
-    EntityTarget
-} from "../../../types"
-
+import type { HasOneThroughMetadata } from "../../../Metadata"
+import type { EntityTarget } from "../../../types"
 import type { CreationAttributes } from "../../CreateSQLBuilder"
 import type { UpdateOrCreateAttibutes } from "../../UpdateOrCreateSQLBuilder"
-import { OptionalNullable } from "../../../types/Properties"
-import { EntityProperties } from "../../../types"
 
 // Exceptions
 import PolyORMException from "../../../Errors"
@@ -41,7 +33,9 @@ export default class HasOneThroughHandlerSQLBuilder<
 
     // Privates ---------------------------------------------------------------
     private get throughTableAlias(): string {
-        return `${this.metadata.throughMetadata.tableName} ${this.throughAlias}`
+        return `${this.metadata.throughMetadata.tableName} ${(
+            this.throughAlias
+        )}`
     }
 
     // ------------------------------------------------------------------------
@@ -53,26 +47,26 @@ export default class HasOneThroughHandlerSQLBuilder<
     // ------------------------------------------------------------------------
 
     private get foreignKey(): string {
-        return this.metadata.relatedFKName
+        return `${this.relatedAlias}.${this.metadata.relatedFKName}`
     }
 
     // ------------------------------------------------------------------------
 
     private get throughForeignKey(): string {
-        return this.metadata._throughForeignKeyName
+        return `${this.throughAlias}.${this.metadata.throughFKName}`
     }
 
     // ------------------------------------------------------------------------
 
     private get throughPrimary(): string {
-        return this.metadata.throughMetadata.columns.primary.name
+        return `${this.throughAlias}.${this.metadata.throughPrimary}`
     }
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public override createSQL(
-        _: CreationAttributes<InstanceType<Related>>
-    ): [string, any[]] {
+    public override createSQL(_: CreationAttributes<InstanceType<Related>>): (
+        [string, any[]]
+    ) {
         throw PolyORMException.Common.instantiate(
             'NOT_CALLABLE_METHOD', 'createSQL', this.constructor.name
         )
@@ -90,17 +84,12 @@ export default class HasOneThroughHandlerSQLBuilder<
 
     // Protecteds -------------------------------------------------------------
     protected fixedWhereSQL(): string {
-        return `
-            WHERE EXISTS (
-                SELECT 1 FROM ${this.relatedTableAlias}
-                    WHERE EXISTS (
-                        SELECT 1 FROM ${this.throughTableAlias}
-                            WHERE ${this.throughAlias}.${this.throughForeignKey}
-                            = ${this.targetPrimaryValue}
-                            AND ${this.relatedAlias}.${this.foreignKey} = 
-                            ${this.throughAlias}.${this.throughPrimary}
-                    )
+        return `WHERE EXISTS (
+            SELECT 1 FROM ${this.relatedTableAlias} WHERE EXISTS (
+                SELECT 1 FROM ${this.throughTableAlias}
+                WHERE ${this.throughForeignKey} = ${this.targetPrimaryValue}
+                AND ${this.foreignKey} = ${this.throughPrimary}
             )
-        `
+        )`
     }
 }
