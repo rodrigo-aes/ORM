@@ -42,12 +42,6 @@ export default class HasManyThroughHandlerSQLBuilder<
 
     // ------------------------------------------------------------------------
 
-    private get throughAlias(): string {
-        return this.metadata.throughAlias
-    }
-
-    // ------------------------------------------------------------------------
-
     private get foreignKey(): string {
         return `${this.relatedAlias}.${this.metadata.relatedFKName}`
     }

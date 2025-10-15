@@ -12,8 +12,8 @@ import { SQLStringHelper, PropertySQLHelper } from "../../../Helpers"
 import type { OneRelationMetadataType } from "../../../Metadata"
 
 import type {
-    EntityTarget,
-    PolymorphicEntityTarget
+    Target as TargetType,
+    EntityTarget
 } from "../../../types"
 
 import type { CreationAttributes } from "../../CreateSQLBuilder"
@@ -22,7 +22,7 @@ import type { UpdateAttributes } from "../../UpdateSQLBuilder"
 export default abstract class OneRelationHandlerSQLBuilder<
     RelationMetadata extends OneRelationMetadataType,
     Target extends object,
-    Related extends EntityTarget | PolymorphicEntityTarget
+    Related extends TargetType
 > extends RelationHandlerSQLBuilder<
     RelationMetadata,
     Target,

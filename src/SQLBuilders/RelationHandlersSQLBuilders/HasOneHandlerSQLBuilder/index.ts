@@ -1,15 +1,13 @@
 import OneRelationHandlerSQLBuilder from "../OneRelationHandlerSQLBuilder"
 
 // Types
-import type {
-    HasOneMetadata,
-} from "../../../Metadata"
+import type { HasOneMetadata } from "../../../Metadata"
 
-import type { EntityTarget } from "../../../types"
+import type { Target as TargetType } from "../../../types"
 
 export default class HasOneHandlerSQLBuilder<
     Target extends object,
-    Related extends EntityTarget
+    Related extends TargetType
 > extends OneRelationHandlerSQLBuilder<
     HasOneMetadata,
     Target,

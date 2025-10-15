@@ -14,6 +14,7 @@ import {
 
     type PolymorphicEntityMetadata,
     type EntityMetadata,
+    type RelationMetadata,
     type RelationMetadataType,
     type HookType
 } from "../Metadata"
@@ -57,7 +58,9 @@ import { PolymorphicEntityBuilder } from "../Handlers"
 
 // Types
 import type {
+    Target,
     PolymorphicEntityTarget,
+    StaticPolymorphicEntityTarget,
     EntityTarget,
     LocalOrInternalPolymorphicEntityTarget,
     Constructor,
@@ -284,21 +287,17 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns {HasOne<T, Related>} - HasOneHandler instance
      */
     protected hasOne<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends EntityTarget
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): HasOne<T, Related> {
-        const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasOneMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'HasOne'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, HasOneMetadata)
 
-        return new HasOne(metadata, target, related) as HasOne<T, Related>
+        return new HasOne(metadata as HasOneMetadata, this, related)
     }
 
     // ------------------------------------------------------------------------
@@ -310,21 +309,17 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns {HasMany<T, Related>} - HasManyHandler instance
      */
     protected hasMany<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends EntityTarget
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): HasMany<T, Related> {
-        const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasManyMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'HasMany'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, HasManyMetadata)
 
-        return new HasMany(metadata, target, related) as HasMany<T, Related>
+        return new HasMany(metadata as HasManyMetadata, this, related)
     }
 
     // ------------------------------------------------------------------------
@@ -336,24 +331,17 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns {BelongsTo<T, Related>} - BelongsToHandler instance
      */
     protected belongsTo<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends EntityTarget
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): BelongsTo<T, Related> {
-        const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof BelongsToMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'BelongsTo'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, BelongsToMetadata)
 
-        return new BelongsTo(metadata, target, related) as BelongsTo<
-            T,
-            Related
-        >
+        return new BelongsTo(metadata as BelongsToMetadata, this, related)
     }
 
     // ------------------------------------------------------------------------
@@ -365,24 +353,19 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns {HasOneThrough<T, Related>} - HasOneThroughHandler instance
     */
     protected hasOneThrough<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends EntityTarget
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): HasOneThrough<T, Related> {
-        const [metadata] = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasOneThroughMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'HasOneThrough'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, HasOneThroughMetadata)
 
-        return new HasOneThrough(metadata, this, related) as HasOneThrough<
-            T,
-            Related
-        >
+        return new HasOneThrough(
+            metadata as HasOneThroughMetadata, this, related
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -394,24 +377,19 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns {HasManyThrough<T, Related>} - HasManyThroughHandler instance
      */
     protected hasManyThrough<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends EntityTarget
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): HasManyThrough<T, Related> {
-        const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof HasManyThroughMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'HasManyThrough'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, HasManyThroughMetadata)
 
-        return new HasManyThrough(metadata, target, related) as HasManyThrough<
-            T,
-            Related
-        >
+        return new HasManyThrough(
+            metadata as HasManyThroughMetadata, this, related
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -423,24 +401,19 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns {BelongsToMany<T, Related>} - BelongsToManyHandler instance
      */
     protected belongsToMany<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends EntityTarget
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): BelongsToMany<T, Related> {
-        const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof BelongsToManyMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'BelongsToMany'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, BelongsToManyMetadata)
 
-        return new BelongsToMany(metadata, target, related) as BelongsToMany<
-            T,
-            Related
-        >
+        return new BelongsToMany(
+            metadata as BelongsToManyMetadata, this, related
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -453,22 +426,18 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * instance
      */
     protected polymorphicHasOne<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends EntityTarget
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): PolymorphicHasOne<T, Related> {
-        const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicHasOneMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'PolymorphicHasOne'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, PolymorphicHasOneMetadata)
 
-        return new PolymorphicHasOne(metadata, target, related) as (
-            PolymorphicHasOne<T, Related>
+        return new PolymorphicHasOne(
+            metadata as PolymorphicHasOneMetadata, this, related
         )
     }
 
@@ -482,22 +451,18 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * instance
      */
     protected polymorphicHasMany<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends EntityTarget
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): PolymorphicHasMany<T, Related> {
-        const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicHasManyMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'PolymorphicHasMany'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, PolymorphicHasManyMetadata)
 
-        return new PolymorphicHasMany(metadata, target, related) as (
-            PolymorphicHasMany<T, Related>
+        return new PolymorphicHasMany(
+            metadata as PolymorphicHasManyMetadata, this, related
         )
     }
 
@@ -511,37 +476,26 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * PolymporhicBelongsToHandler instance
      */
     protected polymorphicBelongsTo<
-        T extends PolymorphicEntityTarget,
+        T extends BasePolymorphicEntity<any>,
         Related extends PolymorphicEntityTarget | EntityTarget[]
     >(
-        this: T & BasePolymorphicEntity<any>,
+        this: T,
         name: string,
         related: Related
     ): PolymorphicBelongsTo<
         T,
         LocalOrInternalPolymorphicEntityTarget<Related>
     > {
-        const [metadata, target] = this.getRelationMetadata(name)
-        if (!(metadata instanceof PolymorphicBelongsToMetadata)) throw (
-            PolyORMException.Metadata.instantiate(
-                'INVALID_RELATION', metadata.type, name, 'PolymorphicBelongsTo'
-            )
-        )
+        const metadata = this.getRelationMetadata(name)
+        this.verifyRelationMetadata(metadata, PolymorphicBelongsToMetadata)
 
         return new PolymorphicBelongsTo(
-            metadata,
-            target,
-            (
-                Array.isArray(related)
-                    ? metadata.relatedTarget
-                    : related
-            ) as LocalOrInternalPolymorphicEntityTarget<Related>
-        ) as (
-                PolymorphicBelongsTo<
-                    T,
-                    LocalOrInternalPolymorphicEntityTarget<Related>
-                >
+            metadata as PolymorphicBelongsToMetadata,
+            this,
+            (Array.isArray(related) ? metadata.relatedTarget : related) as (
+                LocalOrInternalPolymorphicEntityTarget<Related>
             )
+        )
     }
 
     // Privates ---------------------------------------------------------------
@@ -562,16 +516,26 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     // ------------------------------------------------------------------------
 
     /** @internal */
-    private getRelationMetadata(name: string): (
-        [RelationMetadataType, this | BaseEntity]
-    ) {
-        let meta = this.getTrueMetadata().relations.search(name)
+    private getRelationMetadata(name: string): RelationMetadataType {
+        return this.getTrueMetadata().relations.search(name)
             ?? this.getTrueSourceMetadata().relations.findOrThrow(name)
+    }
 
-        return [
-            meta,
-            this instanceof meta.target ? this : this.toSourceEntity()
-        ]
+    // ------------------------------------------------------------------------
+
+    /** @internal */
+    private verifyRelationMetadata(
+        metadata: RelationMetadataType,
+        shouldBe: Constructor<RelationMetadataType>
+    ) {
+        if (!(metadata instanceof shouldBe)) PolyORMException.Metadata.throw(
+            'INVALID_RELATION',
+            metadata.type,
+            metadata.name,
+            shouldBe.name.replace('Metadata', '')
+        )
+
+
     }
 
     // Static Getters =========================================================
