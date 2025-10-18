@@ -6,7 +6,7 @@ import PolymorphicColumnMetadata, {
 } from './PolymorphicColumnMetadata'
 
 // Types
-import type { PolymorphicEntityTarget } from '../../../types'
+import type { PolymorphicEntityTarget, EntityTarget } from '../../../types'
 import type {
     PolymorphicColumnsMetadataJSON,
     IncludedColumns,
@@ -88,6 +88,17 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
     }
 
     // Instance Methods =======================================================
+    // Publics ----------------------------------------------------------------
+    public sourceColumns(source: EntityTarget): [string, string][] {
+        return Object.entries(this.included).flatMap(([name, options]) => {
+            const option = options.find(({ target }) => (
+                source.prototype instanceof target
+            ))
+
+            return option ? [[option.column, name]] : []
+        })
+    }
+
     // Privates ---------------------------------------------------------------
     private mergePrimaryKeys(): void {
         this.push(new PolymorphicColumnMetadata(
@@ -122,7 +133,6 @@ export default class PolymorphicColumnsMetadata extends MetadataArray<
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
     public static included(target: PolymorphicEntityTarget): IncludedColumns {
-        console.log(target)
         return Reflect.getOwnMetadata(this.UNCLUDED_KEY, target) ?? {}
     }
 

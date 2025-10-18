@@ -20,11 +20,12 @@ import type {
     EntityProperties,
     EntityPropertiesKeys
 } from "../../types"
-import type { CaseQueryHandler, WhereQueryHandler } from "../types"
+import type { CaseQueryHandler, ConditionalQueryHandler } from "../types"
 import type {
     CompatibleOperators,
     OperatorType
 } from "../OperatorQueryBuilder"
+import { ExistsQueryOptions } from "../ExistsQueryBuilder"
 
 // Exceptions
 import PolyORMException from "../../Errors"
@@ -110,17 +111,10 @@ export default class CountQueryBuilder<T extends Target> {
      * @param conditional - Where query case another table entity included
      * @returns {this} - `this`
      */
-    public whereExists<Source extends Target | WhereQueryHandler<T>>(
-        exists: Source,
-        conditional: typeof exists extends Target
-            ? WhereQueryHandler<Source>
-            : never
+    public whereExists(
+        options: ExistsQueryOptions<T>
     ): this {
-        (this._conditional as ConditionalQueryBuilder<T>).whereExists(
-            exists,
-            conditional
-        )
-
+        (this._conditional as ConditionalQueryBuilder<T>).whereExists(options)
         return this
     }
 

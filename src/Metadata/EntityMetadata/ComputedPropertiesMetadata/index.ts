@@ -17,7 +17,7 @@ export default class ComputedPropertiesMetadata<
     T extends EntityTarget | PolymorphicEntityTarget = any,
     Target extends T | CollectionTarget = any
 > extends MetadataMap<
-    keyof InstanceType<Target>, ComputedPropertyFunction<T>
+    string, ComputedPropertyFunction<T>
 > {
     protected static override readonly KEY: string = 'connections-metadata'
     protected readonly KEY: string = ComputedPropertiesMetadata.KEY

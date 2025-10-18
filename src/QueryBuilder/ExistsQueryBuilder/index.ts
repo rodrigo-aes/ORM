@@ -1,84 +1,55 @@
 import { MetadataHandler } from "../../Metadata"
-import BaseEntity from "../../BaseEntity"
-import BasePolymorphicEntity from "../../BasePolymorphicEntity"
 
 // SQL Builders
 import {
     Exists,
-    Cross,
 
-    type ExistsQueryOptions,
-    type CrossExistsQueryOptions,
-    type ConditionalQueryOptions,
+    type ExistsQueryOptions as SQLBuilderQueryOptions,
+    type EntityExistsQueryOption as SQLBuilderEntityExistsQueryOption,
+    type ConditionalQueryOptions
 } from "../../SQLBuilders"
 
 // Query Builders
-import ConditionalQueryHandler from "../ConditionalQueryBuilder"
+import ConditionalQueryBuilder from "../ConditionalQueryBuilder"
+
+// Handlers
+import QueryBuilderHandler from "../QueryBuilderHandler"
 
 // Types
-import type { Target, TargetMetadata } from "../../types"
-
-import type { WhereQueryHandler } from "../types"
+import type { Target, TargetMetadata, EntityRelationsKeys } from "../../types"
+import type { ConditionalQueryHandler } from "../types"
+import type {
+    ExistsQueryOptions,
+    EntityExistsQueryOptions,
+    EntityExistsQueryOption
+} from "./types"
 
 /** @internal */
 export default class ExistsQueryBuilder<T extends Target> {
-
     protected metadata: TargetMetadata<T>
-
-    private _options!: string | (
-        ConditionalQueryOptions<InstanceType<T>> &
-        CrossExistsQueryOptions
+    private options!: (
+        string |
+        SQLBuilderQueryOptions<InstanceType<T>>[typeof Exists]
     )
 
     constructor(
         public target: T,
-        public alias?: string
+        public alias: string = target.name.toLowerCase()
     ) {
         this.metadata = MetadataHandler.targetMetadata(this.target)
     }
 
-    // Getters ================================================================
-    // Publics ----------------------------------------------------------------
-    public get options(): ExistsQueryOptions<InstanceType<T>> {
-        return { [Exists]: this._options }
-    }
-
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public exists<Source extends Target | WhereQueryHandler<T>>(
-        exists: Source,
-        conditional: typeof exists extends Target
-            ? WhereQueryHandler<Extract<Source, Target>>
-            : never
-    ): this {
-        if (this.asTarget(exists)) {
-            const where = new ConditionalQueryHandler(
-                exists as Target,
-                this.alias
-            );
+    public add(options: ExistsQueryOptions<T>): this {
+        switch (typeof options) {
+            case "string": this.options = options
+                break
 
-            (conditional as WhereQueryHandler<Target>)(where)
+            // ----------------------------------------------------------------
 
-            const opt = {
-                target: exists,
-                where: where.toQueryOptions()
-            }
-
-            if ((this._options as CrossExistsQueryOptions)[Cross]) (
-                (this._options as CrossExistsQueryOptions)[Cross]?.push(opt)
-            );
-
-            (this._options as CrossExistsQueryOptions)[Cross] = [opt]
-
-            return this
-        }
-
-        const where = new ConditionalQueryHandler(this.target, this.alias);
-        (exists as WhereQueryHandler<T>)(where)
-
-        this._options = {
-            ...(this._options as ExistsQueryOptions<T>),
-            ...where.toQueryOptions()
+            case "object": this.handleEntityExistsOptions(options)
+                break
         }
 
         return this
@@ -86,15 +57,76 @@ export default class ExistsQueryBuilder<T extends Target> {
 
     // ------------------------------------------------------------------------
 
-    public toQueryOptions(): ExistsQueryOptions<InstanceType<T>> {
-        return this.options
+    public toQueryOptions(): SQLBuilderQueryOptions<InstanceType<T>> {
+        return { [Exists]: this.options }
+    }
+
+    // ------------------------------------------------------------------------
+
+    /** @internal */
+    public toNestedOptions(): Exclude<
+        SQLBuilderQueryOptions<InstanceType<T>>[typeof Exists], string
+    > {
+        return this.options as any
     }
 
     // Privates ---------------------------------------------------------------
-    private asTarget(target: Function): boolean {
-        return (
-            target.prototype instanceof BaseEntity ||
-            target.prototype instanceof BasePolymorphicEntity
-        )
+    /** @internal */
+    private handleEntityExistsOptions(options: EntityExistsQueryOptions<T>) {
+        this.options = typeof this.options === 'object'
+            ? this.options
+            : {}
+
+        for (const [relation, { relations, where }] of
+            Object.entries(options) as [
+                EntityRelationsKeys<InstanceType<T>>,
+                EntityExistsQueryOption<any>
+            ][]
+        ) {
+            const rel = this.metadata.relations.findOrThrow(relation);
+
+            (this.options[relation] as (
+                SQLBuilderEntityExistsQueryOption<any>
+            )) = {
+                where: where
+                    ? this.handleConditional(rel.relatedTarget, where)
+                    : undefined,
+
+                relations: relations
+                    ? this.handleExists(rel.relatedTarget, relations)
+                    : undefined
+            }
+        }
     }
+
+    // ------------------------------------------------------------------------
+
+    /** @internal */
+    private handleConditional<T extends Target>(
+        target: T,
+        handler: ConditionalQueryHandler<T>
+    ): ConditionalQueryOptions<InstanceType<T>> {
+        return QueryBuilderHandler
+            .handle(new ConditionalQueryBuilder(target, this.alias), handler)
+            .toQueryOptions()
+    }
+
+    // ------------------------------------------------------------------------
+
+    /** @internal */
+    private handleExists<T extends Target>(
+        target: T,
+        options: EntityExistsQueryOptions<T>
+    ): Exclude<
+        SQLBuilderQueryOptions<InstanceType<T>>[typeof Exists],
+        string
+    > {
+        return new ExistsQueryBuilder(target, this.alias)
+            .add(options)
+            .toNestedOptions()
+    }
+}
+
+export {
+    type ExistsQueryOptions
 }

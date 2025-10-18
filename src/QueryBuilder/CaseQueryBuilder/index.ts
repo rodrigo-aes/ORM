@@ -1,13 +1,13 @@
 import { MetadataHandler } from "../../Metadata"
 
 // Query Handlers
-import ConditionalQueryHandler from "../ConditionalQueryBuilder"
+import ConditionalQueryBuilder from "../ConditionalQueryBuilder"
 
 // Types
 import type { Target, TargetMetadata } from "../../types"
 import type { CaseQueryOptions, ElseQueryOption } from "../../SQLBuilders"
 import type { CaseQueryTuple } from "./types"
-import type { WhereQueryHandler } from "../types"
+import type { ConditionalQueryHandler } from "../types"
 
 /**
  * Build a `CASE` conditional options
@@ -44,8 +44,8 @@ export default class CaseQueryBuilder<T extends Target> {
      * @param then - THEN value
      * @returns {this} - `this`
      */
-    public when(caseClause: WhereQueryHandler<T>, then: any): this {
-        const where = new ConditionalQueryHandler(
+    public when(caseClause: ConditionalQueryHandler<T>, then: any): this {
+        const where = new ConditionalQueryBuilder(
             this.target,
             this.alias
         )
@@ -95,8 +95,7 @@ export default class CaseQueryBuilder<T extends Target> {
                 then
             ]),
             this._else
-        ] as (
-                CaseQueryOptions<InstanceType<T>>
-            )
+        ] as CaseQueryOptions<InstanceType<T>>
+
     }
 }

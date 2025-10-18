@@ -36,14 +36,13 @@ export default class FindQueryBuilder<
      * @param order - Order options
      * @returns {this} - `this`
      */
-    public orderBy<
-        Order extends OrderQueryOption<InstanceType<T>> | CaseQueryHandler<T>
-    >(...order: OrderQueryOptions<T, Order>): this {
-        this._options.order = new OrderQueryBuilder(
+    public orderBy(...options: OrderQueryOptions<T>): this {
+        this._options.order = this._options.order ?? new OrderQueryBuilder(
             this.target,
             this.alias
         )
-            .orderBy(...order)
+
+        this._options.order.orderBy(...options)
 
         return this
     }

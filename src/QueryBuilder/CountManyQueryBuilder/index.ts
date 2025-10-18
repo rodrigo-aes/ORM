@@ -25,8 +25,8 @@ import type {
     CompatibleOperators,
     OperatorType
 } from "../OperatorQueryBuilder"
-
-import type { CaseQueryHandler, WhereQueryHandler } from "../types"
+import type { ExistsQueryOptions } from "../ExistsQueryBuilder"
+import type { CaseQueryHandler, ConditionalQueryHandler } from "../types"
 import type { WhereMethods, CaseMethods, CountMethods } from "./types"
 
 // Exceptions
@@ -40,7 +40,7 @@ export default class CountManyQueryBuilder<T extends Target> {
     protected _options: CountQueryBuilder<T>[] = []
 
     /** @internal */
-    protected currentCount?: CountQueryBuilder<T>
+    protected _count?: CountQueryBuilder<T>
 
     constructor(public target: T, public alias?: string) { }
 
@@ -53,7 +53,7 @@ export default class CountManyQueryBuilder<T extends Target> {
      */
     public property(name: string): Omit<this, WhereMethods | CaseMethods> {
         this.handleCurrentCount()
-        this.currentCount!.property(name)
+        this._count!.property(name)
 
         return this
     }
@@ -81,7 +81,7 @@ export default class CountManyQueryBuilder<T extends Target> {
             : never
     ): Omit<this, CaseMethods | CountMethods> {
         this.handleCurrentCount()
-        this.currentCount!.where(propertie, conditional, value)
+        this._count!.where(propertie, conditional, value)
 
         return this
     }
@@ -94,14 +94,9 @@ export default class CountManyQueryBuilder<T extends Target> {
      * @param conditional - Where query case another table entity included
      * @returns {this} - `this`
      */
-    public whereExists<Source extends Target | WhereQueryHandler<T>>(
-        exists: Source,
-        conditional: typeof exists extends Target
-            ? WhereQueryHandler<Source>
-            : never
-    ): this {
+    public whereExists(options: ExistsQueryOptions<T>): this {
         this.handleCurrentCount()
-        this.currentCount!.whereExists(exists, conditional)
+        this._count!.whereExists(options)
 
         return this
     }
@@ -172,9 +167,9 @@ export default class CountManyQueryBuilder<T extends Target> {
      */
     public as(name: string): this {
         this.handleCurrentCount()
-        this.currentCount!.as(name)
+        this._count!.as(name)
 
-        this._options.push(this.currentCount!)
+        this._options.push(this._count!)
 
         return this
     }
@@ -235,7 +230,7 @@ export default class CountManyQueryBuilder<T extends Target> {
     // Protecteds -------------------------------------------------------------
     /** @internal */
     protected handleCurrentCount(): void {
-        if (!this.currentCount) this.currentCount = new CountQueryBuilder(
+        this._count = this._count = new CountQueryBuilder(
             this.target,
             this.alias
         )

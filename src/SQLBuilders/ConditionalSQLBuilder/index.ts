@@ -14,6 +14,7 @@ import {
     Cross,
 
     type ExistsQueryOptions,
+    type EntityExistsQueryOption
 } from "./ExistsSQLBuilder"
 
 // Types
@@ -104,7 +105,5 @@ export {
     Exists,
     Cross,
     type ExistsQueryOptions,
-
-
-
+    type EntityExistsQueryOption
 }

@@ -4,7 +4,7 @@ import type {
 } from "../../types"
 
 import type SelectQueryBuilder from "../SelectQueryBuilder"
-import type ConditionalQueryHandler from "../ConditionalQueryBuilder"
+import type ConditionalQueryBuilder from "../ConditionalQueryBuilder"
 import type GroupQueryBuilder from "../GroupQueryBuilder"
 import type { JoinQueryOptions } from "../JoinQueryBuilder"
 
@@ -12,7 +12,7 @@ export type FindOneQueryOptions<
     T extends EntityTarget | PolymorphicEntityTarget
 > = {
     select?: SelectQueryBuilder<T>
-    where?: ConditionalQueryHandler<T>
+    where?: ConditionalQueryBuilder<T>
     relations?: JoinQueryOptions<T>
     group?: GroupQueryBuilder<T>
 

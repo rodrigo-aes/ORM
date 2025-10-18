@@ -11,12 +11,9 @@ import type {
     EntityPropertiesKeys
 } from "../../types"
 
-import type {
-    AndQueryOptions,
-    OrQueryOptions
-} from "../../SQLBuilders"
-
-import type { WhereQueryHandler } from "../types"
+import type { ConditionalQueryOptions } from "../../SQLBuilders"
+import type { ConditionalQueryHandler } from "../types"
+import type { ExistsQueryOptions } from "../ExistsQueryBuilder"
 
 import type {
     CompatibleOperators,
@@ -29,15 +26,15 @@ import PolyORMException from "../../Errors"
 /**
  * Build a `WHERE/ON` conditional options 
  */
-export default class ConditionalQueryHandler<T extends Target> {
+export default class ConditionalQueryBuilder<T extends Target> {
     /** @internal */
     protected metadata: TargetMetadata<T>
 
     /** @internal */
-    private currentAnd!: AndQueryBuilder<T>
+    private _and!: AndQueryBuilder<T>
 
     /** @internal */
-    private _orOptions?: AndQueryBuilder<T>[]
+    private _or?: AndQueryBuilder<T>[]
 
     /** @internal */
     constructor(
@@ -48,14 +45,7 @@ export default class ConditionalQueryHandler<T extends Target> {
         public alias?: string,
     ) {
         this.metadata = MetadataHandler.targetMetadata(this.target)
-        this.addAndClause()
-    }
-
-    // Getters ================================================================
-    // Protecteds -------------------------------------------------------------
-    protected get orOptions(): AndQueryBuilder<T>[] {
-        if (!this._orOptions) this._orOptions = []
-        return this._orOptions
+        this.addAnd()
     }
 
     // Instance Methods =======================================================
@@ -80,7 +70,7 @@ export default class ConditionalQueryHandler<T extends Target> {
             ? OperatorType[typeof conditional]
             : never
     ): this {
-        this.currentAnd.where(propertie, conditional, value)
+        this._and.where(propertie, conditional, value)
         return this
     }
 
@@ -92,14 +82,8 @@ export default class ConditionalQueryHandler<T extends Target> {
      * @param conditional - Where query case another table entity included
      * @returns {this} - `this`
      */
-    public whereExists<Source extends Target | WhereQueryHandler<T>>(
-        exists: Source,
-        conditional: typeof exists extends Target
-            ? WhereQueryHandler<Source>
-            : never
-    ): this {
-        this.currentAnd.whereExists(exists, conditional)
-
+    public whereExists(options: ExistsQueryOptions<T>): this {
+        this._and.whereExists(options)
         return this
     }
 
@@ -124,9 +108,10 @@ export default class ConditionalQueryHandler<T extends Target> {
      * @returns 
      */
     public or(): this {
-        this.verifyCurrentAnd()
-        this.orOptions.push(this.currentAnd)
-        this.orOptions.push(this.addAndClause())
+        this.throwIfEmptyAnd()
+        this._or = this._or ?? []
+        this._or.push(this._and)
+        this._or.push(this.addAnd())
 
         return this
     }
@@ -154,7 +139,7 @@ export default class ConditionalQueryHandler<T extends Target> {
             : never
     ): this {
         this.or()
-        this.currentAnd.where(propertie, conditional, value)
+        this._and.where(propertie, conditional, value)
 
         return this
     }
@@ -165,30 +150,25 @@ export default class ConditionalQueryHandler<T extends Target> {
     * Convert `this` to `ConditionalQueryOptions` object
     * @returns - A object with conditional options
     */
-    public toQueryOptions(): (
-        AndQueryOptions<InstanceType<T>> |
-        OrQueryOptions<InstanceType<T>>
-    ) {
-        return this._orOptions?.map(opt => opt.toQueryOptions())
-            ?? this.currentAnd.toQueryOptions()
+    public toQueryOptions(): ConditionalQueryOptions<InstanceType<T>> {
+        return this._or?.map(opt => opt.toQueryOptions())
+            ?? this._and.toQueryOptions()
     }
 
     // Privates ---------------------------------------------------------------
     /** @internal */
-    private addAndClause(): AndQueryBuilder<T> {
-        this.currentAnd = new AndQueryBuilder(
+    private addAnd(): AndQueryBuilder<T> {
+        return this._and = new AndQueryBuilder(
             this.target,
             this.alias
         )
-
-        return this.currentAnd
     }
 
     // ------------------------------------------------------------------------
 
     /** @internal */
-    private verifyCurrentAnd(): void {
-        if (Object.keys(this.currentAnd._options).length === 0) (
+    private throwIfEmptyAnd(): void {
+        if (Object.keys(this._and.toQueryOptions()).length === 0) (
             PolyORMException.QueryBuilder.throw('EMPTY_AND_CLAUSE')
         )
     }

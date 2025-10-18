@@ -17,9 +17,10 @@ export default function ComputedProperty(fn: ComputedPropertyFunction) {
         target: Target,
         name: string
     ) {
-        ComputedPropertiesMetadata.findOrBuild(target.constructor as (
-            EntityTarget | PolymorphicEntityTarget | CollectionTarget
-        ))
+        ComputedPropertiesMetadata
+            .findOrBuild(target.constructor as (
+                EntityTarget | PolymorphicEntityTarget | CollectionTarget
+            ))
             .set(name, fn)
     }
 }

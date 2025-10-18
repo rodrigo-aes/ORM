@@ -5,6 +5,7 @@ import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
 import type {
+    ProcedureArgsObject,
     ProcedureArgsSchema,
     ProcedureArgs,
     ProcedureOutResult,
@@ -51,7 +52,10 @@ export default abstract class Procedure<
     // ------------------------------------------------------------------------
 
     public async call(...args: OptionalizeTuple<In[1]>): (
-        Promise<[Result, ProcedureOutResult<Out>]>
+        Promise<[
+            Result,
+            ProcedureOutResult<ProcedureArgsObject<Out[0], Out[1]>>
+        ]>
     ) {
         const [result, [out]] = await this._conn.query(
             this.callSQL(...args)

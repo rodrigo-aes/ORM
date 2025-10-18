@@ -313,7 +313,7 @@ export default class EntityMetadata extends Metadata {
 
     public toJSON<T extends EntityTarget = any>(): EntityMetadataJSON<T> {
         return EntityToJSONProcessMetadata.initialized
-            ? this.buildJSON()
+            ? this.buildJSON()!
             : EntityToJSONProcessMetadata.apply(() => this.buildJSON())
     }
 

@@ -1,24 +1,23 @@
 import {
-    Case,
-
-    type OrderQueryOptions as SQLBuilderQueryOptions,
-    type OrderQueryOption,
+    type OrderQueryOptions as SQLBuilderQueryOptions
 } from "../../SQLBuilders"
 
-// Query Handlers
+// Query Builders
 import CaseQueryBuilder from "../CaseQueryBuilder"
+
+// Symbols
+import { Case } from "../../SQLBuilders"
+
+// Handlers
+import QueryBuilderHandler from "../QueryBuilderHandler"
 
 // Types
 import type { Target } from "../../types"
-import type { CaseQueryHandler } from "../types"
 import type { OrderQueryOptions } from "./types"
 
 /** @internal */
 export default class OrderQueryBuilder<T extends Target> {
-    private _options!: (
-        OrderQueryOption<InstanceType<T>>[] |
-        CaseQueryBuilder<T>
-    )
+    private _options: SQLBuilderQueryOptions<InstanceType<T>> = []
 
     constructor(
         public target: T,
@@ -27,16 +26,21 @@ export default class OrderQueryBuilder<T extends Target> {
 
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
-    public orderBy<
-        Order extends OrderQueryOption<InstanceType<T>> | CaseQueryHandler<T>
-    >(...options: OrderQueryOptions<T, Order>): this {
-        const [first, ...rest] = options
+    public orderBy(...options: OrderQueryOptions<T>): this {
+        for (const option of options) switch (typeof option) {
+            case "object": this._options.push(option)
+                break
 
-        if (Array.isArray(first)) this.handleCommonOptions(
-            first, ...rest as OrderQueryOption<InstanceType<T>>[],
-        )
-
-        else this.handleCaseOptions(first as CaseQueryHandler<T>)
+            case "function":
+                this._options.push({
+                    [Case]: QueryBuilderHandler
+                        .handle(
+                            new CaseQueryBuilder(this.target, this.alias),
+                            option
+                        )
+                        .toQueryOptions()
+                })
+        }
 
         return this
     }
@@ -44,35 +48,10 @@ export default class OrderQueryBuilder<T extends Target> {
     // -----------------------------------------------------------------------
 
     public toQueryOptions(): SQLBuilderQueryOptions<InstanceType<T>> {
-        if (this._options instanceof CaseQueryBuilder) return {
-            [Case]: this._options.toQueryOptions()
-        }
-
         return this._options
-    }
-
-    // Privates ---------------------------------------------------------------
-    private handleCommonOptions(...options: (
-        OrderQueryOption<InstanceType<T>>[]
-    )) {
-        if (!this._options) this._options = []
-        if (!Array.isArray(this._options)) throw new Error
-
-        this._options.push(...options)
-    }
-
-    // ------------------------------------------------------------------------
-
-    private handleCaseOptions(clause: CaseQueryHandler<T>) {
-        this._options = new CaseQueryBuilder(
-            this.target,
-            this.alias
-        )
-
-        clause(this._options)
     }
 }
 
-export type {
-    OrderQueryOptions
+export {
+    type OrderQueryOptions
 }

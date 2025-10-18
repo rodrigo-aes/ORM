@@ -23,8 +23,8 @@ import type {
     OperatorType,
     CompatibleOperators
 } from "../OperatorQueryBuilder"
-
-import type { WhereQueryHandler } from "../types"
+import type { ExistsQueryOptions } from "../ExistsQueryBuilder"
+import type { ConditionalQueryHandler } from "../types"
 
 /**
  * Build `UPDATE` query
@@ -48,12 +48,10 @@ export default class UpdateQueryBuilder<T extends EntityTarget> {
     // Protecteds -------------------------------------------------------------
     /** @internal */
     protected get whereOptions(): ConditionalQueryBuilder<T> {
-        if (!this._where) this._where = new ConditionalQueryBuilder(
+        return this._where = this._where ?? new ConditionalQueryBuilder(
             this.target,
             this.alias
         )
-
-        return this._where
     }
 
     // privates ---------------------------------------------------------------
@@ -108,24 +106,8 @@ export default class UpdateQueryBuilder<T extends EntityTarget> {
      * @param conditional - Where query case another table entity included
      * @returns {this} - `this`
      */
-    public whereExists<
-        Source extends (
-            EntityTarget |
-            WhereQueryHandler<T>
-        )
-    >(
-        exists: Source,
-        conditional: typeof exists extends (
-            EntityTarget
-        )
-            ? WhereQueryHandler<Source>
-            : never
-    ): this {
-        this.whereOptions.whereExists(
-            exists as EntityTarget,
-            conditional as WhereQueryHandler<EntityTarget>
-        )
-
+    public whereExists(options: ExistsQueryOptions<T>): this {
+        this.whereOptions.whereExists(options)
         return this
     }
 

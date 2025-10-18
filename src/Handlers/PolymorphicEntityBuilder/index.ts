@@ -4,7 +4,7 @@ import BasePolymorphicEntity, {
 
 import { MetadataHandler } from "../../Metadata"
 
-import type { PolymorphicEntityMetadata, EntityMetadata } from "../../Metadata"
+import type { PolymorphicEntityMetadata } from "../../Metadata"
 import type { PolymorphicEntityTarget, EntityTarget } from "../../types"
 
 export default class PolymorphicEntityBuilder {
@@ -12,22 +12,25 @@ export default class PolymorphicEntityBuilder {
 
     // Static Methods =========================================================
     // Publics ----------------------------------------------------------------
-    public static buildSourceEntity<
+    public static instantiateSourceEntity<
         Source extends EntityTarget,
         T extends BasePolymorphicEntity<any>
     >(
         source: Source,
         target: T
     ): InstanceType<Source> {
-        const meta = MetadataHandler.targetMetadata(source)
+        const pk = MetadataHandler.targetMetadata(source).columns.primary.name
+        const meta = MetadataHandler.targetMetadata(target.constructor as (
+            PolymorphicEntityTarget
+        ))
 
         return new source({
-            [meta.columns.primary.name]: target.primaryKey,
+            [pk]: target.primaryKey,
 
-            ...Object.fromEntries(Object.entries(target).flatMap(
-                ([key, value]) => meta.columns.search(key)
-                    ? [[key, value]]
-                    : []
+            ...Object.fromEntries(meta.columns.sourceColumns(source).map(
+                ([sourceCol, targetCol]) => [sourceCol, target[targetCol as (
+                    keyof T
+                )]]
             )),
 
         }) as InstanceType<Source>

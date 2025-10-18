@@ -51,7 +51,8 @@ export default class MigrationsTableHandler {
     @Logs.RegisterMigration
     public async insert(name: string, at?: number, createdAt?: string) {
         const [[inserted, ...reordered]] = await InsertMigration
-            .call(this.connection, name, at, createdAt)
+            .connection(this.connection)
+            .call(name, at, createdAt)
 
         return [inserted, reordered] as [MigrationData, MigrationData[]]
     }
@@ -61,7 +62,7 @@ export default class MigrationsTableHandler {
     @Logs.EraseMigration
     public async delete(id: string | number): Promise<number> {
         const [_, { "@deleted_order": deleted }] = (
-            await DeleteMigration.call(this.connection, id)
+            await DeleteMigration.connection(this.connection).call(id)
         )
 
         return deleted
@@ -70,7 +71,7 @@ export default class MigrationsTableHandler {
     // ------------------------------------------------------------------------
 
     public async move(from: number, to: number): Promise<void> {
-        await MoveMigration.call(this.connection, from, to)
+        await MoveMigration.connection(this.connection).call(from, to)
     }
 
     // ------------------------------------------------------------------------

@@ -1,14 +1,11 @@
 // Query Builders
 import ConditionalSQLBuilder, { Case } from "../ConditionalSQLBuilder"
 
-// Handlers
-import { MetadataHandler } from "../../Metadata"
-
 // Helpers
 import { SQLStringHelper, PropertySQLHelper } from "../../Helpers"
 
 // Types
-import type { Target, TargetMetadata } from "../../types"
+import type { Target } from "../../types"
 import type {
     OrderQueryOptions,
     OrderQueryOption,

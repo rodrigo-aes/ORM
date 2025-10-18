@@ -2,7 +2,7 @@ import { MetadataHandler, RelationMetadata } from "../../Metadata"
 
 // Query Handlers
 import SelectQueryBuilder from "../SelectQueryBuilder"
-import ConditionalQueryHandler from "../ConditionalQueryBuilder"
+import ConditionalQueryBuilder from "../ConditionalQueryBuilder"
 
 // Types
 import type {
@@ -23,7 +23,7 @@ import type {
 
 import type {
     SelectQueryHandler,
-    OnQueryHandler,
+    ConditionalQueryHandler,
     JoinQueryHandler
 } from "../types"
 
@@ -128,8 +128,8 @@ export default class JoinQueryBuilder<T extends Target> {
      * @param onClause - On query handler
      * @returns {this} - `this`
      */
-    public on(onClause: OnQueryHandler<T>): this {
-        this._options.on = new ConditionalQueryHandler(
+    public on(onClause: ConditionalQueryHandler<T>): this {
+        this._options.on = new ConditionalQueryBuilder(
             this.target,
             this.alias
         )

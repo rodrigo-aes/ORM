@@ -1,6 +1,9 @@
 import type { EntityTarget } from "../../../../../types"
 import type ColumnMetadata from ".."
 import type { EntityMetadataJSON } from "../../../types"
+import type {
+    PolymorphicEntityMetadataJSON
+} from "../../../../PolymorphicEntityMetadata"
 import type { ColumnMetadataJSON } from ".."
 
 export type ForeignKeyReferencedGetter = () => EntityTarget | EntityTarget[]
@@ -25,7 +28,10 @@ export type RelatedColumnsMap = {
 }
 
 export type ForeignKeyReferencesJSON = {
-    entity: EntityMetadataJSON | { [k: string]: EntityMetadataJSON }
+    entity: (
+        EntityMetadataJSON |
+        { [k: string]: EntityMetadataJSON | PolymorphicEntityMetadataJSON }
+    )
     column: ColumnMetadataJSON | { [k: string]: ColumnMetadataJSON }
     name?: string
     constrained: boolean

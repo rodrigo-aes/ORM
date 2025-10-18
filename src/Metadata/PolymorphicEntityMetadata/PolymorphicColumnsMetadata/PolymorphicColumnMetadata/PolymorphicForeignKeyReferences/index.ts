@@ -82,7 +82,7 @@ export default class PolymorphicForeignKeyReferences {
     }
 
     // Privates ---------------------------------------------------------------
-    private handleEntity() {
+    private handleEntity(): EntityMetadata | RelatedEntitiesMap {
         const referenced = this.referenced()
 
         return Array.isArray(referenced)
@@ -94,12 +94,12 @@ export default class PolymorphicForeignKeyReferences {
 
     // ------------------------------------------------------------------------
 
-    private handleColumn() {
+    private handleColumn(): ColumnMetadata | RelatedColumnsMap {
         return this.entity instanceof EntityMetadata
             ? this.entity.columns.primary
             : Object.fromEntries(Object.entries(this.entity).map(
                 ([name, entity]) => [name, entity.columns.primary]
-            ))
+            )) as RelatedColumnsMap
     }
 
     // ------------------------------------------------------------------------

@@ -260,7 +260,7 @@ import {
     type WhenQueryOption,
     type ElseQueryOption,
     type ExistsQueryOptions,
-    type CrossExistsQueryOptions,
+    // type CrossExistsQueryOptions,
 } from './SQLBuilders'
 
 export {
@@ -504,5 +504,5 @@ export {
     type WhenQueryOption,
     type ElseQueryOption,
     type ExistsQueryOptions,
-    type CrossExistsQueryOptions,
+    // type CrossExistsQueryOptions,
 }

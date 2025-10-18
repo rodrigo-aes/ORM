@@ -5,7 +5,9 @@ import { Op } from "../../SQLBuilders"
 
 // Query Builders
 import OperatorQueryBuilder from "../OperatorQueryBuilder"
-import ExistsQueryBuilder from "../ExistsQueryBuilder"
+import ExistsQueryBuilder, {
+    type ExistsQueryOptions
+} from "../ExistsQueryBuilder"
 
 // Types
 import type {
@@ -22,8 +24,6 @@ import type {
     OperatorType
 } from "../OperatorQueryBuilder"
 
-import { WhereQueryHandler } from "../types"
-
 /**
  * Build a `AND` conditional options
  */
@@ -32,7 +32,7 @@ export default class AndQueryBuilder<T extends Target> {
     protected metadata: TargetMetadata<T>
 
     /** @internal */
-    public _options: AndQueryOptions<InstanceType<T>> = {}
+    private _options: AndQueryOptions<InstanceType<T>> = {}
 
     /** @internal */
     private exists?: ExistsQueryBuilder<T>
@@ -54,7 +54,7 @@ export default class AndQueryBuilder<T extends Target> {
     public get options(): AndQueryOptions<InstanceType<T>> {
         return {
             ...this._options,
-            ...this.exists?.options
+            ...this.exists?.toQueryOptions()
         }
     }
 
@@ -81,15 +81,13 @@ export default class AndQueryBuilder<T extends Target> {
             : never
     ): this {
         this._options[propertie] = (
-            OperatorQueryBuilder.isOperator(
-                conditional as string
-            )
+            OperatorQueryBuilder.isOperator(conditional as string)
                 ? {
                     [
-                        OperatorQueryBuilder[(
-                            conditional as CompatibleOperators<(
+                        OperatorQueryBuilder[conditional as (
+                            CompatibleOperators<
                                 EntityProperties<InstanceType<T>>[K]
-                            )>
+                            >
                         )]
                     ]: value
                 }
@@ -107,18 +105,13 @@ export default class AndQueryBuilder<T extends Target> {
      * @param conditional - Where query case another table entity included
      * @returns {this} - `this`
      */
-    public whereExists<Source extends Target | WhereQueryHandler<T>>(
-        exists: Source,
-        conditional: typeof exists extends Target
-            ? WhereQueryHandler<Source>
-            : never
-    ): this {
-        if (!this.exists) this.exists = new ExistsQueryBuilder(
+    public whereExists(options: ExistsQueryOptions<T>): this {
+        this.exists = this.exists ?? new ExistsQueryBuilder(
             this.target,
             this.alias
         )
 
-        this.exists.exists(exists, conditional)
+        this.exists.add(options)
 
         return this
     }
@@ -144,17 +137,12 @@ export default class AndQueryBuilder<T extends Target> {
         propertie: K,
         conditional: Cond
     ): this {
-        const orValue = conditional.map(cond => {
-            if (Array.isArray(cond)) {
-                const [operator, value] = cond
-
-                return { [OperatorQueryBuilder[operator]]: value }
-            }
-
-            return cond
-        })
-
-        this._options[propertie] = { [Op.Or]: orValue } as any
+        this._options[propertie] = {
+            [Op.Or]: conditional.map(cond => Array.isArray(cond)
+                ? { [OperatorQueryBuilder[cond[0]]]: cond[1] }
+                : cond
+            )
+        } as any
 
         return this
     }

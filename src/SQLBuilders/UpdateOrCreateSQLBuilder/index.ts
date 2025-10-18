@@ -73,7 +73,9 @@ export default class UpdateOrCreateSQLBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
 
     public SQL(): string {
-        return UpdateOrCreate.SQL(this.insertOrUpdateSQL(), this.selectSQL())
+        return UpdateOrCreate
+            .connection(this.metadata.connection)
+            .callSQL(this.insertOrUpdateSQL(), this.selectSQL())
     }
 
     // ------------------------------------------------------------------------

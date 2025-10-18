@@ -18,7 +18,7 @@ import type SelectQueryBuilder from "./SelectQueryBuilder"
 import type CountQueryBuilder from "./CountQueryBuilder"
 import type AndQueryBuilder from "./AndQueryBuilder"
 import type CaseQueryBuilder from "./CaseQueryBuilder"
-import type ConditionalQueryHandler from "./ConditionalQueryBuilder"
+import type ConditionalQueryBuilder from "./ConditionalQueryBuilder"
 import type JoinQueryBuilder from "./JoinQueryBuilder"
 
 import type {
@@ -26,7 +26,7 @@ import type {
     CountQueryHandler,
     AndQueryHandler,
     CaseQueryHandler,
-    WhereQueryHandler,
+    ConditionalQueryHandler,
     JoinQueryHandler,
     PaginateQueryBuilder
 } from "./types"
@@ -48,14 +48,14 @@ export {
     type CountQueryBuilder,
     type AndQueryBuilder,
     type CaseQueryBuilder,
-    type ConditionalQueryHandler,
+    type ConditionalQueryBuilder as ConditionalQueryHandler,
     type JoinQueryBuilder,
 
     type SelectQueryHandler,
     type CountQueryHandler,
     type AndQueryHandler,
     type CaseQueryHandler,
-    type WhereQueryHandler,
+    type ConditionalQueryHandler as WhereQueryHandler,
     type JoinQueryHandler,
     type PaginateQueryBuilder
 }

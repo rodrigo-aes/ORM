@@ -126,11 +126,7 @@ export default abstract class ManyRelationHandlerSQLBuilder<
     ) {
         return where
             ? ` AND ${(
-                new WhereSQLBuilder(
-                    this.related,
-                    where
-                )
-                    .conditionalSQL()
+                new WhereSQLBuilder(this.related, where).conditionalSQL()
             )}`
             : ''
     }

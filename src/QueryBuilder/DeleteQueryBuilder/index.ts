@@ -16,11 +16,11 @@ import type {
     EntityProperties,
     EntityPropertiesKeys
 } from "../../types"
-import type { WhereQueryHandler } from "../types"
 import type {
     OperatorType,
     CompatibleOperators
 } from "../OperatorQueryBuilder"
+import type { ExistsQueryOptions } from "../ExistsQueryBuilder"
 
 /**
  * Build a `DELETE` query
@@ -84,21 +84,11 @@ export default class DeleteQueryBuilder<T extends EntityTarget> {
     // ------------------------------------------------------------------------
     /**
      * Add a exists conditional option to match
-     * @param exists - A entity target or where query handler
-     * @param conditional - Where query case another table entity included
+     * @param options - Exists options
      * @returns {this} - `this`
      */
-    public whereExists<Source extends EntityTarget | WhereQueryHandler<T>>(
-        exists: Source,
-        conditional: typeof exists extends EntityTarget
-            ? WhereQueryHandler<Source>
-            : never
-    ): this {
-        this.whereOptions.whereExists(
-            exists as EntityTarget,
-            conditional as WhereQueryHandler<EntityTarget>
-        )
-
+    public whereExists(options: ExistsQueryOptions<T>): this {
+        this.whereOptions.whereExists(options)
         return this
     }
 

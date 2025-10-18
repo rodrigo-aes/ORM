@@ -3,11 +3,11 @@ import type {
     PolymorphicEntityTarget
 } from "../../types"
 
-import type ConditionalQueryHandler from "../ConditionalQueryBuilder"
+import type ConditionalQueryBuilder from "../ConditionalQueryBuilder"
 
 export type CaseQueryTuple<
     T extends EntityTarget | PolymorphicEntityTarget
 > = [
-        ConditionalQueryHandler<T>,
+        ConditionalQueryBuilder<T>,
         any
     ]

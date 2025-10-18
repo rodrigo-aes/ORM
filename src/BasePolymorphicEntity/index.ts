@@ -110,7 +110,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     constructor(properties?: any) {
         if (properties) Object.assign(this, properties)
-        this.getTrueMetadata().computedProperties?.assign(this)
+        this.getMetadataInstance().computedProperties?.assign(this)
 
         ColumnsSnapshots.set(this, this.toJSON())
     }
@@ -118,7 +118,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     // Getters ================================================================
     // Publics ----------------------------------------------------------------
     public get entities(): UnionEntitiesMap {
-        return this.getTrueMetadata().entities
+        return this.getMetadataInstance().entities
     }
 
     // Protecteds -------------------------------------------------------------
@@ -144,7 +144,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * Get polymorphic entity metadata
      */
     public getMetadata() {
-        return this.getTrueMetadata().toJSON()
+        return this.getMetadataInstance().toJSON()
     }
 
     // ------------------------------------------------------------------------
@@ -156,7 +156,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
             PolymorphicRepository<Constructor<this>>
         )
     >(): T {
-        return this.getTrueMetadata().getRepository() as T
+        return this.getMetadataInstance().getRepository() as T
     }
 
     // ------------------------------------------------------------------------
@@ -178,12 +178,11 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
     public toJSON<T extends BasePolymorphicEntity<Targets>>(this: T): (
         EntityProperties<T>
     ) {
-        const json = Object.fromEntries(this.getTrueMetadata().columns
-            .map(({ name }) => [name, this[name as keyof typeof this]])) as (
-                EntityProperties<T>
-            )
-
-        return this.hide(json)
+        return this.hide(
+            Object.fromEntries(this.getMetadataInstance().columns.map(
+                ({ name }) => [name, this[name as keyof T]]
+            )) as EntityProperties<T>
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -193,10 +192,12 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns A object without hidden properties
     */
     public hide<T extends BasePolymorphicEntity<Targets>>(
-        this: T, json?: EntityProperties<T>
+        this: T,
+        json: EntityProperties<T> = this.toJSON()
     ): EntityProperties<T> {
-        if (!json) json = this.toJSON()
-        for (const key of this.hidden) delete json[key as keyof typeof json]
+        for (const key of this.hidden) delete json[key as (
+            keyof EntityProperties<T>
+        )]
 
         return json
     }
@@ -221,7 +222,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      * @returns - A original entity instance
      */
     public toSourceEntity<T extends object | undefined = undefined>() {
-        return PolymorphicEntityBuilder.buildSourceEntity(
+        return PolymorphicEntityBuilder.instantiateSourceEntity(
             this.entities[this.entityType],
             this
         ) as (
@@ -259,11 +260,13 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
      */
     public async update(attributes: UpdateAttributes<this>): Promise<this> {
         this.fill(attributes)
+        const source = this.toSourceEntity()
+        const pk = this.getTrueSourceMetadata().columns.primary.name
 
         await this.getRepository().update(
             this.entities[this.entityType],
-            this,
-            this
+            source,
+            { [pk]: source[pk as keyof typeof source] }
         )
 
         return this
@@ -500,7 +503,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     // Privates ---------------------------------------------------------------
     /** @internal */
-    private getTrueMetadata(): PolymorphicEntityMetadata {
+    private getMetadataInstance(): PolymorphicEntityMetadata {
         return MetadataHandler.targetMetadata(
             this.constructor as PolymorphicEntityTarget
         )
@@ -517,7 +520,7 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
 
     /** @internal */
     private getRelationMetadata(name: string): RelationMetadataType {
-        return this.getTrueMetadata().relations.search(name)
+        return this.getMetadataInstance().relations.search(name)
             ?? this.getTrueSourceMetadata().relations.findOrThrow(name)
     }
 
@@ -534,8 +537,6 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
             metadata.name,
             shouldBe.name.replace('Metadata', '')
         )
-
-
     }
 
     // Static Getters =========================================================
@@ -615,16 +616,15 @@ export default abstract class BasePolymorphicEntity<Targets extends object[]> {
         ...args: any[]
     ): T {
         const scoped: T = (this as T & typeof BasePolymorphicEntity).reply()
-        TempMetadata.reply(scoped, this).setScope(
-            scoped,
-            (this as (
-                T & typeof BasePolymorphicEntity
-            )).getMetadataInstance().scopes?.getScope(name, ...args)! ?? (
-                PolyORMException.Metadata.throw(
+        TempMetadata
+            .reply(scoped, this)
+            .setScope(scoped, (this as T & typeof BasePolymorphicEntity)
+                .getMetadataInstance()
+                .scopes
+                ?.getScope(name, ...args)! ?? PolyORMException.Metadata.throw(
                     "UNKNOWN_SCOPE", name, this.name
                 )
             )
-        )
 
         return scoped
     }

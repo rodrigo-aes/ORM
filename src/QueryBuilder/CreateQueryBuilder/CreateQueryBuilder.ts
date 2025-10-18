@@ -57,9 +57,9 @@ export default abstract class CreateQueryBuilder<T extends EntityTarget> {
      * Entity properties and values object data to insert on table
      * @param attributes - Attributes data 
      */
-    public abstract data(
-        attributes: CreationAttributesOptions<InstanceType<T>>
-    ): Omit<this, 'fields' | 'values'>
+    public abstract data(attributes: (
+        CreationAttributesOptions<InstanceType<T>>
+    )): Omit<this, 'fields' | 'values'>
 
     // ------------------------------------------------------------------------
 

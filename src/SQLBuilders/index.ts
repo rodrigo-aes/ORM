@@ -65,7 +65,8 @@ import {
     type WhenQueryOption,
     type ElseQueryOption,
     type ExistsQueryOptions,
-    type CrossExistsQueryOptions
+    type EntityExistsQueryOption,
+    // type CrossExistsQueryOptions
 } from "./ConditionalSQLBuilder"
 
 // Symbols
@@ -78,7 +79,11 @@ import type {
     SelectPropertyKey
 } from "./SelectSQLBuilder"
 import type { GroupQueryOptions } from "./GroupSQLBuilder"
-import type { OrderQueryOptions, OrderQueryOption } from "./OrderSQLBuilder"
+import type {
+    OrderQueryOptions,
+    OrderQueryOption,
+    OrderCaseOption
+} from "./OrderSQLBuilder"
 
 import type {
     ConditionalQueryOptions,
@@ -165,6 +170,7 @@ export {
     type GroupQueryOptions,
     type OrderQueryOptions,
     type OrderQueryOption,
+    type OrderCaseOption,
 
     type RelationHandlerSQLBuilder,
     type OneRelationHandlerSQLBuilder,
@@ -176,7 +182,8 @@ export {
     type WhenQueryOption,
     type ElseQueryOption,
     type ExistsQueryOptions,
-    type CrossExistsQueryOptions,
+    type EntityExistsQueryOption,
+    // type CrossExistsQueryOptions,
 
     type ColumnSQLBuilderMap
 }

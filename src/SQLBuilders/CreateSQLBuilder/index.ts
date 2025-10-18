@@ -52,10 +52,11 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
     // Instance Methods =======================================================
     // Publics ----------------------------------------------------------------
     public SQL(): string {
-        return SQLStringHelper.normalizeSQL(`
-            INSERT INTO ${this.metadata.tableName} (${this.columnsSQL()})
-            VALUES ${this.valuesSQL()}
-        `)
+        return SQLStringHelper.normalizeSQL(
+            `INSERT INTO ${this.metadata.tableName} (${(
+                this.columnsSQL()
+            )}) VALUES ${this.valuesSQL()}`
+        )
     }
 
     // ------------------------------------------------------------------------
@@ -82,6 +83,16 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
         this._values = undefined
 
         return this
+    }
+
+    // ------------------------------------------------------------------------
+
+    public mapAttributes(): CreationAttributesOptions<InstanceType<T>> {
+        return this.bulk
+            ? this._values?.map(values => this.mapAttributeOption(values)) ?? (
+                []
+            )
+            : this.mapAttributeOption(this._values as any[])
     }
 
     // Privates ---------------------------------------------------------------
@@ -195,6 +206,16 @@ export default class CreateSQLBuilder<T extends EntityTarget> {
         return (this.attributes as CreationAttributes<InstanceType<T>>[]).map(
             att => this.createValues(att)
         )
+    }
+
+    // ------------------------------------------------------------------------
+
+    private mapAttributeOption(values: any[]): (
+        CreationAttributes<InstanceType<T>>
+    ) {
+        return Object.fromEntries(values.map((value, index) => [
+            this.columnsNames[index], value
+        ])) as CreationAttributes<InstanceType<T>>
     }
 }
 

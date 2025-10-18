@@ -37,7 +37,6 @@ import type {
     EntityPropertiesKeys,
 } from "../../types"
 
-import type { JoinQueryOptions } from "../JoinQueryBuilder"
 import type { FindOneQueryOptions } from "./types"
 
 import type {
@@ -52,7 +51,8 @@ import type {
 } from "../OperatorQueryBuilder"
 
 import type { SelectPropertiesOptions } from "../SelectQueryBuilder"
-import type { WhereQueryHandler } from "../types"
+import type { ExistsQueryOptions } from "../ExistsQueryBuilder"
+import type { ConditionalQueryHandler } from "../types"
 
 // Exceptions
 import PolyORMException from "../../Errors"
@@ -175,13 +175,8 @@ export default class FindOneQueryBuilder<T extends Target> {
      * @param conditional - Where query case another table entity included
      * @returns {this} - `this`
      */
-    public whereExists<Source extends Target | WhereQueryHandler<T>>(
-        exists: Source,
-        conditional: typeof exists extends Target
-            ? WhereQueryHandler<Source>
-            : never
-    ): this {
-        this.whereOptions.whereExists(exists, conditional)
+    public whereExists(options: ExistsQueryOptions<T>): this {
+        this.whereOptions.whereExists(options)
         return this
     }
 
